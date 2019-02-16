@@ -1,4 +1,7 @@
 # perceptia-servers
+[![Build Status](https://dev.azure.com/uw-thalesians/Capstone%202019/_apis/build/status/uw-thalesians.perceptia-servers?branchName=master)](https://dev.azure.com/uw-thalesians/Capstone%202019/_build/latest?definitionId=1&branchName=master)
+
+
 This repository contains the source files for the services that make up the Perceptia application.
 
 ## [Getting Started](#getting-started)
