@@ -22,10 +22,12 @@ func main() {
 
 	// Get the directory path to the TLS key and cert
 	tlsCertPath, errTLSCertPath := utility.RequireEnv("GATEWAY_TLSCERTPATH")
+	// Fail if the path to the cert is not provided
 	if errTLSCertPath != nil {
 		log.Fatal(errTLSCertPath)
 	}
 	tlsKeyPath, errTLSKeyPath := utility.RequireEnv("GATEWAY_TLSKEYPATH")
+	// Fail if the path to the key is not provided
 	if errTLSKeyPath != nil {
 		log.Fatal(errTLSKeyPath)
 	}

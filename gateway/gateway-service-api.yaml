@@ -1,0 +1,32 @@
+openapi: 3.0.2
+info:
+  version: 0.0.1
+  title: Gateway Service API
+  description: This document describes the APIs that are provided directly by the Gateway service of the Perceptia application. All other APIs in the Perceptia application are handled by seperate services which the Gateway passes along.
+  license:
+    name: MIT
+servers:
+  - url: 'https://api.perceptia.info'
+  - url: 'https://api.dev.perceptia.info'
+  - url: 'https://localhost:4443'
+paths:
+  /v1/testHealth:
+    get:
+      summary: Gets the current health of the api gateway
+      description: This path is not intended for production use. This is only for testing purposes and will be removed at some point.
+      operationId: getGatewayHealth
+      tags:
+        - health
+      responses:
+        '200':
+          description: Plain text noting gateway is okay
+          content:
+            text/plain:
+              schema:
+                type: string
+        '503':
+          description: Plain text noting service is down
+          content:
+            text/plain:
+              schema:
+                type: string
