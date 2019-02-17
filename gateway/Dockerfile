@@ -1,7 +1,7 @@
 FROM golang:1.11.5 as builder
 WORKDIR /perceptia-servers/gateway/gateway/
 COPY ./gateway .
-RUN GOOS=linux go build -o gateway .
+RUN env GOOS=linux GOARCH=386 go build -o gateway .
 
 FROM alpine
 RUN apk add --no-cache ca-certificates

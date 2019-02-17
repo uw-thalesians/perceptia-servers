@@ -43,6 +43,8 @@ func main() {
 		}
 	})
 
+	log.Printf("tlscert: %s\ntlskey: %s", tlsCertPath, tlsKeyPath)
+
 	//Starts listening at the address set, and passes requests at that address
 	//to the mux. Exits if ListenAndServerTLS fails
 	log.Printf("server is listening at https://%s...", listenAddr)
