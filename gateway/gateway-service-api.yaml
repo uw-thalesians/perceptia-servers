@@ -1,18 +1,25 @@
 openapi: 3.0.2
 info:
-  version: 0.0.1
+  version: 0.1.1
   title: Gateway Service API
   description: This document describes the APIs that are provided directly by the Gateway service of the Perceptia application. All other APIs in the Perceptia application are handled by seperate services which the Gateway passes along.
+  contact:
+    name: Thalesians
+    email: uw-thalesians@u.washington.edu
   license:
     name: MIT
     url: 'https://opensource.org/licenses/MIT'
 servers:
-  - description: Perceptia Production API Server
-    url: 'https://api.perceptia.info'
-  - description: Perceptia Development API Server
-    url: 'https://api.dev.perceptia.info'
-  - description: Localhost Development API Server
-    url: 'https://localhost:4443'
+  - url: 'https://api.perceptia.info'
+    description: Perceptia Production API Server
+  - url: 'https://api.dev.perceptia.info'
+    description: Perceptia Development API Server
+  - url: 'https://localhost:{port}'
+    description: Localhost Development API Server
+    variables:
+      port:
+        description: 'The port the server listens on'
+        default: '4443'
 paths:
   /v1/testHealth:
     get:
