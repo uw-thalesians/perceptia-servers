@@ -10,7 +10,7 @@ Each service that makes up the Perceptia application is contained in its own sub
 ## [Setup](#setup)
 
 ## [Structure](#structure)
-
+The Perceptia application's back-end is developed using a microservices architecture. This is reflected in the organization of this repository, with each subdirectory roughly cooresponding to one service of the application. There are additional subdirectories to maintain supporting code. Each subdirectory should have a README.md file which provides additional information about the files in that directory and how to use them.
 
 ## [Azure Boards Integration](#azure-boards-integration)
 To have commits and PRs for this repository appear as a link in an ADO work-item you have to use a specific syntax in your commit and PR messages. Read more about this proccess [here.](https://docs.microsoft.com/en-us/azure/devops/boards/github/link-to-from-github?view=vsts)

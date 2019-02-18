@@ -1,14 +1,14 @@
-#API Gateway Service
+# API Gateway Service
 
 The API Gateway service serves as the primary entry point for the Perceptia application. The Gateway provides several key services in addition to routing requests to the responsible microservice. These services include: CORS middleware, Session Authentication, Sign on, Account creation and management. 
 
-##Getting Started
+## Getting Started
 
 The Gateway service is designed to run within a linux container. This README will describe the key files used to build and run this service in a container. Additionally, there are certain environment variables that the application expects to be present in order to run. These environment variables will also be described in this document. 
 
-##Setup
-###Directory Structure
-####Root ./
+## Setup
+### Directory Structure
+#### Root ./
 The root of the gateway directory contains the supporting files for building the application.
 
 **Dockerfile:** multi-stage docker file to build the gateway executable and the gateway image
@@ -19,7 +19,7 @@ The root of the gateway directory contains the supporting files for building the
 
 **gateway-service-api.yaml** documents the public REST based APIs provided by the gateway service directly
 
-####Gateway ./gateway/
+#### Gateway ./gateway/
  Directory containing the source code for the gateway service.
  
  **main.go:** the source code containing the main function for the gateway service
@@ -28,14 +28,14 @@ The root of the gateway directory contains the supporting files for building the
  
  **go.sum:** use to track and ensure validity of retrieved package files listed in go.mod
  
- ###Building the container image
+ ### Building the container image
  
  
- ###Configuration
- ####Requirements
+ ### Configuration
+ #### Requirements
  
  
- ####Environment Variables
+ #### Environment Variables
  Use the following variables to configure the gateway for the given environment.
  
  `GATEWAY_LISTEN_ADDR` (OPTIONAL) identifies what [[host]:[port]] the gateway should listen for requests on. If this variable is not set the gateway will default to ":443".
