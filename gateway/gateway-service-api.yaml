@@ -5,10 +5,14 @@ info:
   description: This document describes the APIs that are provided directly by the Gateway service of the Perceptia application. All other APIs in the Perceptia application are handled by seperate services which the Gateway passes along.
   license:
     name: MIT
+    url: 'https://opensource.org/licenses/MIT'
 servers:
-  - url: 'https://api.perceptia.info'
-  - url: 'https://api.dev.perceptia.info'
-  - url: 'https://localhost:4443'
+  - description: Perceptia Production API Server
+    url: 'https://api.perceptia.info'
+  - description: Perceptia Development API Server
+    url: 'https://api.dev.perceptia.info'
+  - description: Localhost Development API Server
+    url: 'https://localhost:4443'
 paths:
   /v1/testHealth:
     get:
