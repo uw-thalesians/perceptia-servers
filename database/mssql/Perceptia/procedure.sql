@@ -35,13 +35,13 @@ GO
 -- GetAccountInfoByUUID --
 -----------------------------------------------------------
 
-CREATE PROCEDURE [USP_GetAccountInfoByUUID]
+CREATE PROCEDURE [USP_GetAccountByUUID]
 @AccountUUID UNIQUEIDENTIFIER
 AS
 SET NOCOUNT ON
 ;
 BEGIN
-	SELECT [AccountUUID], [Username], [FullName], [DisplayName], [Email], [Created]
+	SELECT [AccountUUID], [Username], [FullName], [DisplayName], [Email]
 	FROM [Account]
 	WHERE [AccountUUID] = @AccountUUID
 	;
@@ -53,13 +53,13 @@ GO
 -- GetAccountInfoByUsername --
 -----------------------------------------------------------
 
-CREATE PROCEDURE [USP_GetAccountInfoByUsername]
+CREATE PROCEDURE [USP_GetAccountByUsername]
 @Username NVARCHAR(255)
 AS
 SET NOCOUNT ON
 ;
 BEGIN
-	SELECT [AccountUUID], [Username], [FullName], [DisplayName], [Email], [Created]
+	SELECT [AccountUUID], [Username], [FullName], [DisplayName], [Email]
 	FROM [Account]
 	WHERE [Username] = @Username
 	;
@@ -71,13 +71,13 @@ GO
 -- GetAccountInfoByEmail --
 -----------------------------------------------------------
 
-CREATE PROCEDURE [USP_GetAccountInfoByEmail]
+CREATE PROCEDURE [USP_GetAccountByEmail]
 @Email NVARCHAR(255)
 AS
 SET NOCOUNT ON
 ;
 BEGIN
-	SELECT [AccountUUID], [Username], [FullName], [DisplayName], [Email], [Created]
+	SELECT [AccountUUID], [Username], [FullName], [DisplayName], [Email]
 	FROM [Account]
 	WHERE [Email] = @Email
 	;
@@ -86,18 +86,18 @@ END
 GO
 
 -----------------------------------------------------------
--- GetEncodedPasswordByEmail --
+-- GetEncodedPasswordByUserName --
 -----------------------------------------------------------
 
-CREATE PROCEDURE [USP_GetEncodedPasswordByEmail]
-@Email NVARCHAR(255)
+CREATE PROCEDURE [USP_GetEncodedPasswordByUserName]
+@UserName NVARCHAR(255)
 AS
 SET NOCOUNT ON
 ;
 BEGIN
-	SELECT [AccountUUID], [EncodedPassword]
+	SELECT [EncodedPassword]
 	FROM [Account]
-	WHERE [Email] = @Email
+	WHERE [UserName] = @UserName
 	;
 END
 ;

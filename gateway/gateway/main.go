@@ -8,11 +8,16 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/uw-thalesians/perceptia-servers/gateway/gateway/utility"
 
 	"github.com/gorilla/mux"
 )
+
+// SessionDuration is the time a session is valid. If it has been longer than time.Duration since
+// the session was started the session should be treated as no longer valid.
+const SessionDuration = time.Duration(time.Hour * 24)
 
 func main() {
 	fmt.Print("Hello World!")
