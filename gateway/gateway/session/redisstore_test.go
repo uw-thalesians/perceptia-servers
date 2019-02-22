@@ -1,4 +1,4 @@
-// +build ignore integration
+// +build all integration
 
 package session
 

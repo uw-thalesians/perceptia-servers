@@ -57,3 +57,14 @@ The root of the gateway directory contains the supporting files for building the
  
  #### Integration
  TODO
+ 
+ #### Testing
+ Go build tags are used to identify test types and allow selectively running tests, such as unit tests and integration tests. Testing files have the go build directive options to identify which build tags to run the test for:
+ 
+ `// +build tag_example all unit etc`
+ 
+ With this build directive at the top of the `some_test.go` file, followed by a blank line, when go test is run only the explicit tags provided to go test that match a build directive tag will be run. Example: 
+ 
+ `go test -tags=unit ./...` 
+ 
+ This command (assuming it is run from the same directory as the root go.mod file) will run all test files that contain the `unit` build tag.

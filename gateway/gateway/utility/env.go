@@ -20,7 +20,7 @@ func DefaultEnv(name, defaultValue string) string {
 
 	// Default to defaultValue if value not provided
 	if len(envVar) == 0 {
-		log.Printf("No %s env var set. Defaulting to %s", name, defaultValue)
+		log.Printf("DefaultEnv: No %s env var set. Defaulting to %s", name, defaultValue)
 		envVar = defaultValue
 	}
 	return envVar
