@@ -1,10 +1,28 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# File: azure-pipelines.yml
+# Version: 0.1.1
 
 trigger:
-- master
+  branches:
+    include:
+    - master
+    - develop
+    - feature/*
+    - hotfix/*
+  paths:
+    exclude:
+    - README.md
+    - infrastructure/*
+
+pr:
+  autoCancel: true
+  branches:
+    include:
+    - master
+    - develop
+  paths:
+    exclude:
+    - README.md
+    - infrastructure/*
 
 pool:
   vmImage: 'Ubuntu-16.04'
