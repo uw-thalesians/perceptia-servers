@@ -1,7 +1,5 @@
 # File: azure-pipelines.yml
-# Version: 0.1.0
-
-name: $(Build.DefinitionName)_$(Build.SourceBranchName)_$(Rev:.r)
+# Version: 0.1.1
 
 trigger:
   branches:
