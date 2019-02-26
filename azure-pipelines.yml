@@ -28,6 +28,6 @@ pr:
 jobs:
 - job: FakeJob
   pool:
-  - vmImage: 'Ubuntu-16.04'
+    vmImage: 'Ubuntu-16.04'
   steps:
     - bash: echo $(System.HostType)
