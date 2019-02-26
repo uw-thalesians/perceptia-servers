@@ -1,5 +1,6 @@
 # File: azure-pipelines.yml
-# Version: 0.1.1
+
+name: $(Build.SourceBranchName)_$(Date:yyyymmdd).$(Rev:.r)
 
 trigger:
   branches:
@@ -24,14 +25,9 @@ pr:
     - README.md
     - infrastructure/*
 
-pool:
-  vmImage: 'Ubuntu-16.04'
-
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+jobs:
+- job: FakeJob
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+    - bash: echo $(System.HostType)
