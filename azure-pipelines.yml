@@ -58,7 +58,8 @@ jobs:
   - group: Common
   pool:
     vmImage: 'Ubuntu-16.04'
-  condition: succeeded('TestGatewayUnitTests')
+  dependsOn: 'TestGatewayUnitTests'
+  condition: succeeded()
   steps:
   - task: Docker@1
     displayName: 'Build image'
