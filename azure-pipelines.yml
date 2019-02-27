@@ -27,7 +27,7 @@ pr:
     - infrastructure/*
 
 jobs:
-- job: TestUnitGateway
+- job: 'Test Gateway: Unit Tests'
   variables:
     GOBIN:  '$(GOPATH)/bin' # Go binaries path
     GOROOT: '/usr/local/go1.11' # Go installation path
@@ -41,11 +41,9 @@ jobs:
         GOBIN: $(GOBIN)
         GOROOT: $(GOROOT)
         GOPATH: $(GOPATH)
-    - bash: |
-        git status
-        pwd
-        ls -ah
-        go get -v -t -d ./...
-        go test -tags=unit ./...
+    - bash: go get -v -d ./...
       workingDirectory: '$(modulePath)'
-      displayName: 'Get dependencies, then run unit tests'
+      displayName: 'Get dependencies'
+    - bash: go test -tags=unit ./...
+      workingDirectory: '$(modulePath)'
+      displayName: 'Run unit tests'
