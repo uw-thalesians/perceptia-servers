@@ -44,7 +44,7 @@ func main() {
 	gmux.HandleFunc("/v1/testHealth", func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Set("Content-Type", "text/plain")
 		writer.WriteHeader(http.StatusOK)
-		_, err := io.WriteString(writer, "Gateway is working")
+		_, err := io.WriteString(writer, "Gateway is working as expected")
 		if err != nil {
 			log.Printf("%s", "Error writing response")
 		}
