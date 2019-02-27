@@ -1,4 +1,5 @@
 # File: azure-pipelines.yml
+# Main AZP YAML file
 
 name: $(Build.SourceBranchName)_$(Date:yyyymmdd).$(Rev:.r)
 
@@ -26,8 +27,18 @@ pr:
     - infrastructure/*
 
 jobs:
-- job: FakeJob
+- job: TestUnitGateway
+  variables:
+    GOBIN:  '$(GOPATH)/bin' # Go binaries path
+    GOROOT: '/usr/local/go1.11' # Go installation path
+    GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
+    modulePath: '$(system.defaultWorkingDirectory)/$(build.repository.name)/gateway/gateway' # Path to the module's code
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-    - bash: echo $(System.HostType)
+    - template: infrastructure/azp/templates/steps/goSetupDirectory.yml
+      parameters:
+        GOBIN: $(GOBIN)
+        GOPATH: $(GOROOT)
+        GOPATH: $(GOPATH)
+    - script: git status
