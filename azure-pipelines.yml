@@ -15,6 +15,8 @@ trigger:
     - feature/*
     - hotfix/*
   paths:
+    include:
+      - infrastructure/azp/*
     exclude:
     - README.md
     - infrastructure/*
@@ -56,12 +58,13 @@ jobs:
   - group: Common
   pool:
     vmImage: 'Ubuntu-16.04'
+  condition: succeeded('TestGatewayUnitTests')
   steps:
   - task: Docker@1
     displayName: 'Build image'
     inputs:
       command: Build an image
-      dockerFile: '$(system.defaultWorkingDirectory)/gateway'
+      dockerFile: '$(system.defaultWorkingDirectory)/gateway/Dockerfile'
       imageName: '$(DockerHubOrg)/$(GatewayImageName):$(GatewayVersion)-$(Build.SourceVersion)'
       qualifyImageName: false
 
@@ -77,5 +80,5 @@ jobs:
       command: Push an image
       imageName: '$(DockerHubOrg)/$(GatewayImageName):$(GatewayVersion)-$(Build.SourceVersion)'
       qualifyImageName: false
-      
+
 
