@@ -39,6 +39,6 @@ jobs:
     - template: infrastructure/azp/templates/steps/goSetupDirectory.yml
       parameters:
         GOBIN: $(GOBIN)
-        GOPATH: $(GOROOT)
+        GOROOT: $(GOROOT)
         GOPATH: $(GOPATH)
     - script: git status
