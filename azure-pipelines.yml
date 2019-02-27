@@ -36,7 +36,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-    - template: infrastructure/azp/templates/steps/goSetupDirectory.yml
+    - template: infrastructure/azp/template/step/goSetupDirectory.yml
       parameters:
         GOBIN: $(GOBIN)
         GOROOT: $(GOROOT)
