@@ -32,7 +32,7 @@ jobs:
     GOBIN:  '$(GOPATH)/bin' # Go binaries path
     GOROOT: '/usr/local/go1.11' # Go installation path
     GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
-    modulePath: '$(system.defaultWorkingDirectory)/$(build.repository.name)/gateway/gateway' # Path to the module's code
+    modulePath: '$(system.defaultWorkingDirectory)/gateway/gateway' # Path to the module's code
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
@@ -45,3 +45,7 @@ jobs:
         git status
         pwd
         ls -ah
+        go get -v -t -d ./...
+        go test -tags=unit ./...
+      workingDirectory: '$(modulePath)'
+      displayName: 'Get dependencies, then run unit tests'
