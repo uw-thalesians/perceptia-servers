@@ -41,6 +41,7 @@ jobs:
         GOBIN: $(GOBIN)
         GOROOT: $(GOROOT)
         GOPATH: $(GOPATH)
-    - script: |
+    - bash: |
         git status
         pwd
+        ls -ah

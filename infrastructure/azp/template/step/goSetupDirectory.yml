@@ -2,7 +2,7 @@
 # Step template for setting up GOPATH
 
 steps:
-- script: |
+- bash: |
     mkdir -p '${{ parameters.GOBIN }}'
     mkdir -p '${{ parameters.GOPATH }}/pkg'
     shopt -s extglob # enable extended pattern matching
