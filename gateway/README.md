@@ -36,13 +36,11 @@ The root of the gateway directory contains the supporting files for building the
  
  ### Building the container image
  
- TODO
- 
- See localStartExample.ps1 for an example of building. Goal is to use pipeline to build on each push to github. This has not been setup yet. Note, the example build script includes a version tag. This tag is based on the [semver](https://semver.org/) format.
+Builds of this container image are automatically triggered by pushes to the GitHub repository. Currently, the latest commit-hash is appended to the image tag and then the image is pushed to the container registry for uwthalesians on DockerHub. The version part of the tag is based on the [semver](https://semver.org/) format.
  
  ### Running the Gateway Locally
  
- For testing the gateway locally, the localStartExample.ps1 script can be used. This script assumes that docker is already installed and running on the system and that the TLS cert and key have been generated in the ./gateway/encrypt/. Note, the script is a PowerShell script and thus requires a PowerShell shell. Additionally, PowerShell will not run unsigned scripts by default, therefore you may need to enable running unsigned scripts to use it. 
+ For testing the gateway locally, the localStartExample.ps1 script can be used. This script assumes that docker is already installed and running on the system and that the TLS cert and key have been generated in the ./gateway/encrypt/ subdirectory. Note, the script is a PowerShell script and thus requires a PowerShell shell. Additionally, PowerShell will not run unsigned scripts by default, therefore you may need to enable running unsigned scripts to use it. 
  
  The example script also builds the docker container on each run. In the future it will instead pull from our container registry the latest image. This has not been done yet as our specific tagging and use of the container registry has not been defined yet. 
  
