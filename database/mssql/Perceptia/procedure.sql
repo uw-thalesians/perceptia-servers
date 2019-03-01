@@ -69,10 +69,10 @@ END
 GO
 
 -----------------------------------------------------------
--- GetCredentialByUsername --
+-- GetUserEncodedHashByUsername --
 -----------------------------------------------------------
 
-CREATE PROCEDURE [USP_GetCredentialByUsername]
+CREATE PROCEDURE [USP_GetUserEncodedHashByUsername]
 @Username NVARCHAR(255)
 AS
 SET NOCOUNT ON
@@ -95,7 +95,7 @@ GO
 -----------------------------------------------------------
 
 CREATE PROCEDURE [USP_CreateUser]
-@UUID UNIQUEIDENTIFIER,
+@UUID UNIQUEIDENTIFIER = NULL,
 @Username NVARCHAR(255),
 @FullName NVARCHAR(255),
 @DisplayName NVARCHAR(255),
@@ -104,6 +104,11 @@ AS
 SET NOCOUNT ON
 ;
 BEGIN TRY
+	IF @UUID IS NULL
+	BEGIN
+		SET @UUID = NEWID();
+	END
+	;
 	DECLARE @CredentialUUID UNIQUEIDENTIFIER;
 	BEGIN TRANSACTION [T1]
 		INSERT INTO [User]
@@ -120,7 +125,7 @@ BEGIN TRY
 		INSERT INTO [Credential]
 		([UUID],[EncodedHash])
 		VALUES
-		(@CredentialUUID ,@EncodedHash)
+		(@CredentialUUID, @EncodedHash)
 		;
 	
 	COMMIT TRANSACTION [T2]
@@ -133,6 +138,7 @@ BEGIN TRY
 		;
 	COMMIT TRANSACTION [T3]
 	;
+	-- Return the newly inserted user
 	BEGIN
 		EXECUTE USP_GetUserInfoByUUID @UUID
 		;
