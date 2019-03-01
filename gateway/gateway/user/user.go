@@ -9,6 +9,8 @@ import (
 	"net/mail"
 	"strings"
 
+	uuid "github.com/satori/go.uuid"
+
 	"golang.org/x/crypto/argon2"
 )
 
@@ -51,50 +53,37 @@ var (
 	ErrDisplayNameLengthGreaterThanMax = errors.New("display name must be less than " +
 		string(ValidDisplayNameMaxLength) + " characters long")
 
-	// ErrHashNotFromPassword used when the provided password was not the password used to create the user's PassHash.
-	ErrHashNotFromPassword = errors.New("the provided password did not create this user's PassHash")
+	// ErrHashNotFromPassword used when the provided password was not the password used to create the user's EncodedHash.
+	ErrHashNotFromPassword = errors.New("the provided password is not the users current password")
+
+	// ErrInvalidCredentials is used when the provided login credentials are invalid
+	ErrInvalidCredentials = errors.New("the provided username or password are invalid")
 
 	ErrInvalidHash         = errors.New("the encoded hash is not in the correct format")
 	ErrIncompatibleVersion = errors.New("incompatible version of argon2")
 )
 
-// User represents a user account in the database.
+// User represents a user.
 type User struct {
-	UUID        string `json:"uuid"`
-	Email       string `json:"-"` //never JSON encoded/decoded
-	UserName    string `json:"userName"`
-	FullName    string `json:"fullName"`
-	DisplayName string `json:"displayName"`
+	UUID        uuid.UUID `json:"uuid"`
+	Username    string    `json:"username"`
+	FullName    string    `json:"fullName"`
+	DisplayName string    `json:"displayName"`
 }
 
 // SignInCredentials represents user sign-in credentials.
 type SignInCredentials struct {
-	UserName string `json:"userName"`
+	Username string `json:"username"`
 	Password string `json:"password"`
-}
-
-// Credential represents the user's stored secret
-type Credential struct {
-	EncodedPassword string `json:"-"` // never JSON encoded/decoded
-}
-
-type NewCredential struct {
-	Password string `json:"-"`
 }
 
 // NewUser represents a new user signing up for an account.
 type NewUser struct {
-	Email       string `json:"email"`
+	Username    string `json:"username"`
+	FullName    string `json:"fullName"`
+	DisplayName string `json:"displayName"`
 	Password    string `json:"password"`
-	UserName    string `json:"userName"`
-	FullName    string `json:"fullName"`
-	DisplayName string `json:"displayName"`
-}
-
-// Updates represents allowed updates to a user profile.
-type Updates struct {
-	FullName    string `json:"fullName"`
-	DisplayName string `json:"displayName"`
+	EncodedHash string `json:"-"`
 }
 
 // argon2Params represents the parameters to the Argon2 password hashing algorithm
@@ -118,15 +107,11 @@ var specificArgon2Params = &argon2Params{
 //
 // Validation rules: (Only one error will be returned if multiple validation errors are present;
 // fail order is not guaranteed):
-// - Email field must be a valid email address.
 // - Password must be at least 6 characters.
 // - Password and PasswordConf must match.
 // - UserName must be non-zero length and may not contain spaces.
 func (nu *NewUser) Validate() error {
-	if err := validateEmail(nu.Email); err != nil {
-		return err
-	}
-	if err := validateUserName(nu.UserName); err != nil {
+	if err := validateUsername(nu.Username); err != nil {
 		return err
 	}
 	if err := validateFullName(nu.FullName); err != nil {
@@ -138,56 +123,49 @@ func (nu *NewUser) Validate() error {
 	return nil
 }
 
-// ToUser converts the NewUser to a User
-func (nu *NewUser) ToUser() (*User, error) {
-	errV := nu.Validate()
-	if errV != nil {
-		return nil, errV
+// PrepNewUser prepares a NewUser struct to be added to the database.
+func (nu *NewUser) PrepNewUser() error {
+	nu.Username = strings.TrimSpace(nu.Username)
+	nu.FullName = strings.TrimSpace(nu.FullName)
+	nu.DisplayName = strings.TrimSpace(nu.DisplayName)
+	encHash, errCEH := createEncodedHash(nu.Password)
+	if errCEH != nil {
+		return errCEH
 	}
-	usr := &User{
-		Email:       strings.TrimSpace(nu.Email),
-		UserName:    nu.UserName,
-		FullName:    strings.TrimSpace(nu.FullName),
-		DisplayName: strings.TrimSpace(nu.DisplayName),
-	}
-
-	return usr, nil
+	nu.EncodedHash = encHash
+	return nil
 }
 
-func (nc *NewCredential) ToCredential() (*Credential, error) {
-	errVP := validatePassword(nc.Password)
+func createEncodedHash(password string) (string, error) {
+	errVP := validatePassword(password)
 	if errVP != nil {
-		return nil, errVP
+		return InvalidEncodedPasswordHash, errVP
 	}
-	encodedHash, errGFP := generateFromPassword(nc.Password, specificArgon2Params)
+	encodedHash, errGFP := generateFromPassword(password, specificArgon2Params)
 	if errGFP != nil {
-		return nil, errGFP
+		return InvalidEncodedPasswordHash, errGFP
 	}
-	return &Credential{EncodedPassword: encodedHash}, nil
+	return encodedHash, nil
 }
 
 // Authenticate compares the plaintext password against the stored hash.
 // If the password matches with the hashed password true is returned and a nil error.
 // If the passwords don't match false is returned, along with ErrHashNotFromPassword
-func (u *Credential) Authenticate(password string) (bool, error) {
-	if bl, _ := comparePasswordAndHash(password, u.EncodedPassword); bl == false {
+func Authenticate(password, encodedHash string) (bool, error) {
+	if bl, _ := comparePasswordAndHash(password, encodedHash); bl == false {
 		return false, ErrHashNotFromPassword
 	}
 	return true, nil
-}
-
-// ApplyUpdates applies the updates to the user. An error is returned if the updates are invalid.
-func (u *User) ApplyUpdates(updates *Updates) error {
-	u.FullName = strings.TrimSpace(updates.FullName)
-	u.DisplayName = strings.TrimSpace(updates.DisplayName)
-	return nil
 }
 
 // ValidateSignInCredentails ensures that the supplied username is a valid username.
 // A valid username is one that would pass the Validate function for a NewUser.
 // Will return nil if the username is valid as defined above.
 func (c *SignInCredentials) ValidateSignInCredentials() error {
-	return validateUserName(c.UserName)
+	if validateUsername(c.Username) != nil || validatePassword(c.Password) != nil {
+		return ErrInvalidCredentials
+	}
+	return validateUsername(c.Username)
 }
 
 // validateEmail validates the provided email.
@@ -211,7 +189,7 @@ func validatePassword(password string) error {
 // validateUserName validates the provided userName.
 // If valid, returns nil, otherwise an error.
 // (If multiple validation errors occur only one error will be returned; order of validation is not guarantied)
-func validateUserName(userName string) error {
+func validateUsername(userName string) error {
 	if strings.Contains(userName, " ") {
 		return ErrUserNameHasSpace
 	}
@@ -263,7 +241,8 @@ func generateFromPassword(password string, p *argon2Params) (encodedHash string,
 	b64Hash := base64.RawStdEncoding.EncodeToString(hash)
 
 	// Return a string using the standard encoded hash representation.
-	encodedHash = fmt.Sprintf("$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s", argon2.Version, p.memory, p.iterations, p.parallelism, b64Salt, b64Hash)
+	encodedHash = fmt.Sprintf("$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s",
+		argon2.Version, p.memory, p.iterations, p.parallelism, b64Salt, b64Hash)
 
 	return encodedHash, nil
 }
@@ -277,10 +256,13 @@ func generateRandomBytes(n uint32) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return b, nil
 }
 
+// comparePasswordAndHash compares the provided password and encoded hash.
+// If the provided password was not the password that created the provided hash,
+// the function will return false. Otherwise the function will return true.
+// Any errors that occur will also be returned along with false.
 // Attribution: https://gist.github.com/alexedwards/34277fae0f48abe36822b375f0f6a621
 func comparePasswordAndHash(password, encodedHash string) (match bool, err error) {
 	// Extract the parameters, salt and derived key from the encoded password
@@ -302,6 +284,7 @@ func comparePasswordAndHash(password, encodedHash string) (match bool, err error
 	return false, nil
 }
 
+// decodeHash extracts the components of the encoded hash and returns them.
 // Attribution: https://gist.github.com/alexedwards/34277fae0f48abe36822b375f0f6a621
 func decodeHash(encodedHash string) (p *argon2Params, salt, hash []byte, err error) {
 	vals := strings.Split(encodedHash, "$")
