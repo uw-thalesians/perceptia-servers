@@ -1,6 +1,6 @@
 /*
 	Title: Perceptia Database Procedures
-	Version: 0.3.0
+	Version: 0.4.0
 */
 -------------------------------------------------------------------------------
 -- Change Log --
@@ -10,6 +10,7 @@
 	2019/02/19, Chris, Created Procedure, 0.1.0
 	2019/02/19, Chris, Created InsertNewAccount, 0.2.0
 	2019/02/19, Chris, Add Get procedures, 0.3.0
+	2019/02/28, Chris, Update procs for new schema, 0.4.0
 */
 
 -------------------------------------------------------------------------------
@@ -32,35 +33,35 @@ GO
 -------------------------------------------------------------------------------
 
 -----------------------------------------------------------
--- GetAccountInfoByUUID --
+-- GetUserInfoByUUID --
 -----------------------------------------------------------
 
-CREATE PROCEDURE [USP_GetAccountByUUID]
-@AccountUUID UNIQUEIDENTIFIER
+CREATE PROCEDURE [USP_GetUserInfoByUUID]
+@UUID UNIQUEIDENTIFIER
 AS
 SET NOCOUNT ON
 ;
 BEGIN
-	SELECT [AccountUUID], [Username], [FullName], [DisplayName], [Email]
-	FROM [Account]
-	WHERE [AccountUUID] = @AccountUUID
+	SELECT [UUID], [Username], [FullName], [DisplayName]
+	FROM [User]
+	WHERE [UUID] = @UUID
 	;
 END
 ;
 GO
 
 -----------------------------------------------------------
--- GetAccountInfoByUsername --
+-- GetUserInfoByUsername --
 -----------------------------------------------------------
 
-CREATE PROCEDURE [USP_GetAccountByUsername]
+CREATE PROCEDURE [USP_GetUserInfoByUsername]
 @Username NVARCHAR(255)
 AS
 SET NOCOUNT ON
 ;
 BEGIN
-	SELECT [AccountUUID], [Username], [FullName], [DisplayName], [Email]
-	FROM [Account]
+	SELECT [UUID], [Username], [FullName], [DisplayName]
+	FROM [User]
 	WHERE [Username] = @Username
 	;
 END
@@ -68,64 +69,74 @@ END
 GO
 
 -----------------------------------------------------------
--- GetAccountInfoByEmail --
+-- GetCredentialByUsername --
 -----------------------------------------------------------
 
-CREATE PROCEDURE [USP_GetAccountByEmail]
-@Email NVARCHAR(255)
+CREATE PROCEDURE [USP_GetCredentialByUsername]
+@Username NVARCHAR(255)
 AS
 SET NOCOUNT ON
 ;
 BEGIN
-	SELECT [AccountUUID], [Username], [FullName], [DisplayName], [Email]
-	FROM [Account]
-	WHERE [Email] = @Email
+	SELECT [EncodedHash]
+	FROM [Credential] AS [C]
+		INNER JOIN [dbo].[UserCredential] AS [UC]
+		ON [C].UUID=[UC].[Credential_UUID]
+		INNER JOIN [dbo].[User] AS [U]
+		ON [UC].[User_UUID]=[U].[UUID]
+	WHERE [U].[Username] = @Username
 	;
 END
 ;
 GO
 
 -----------------------------------------------------------
--- GetEncodedPasswordByUserName --
+-- CreateUser --
 -----------------------------------------------------------
 
-CREATE PROCEDURE [USP_GetEncodedPasswordByUserName]
-@UserName NVARCHAR(255)
-AS
-SET NOCOUNT ON
-;
-BEGIN
-	SELECT [EncodedPassword]
-	FROM [Account]
-	WHERE [UserName] = @UserName
-	;
-END
-;
-GO
-
------------------------------------------------------------
--- InsertNewAccount --
------------------------------------------------------------
-
-CREATE PROCEDURE [USP_InsertNewAccount]
-@AccountUUID UNIQUEIDENTIFIER,
+CREATE PROCEDURE [USP_CreateUser]
+@UUID UNIQUEIDENTIFIER,
 @Username NVARCHAR(255),
 @FullName NVARCHAR(255),
 @DisplayName NVARCHAR(255),
-@Email NVARCHAR(255),
-@EncodedPassword NVARCHAR(500)
+@EncodedHash NVARCHAR(500)
 AS
 SET NOCOUNT ON
 ;
 BEGIN TRY
+	DECLARE @CredentialUUID UNIQUEIDENTIFIER;
 	BEGIN TRANSACTION [T1]
-		INSERT INTO [Account]
-		([AccountUUID], [Username], [FullName], [DisplayName], [Email], [EncodedPassword])
+		INSERT INTO [User]
+		([UUID], [Username], [FullName], [DisplayName])
 		VALUES
-		(@AccountUUID, @Username, @FullName, @DisplayName, @Email, @EncodedPassword)
+		(@UUID, @Username, @FullName, @DisplayName)
 		;
 			
 	COMMIT TRANSACTION [T1]
+	;
+	BEGIN TRANSACTION [T2]
+		SET @CredentialUUID = NEWID();
+
+		INSERT INTO [Credential]
+		([UUID],[EncodedHash])
+		VALUES
+		(@CredentialUUID ,@EncodedHash)
+		;
+	
+	COMMIT TRANSACTION [T2]
+	;
+	BEGIN TRANSACTION [T3]
+		INSERT INTO [UserCredential]
+		([User_UUID], [Credential_UUID])
+		VALUES
+		(@UUID, @CredentialUUID)
+		;
+	COMMIT TRANSACTION [T3]
+	;
+	BEGIN
+		EXECUTE USP_GetUserInfoByUUID @UUID
+		;
+	END
 END TRY
 BEGIN CATCH
 	IF @@TRANCOUNT > 0
