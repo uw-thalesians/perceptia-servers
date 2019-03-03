@@ -1,6 +1,6 @@
 /*
 	Title: Perceptia Database Procedures
-	Version: 0.4.0
+	Version: 0.4.1
 */
 -------------------------------------------------------------------------------
 -- Change Log --
@@ -11,6 +11,7 @@
 	2019/02/19, Chris, Created InsertNewAccount, 0.2.0
 	2019/02/19, Chris, Add Get procedures, 0.3.0
 	2019/02/28, Chris, Update procs for new schema, 0.4.0
+	2019/03/01, Chris, Update to reflect field Uuid change, 0.4.1
 */
 
 -------------------------------------------------------------------------------
@@ -33,18 +34,18 @@ GO
 -------------------------------------------------------------------------------
 
 -----------------------------------------------------------
--- GetUserInfoByUUID --
+-- GetUserInfoByUuid --
 -----------------------------------------------------------
 
-CREATE PROCEDURE [USP_GetUserInfoByUUID]
-@UUID UNIQUEIDENTIFIER
+CREATE PROCEDURE [USP_GetUserInfoByUuid]
+@Uuid UNIQUEIDENTIFIER
 AS
 SET NOCOUNT ON
 ;
 BEGIN
-	SELECT [UUID], [Username], [FullName], [DisplayName]
+	SELECT [Uuid], [Username], [FullName], [DisplayName]
 	FROM [User]
-	WHERE [UUID] = @UUID
+	WHERE [Uuid] = @Uuid
 	;
 END
 ;
@@ -60,7 +61,7 @@ AS
 SET NOCOUNT ON
 ;
 BEGIN
-	SELECT [UUID], [Username], [FullName], [DisplayName]
+	SELECT [Uuid], [Username], [FullName], [DisplayName]
 	FROM [User]
 	WHERE [Username] = @Username
 	;
@@ -81,9 +82,9 @@ BEGIN
 	SELECT [EncodedHash]
 	FROM [Credential] AS [C]
 		INNER JOIN [dbo].[UserCredential] AS [UC]
-		ON [C].UUID=[UC].[Credential_UUID]
+		ON [C].Uuid=[UC].[Credential_Uuid]
 		INNER JOIN [dbo].[User] AS [U]
-		ON [UC].[User_UUID]=[U].[UUID]
+		ON [UC].[User_Uuid]=[U].[Uuid]
 	WHERE [U].[Username] = @Username
 	;
 END
@@ -95,7 +96,7 @@ GO
 -----------------------------------------------------------
 
 CREATE PROCEDURE [USP_CreateUser]
-@UUID UNIQUEIDENTIFIER = NULL,
+@Uuid UNIQUEIDENTIFIER = NULL,
 @Username NVARCHAR(255),
 @FullName NVARCHAR(255),
 @DisplayName NVARCHAR(255),
@@ -104,43 +105,43 @@ AS
 SET NOCOUNT ON
 ;
 BEGIN TRY
-	IF @UUID IS NULL
+	IF @Uuid IS NULL
 	BEGIN
-		SET @UUID = NEWID();
+		SET @Uuid = NEWID();
 	END
 	;
-	DECLARE @CredentialUUID UNIQUEIDENTIFIER;
+	DECLARE @CredentialUuid UNIQUEIDENTIFIER;
 	BEGIN TRANSACTION [T1]
 		INSERT INTO [User]
-		([UUID], [Username], [FullName], [DisplayName])
+		([Uuid], [Username], [FullName], [DisplayName])
 		VALUES
-		(@UUID, @Username, @FullName, @DisplayName)
+		(@Uuid, @Username, @FullName, @DisplayName)
 		;
 			
 	COMMIT TRANSACTION [T1]
 	;
 	BEGIN TRANSACTION [T2]
-		SET @CredentialUUID = NEWID();
+		SET @CredentialUuid = NEWID();
 
 		INSERT INTO [Credential]
-		([UUID],[EncodedHash])
+		([Uuid],[EncodedHash])
 		VALUES
-		(@CredentialUUID, @EncodedHash)
+		(@CredentialUuid, @EncodedHash)
 		;
 	
 	COMMIT TRANSACTION [T2]
 	;
 	BEGIN TRANSACTION [T3]
 		INSERT INTO [UserCredential]
-		([User_UUID], [Credential_UUID])
+		([User_Uuid], [Credential_Uuid])
 		VALUES
-		(@UUID, @CredentialUUID)
+		(@Uuid, @CredentialUuid)
 		;
 	COMMIT TRANSACTION [T3]
 	;
 	-- Return the newly inserted user
 	BEGIN
-		EXECUTE USP_GetUserInfoByUUID @UUID
+		EXECUTE USP_GetUserInfoByUuid @Uuid
 		;
 	END
 END TRY

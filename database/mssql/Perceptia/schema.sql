@@ -1,6 +1,6 @@
 /*
 	Title: Perceptia Database Schema
-	Version: 0.3.0
+	Version: 0.3.1
 */
 -------------------------------------------------------------------------------
 -- Change Log --
@@ -11,6 +11,7 @@
 	2019/02/19, Chris, Change DB Collation to support _SC, 0.1.1
 	2019/02/19, Chris, Add Table Definitions, 0.2.0
 	2019/02/28, Chris, Change table structure, 0.3.0
+	2019/03/01, Chris, Change field UUID to Uuid, 0.3.1
 */
 
 -------------------------------------------------------------------------------
@@ -61,12 +62,12 @@ GO
 -- Summary: Store information about a specific user
 
 CREATE TABLE [User] (
-	[UUID] UNIQUEIDENTIFIER DEFAULT(NEWID()) NOT NULL,
+	[Uuid] UNIQUEIDENTIFIER DEFAULT(NEWID()) NOT NULL,
 	[Username] NVARCHAR(255) NOT NULL,
 	[FullName] NVARCHAR(255),
 	[DisplayName] NVARCHAR(255),
 	[Created] DATETIME DEFAULT(GETDATE()),
-	CONSTRAINT [PK_User_UUID] PRIMARY KEY ([UUID]),
+	CONSTRAINT [PK_User_Uuid] PRIMARY KEY ([Uuid]),
 	CONSTRAINT [UQ_User_Username] UNIQUE ([Username])
 )
 ;
@@ -78,10 +79,10 @@ GO
 -- Summary: Store email addresses
 
 CREATE TABLE [Email] (
-	[UUID] UNIQUEIDENTIFIER DEFAULT(NEWID()) NOT NULL,
+	[Uuid] UNIQUEIDENTIFIER DEFAULT(NEWID()) NOT NULL,
 	[Email] NVARCHAR(255) NOT NULL,
 	[Created] DATETIME DEFAULT(GETDATE()),
-	CONSTRAINT [PK_Email_UUID] PRIMARY KEY ([UUID])
+	CONSTRAINT [PK_Email_Uuid] PRIMARY KEY ([Uuid])
 )
 ;
 GO
@@ -92,10 +93,10 @@ GO
 -- Summary: Associates an email with a user
 
 CREATE TABLE [UserEmail] (
-	[UUID] UNIQUEIDENTIFIER DEFAULT(NEWID()) NOT NULL,
-	[User_UUID] UNIQUEIDENTIFIER NOT NULL,
-	[Email_UUID] UNIQUEIDENTIFIER NOT NULL,
-	CONSTRAINT [PK_UserEmail_UUID] PRIMARY KEY ([UUID]),
+	[Uuid] UNIQUEIDENTIFIER DEFAULT(NEWID()) NOT NULL,
+	[User_Uuid] UNIQUEIDENTIFIER NOT NULL,
+	[Email_Uuid] UNIQUEIDENTIFIER NOT NULL,
+	CONSTRAINT [PK_UserEmail_Uuid] PRIMARY KEY ([Uuid]),
 )
 ;
 GO
@@ -106,10 +107,10 @@ GO
 -- Summary: Store login credentials
 
 CREATE TABLE [Credential] (
-	[UUID] UNIQUEIDENTIFIER DEFAULT(NEWID()) NOT NULL,
+	[Uuid] UNIQUEIDENTIFIER DEFAULT(NEWID()) NOT NULL,
 	[Created] DATETIME DEFAULT(GETDATE()),
 	[EncodedHash] NVARCHAR(500) NOT NULL,
-	CONSTRAINT [PK_Credential_UUID] PRIMARY KEY ([UUID])
+	CONSTRAINT [PK_Credential_Uuid] PRIMARY KEY ([Uuid])
 )
 ;
 GO
@@ -120,12 +121,12 @@ GO
 -- Summary: Associates a user with a login credential
 
 CREATE TABLE [UserCredential] (
-	[UUID] UNIQUEIDENTIFIER DEFAULT(NEWID()) NOT NULL,
-	[User_UUID] UNIQUEIDENTIFIER NOT NULL,
-	[Credential_UUID] UNIQUEIDENTIFIER NOT NULL,
-	CONSTRAINT [PK_UserCredential_UUID] PRIMARY KEY ([UUID]),
-	CONSTRAINT [UQ_UserCredential_UserUUID] UNIQUE ([User_UUID]),
-	CONSTRAINT [UQ_UserCredential_CredentialUUID] UNIQUE ([Credential_UUID])
+	[Uuid] UNIQUEIDENTIFIER DEFAULT(NEWID()) NOT NULL,
+	[User_Uuid] UNIQUEIDENTIFIER NOT NULL,
+	[Credential_Uuid] UNIQUEIDENTIFIER NOT NULL,
+	CONSTRAINT [PK_UserCredential_Uuid] PRIMARY KEY ([Uuid]),
+	CONSTRAINT [UQ_UserCredential_UserUuid] UNIQUE ([User_Uuid]),
+	CONSTRAINT [UQ_UserCredential_CredentialUuid] UNIQUE ([Credential_Uuid])
 )
 ;
 GO
@@ -141,10 +142,10 @@ GO
 
 ALTER TABLE [UserEmail]
 	ADD
-	CONSTRAINT [FK_UserEmail_UserUUID] FOREIGN KEY ([User_UUID])
-		REFERENCES [User] ([UUID]),
-	CONSTRAINT [FK_UserEmail_EmailUUID] FOREIGN KEY ([Email_UUID])
-		REFERENCES [Email] ([UUID])
+	CONSTRAINT [FK_UserEmail_UserUuid] FOREIGN KEY ([User_Uuid])
+		REFERENCES [User] ([Uuid]),
+	CONSTRAINT [FK_UserEmail_EmailUuid] FOREIGN KEY ([Email_Uuid])
+		REFERENCES [Email] ([Uuid])
 ;
 GO
 
@@ -155,10 +156,10 @@ GO
 
 ALTER TABLE [UserCredential]
 	ADD
-	CONSTRAINT [FK_UserCredential_UserUUID] FOREIGN KEY ([User_UUID])
-		REFERENCES [User] ([UUID]),
-	CONSTRAINT [FK_UserCredential_CredentialUUID] FOREIGN KEY ([Credential_UUID])
-		REFERENCES [Credential] ([UUID])
+	CONSTRAINT [FK_UserCredential_UserUuid] FOREIGN KEY ([User_Uuid])
+		REFERENCES [User] ([Uuid]),
+	CONSTRAINT [FK_UserCredential_CredentialUuid] FOREIGN KEY ([Credential_Uuid])
+		REFERENCES [Credential] ([Uuid])
 ;
 GO
 
@@ -183,9 +184,9 @@ GO
 -- UserEmail Table --
 -----------------------------------------------------------
 
--- Index for the User_UUID column
-CREATE INDEX [IX_UserEmail_UserUUID]
-	ON [UserEmail] ([User_UUID])
+-- Index for the User_Uuid column
+CREATE INDEX [IX_UserEmail_UserUuid]
+	ON [UserEmail] ([User_Uuid])
 ;
 GO
 
@@ -203,9 +204,9 @@ GO
 -- UserCredential Table --
 -----------------------------------------------------------
 
--- Index for the User_UUID column
-CREATE INDEX [IX_UserCredential_UserUUID]
-	ON [UserCredential] ([User_UUID])
+-- Index for the User_Uuid column
+CREATE INDEX [IX_UserCredential_UserUuid]
+	ON [UserCredential] ([User_Uuid])
 ;
 GO
 
