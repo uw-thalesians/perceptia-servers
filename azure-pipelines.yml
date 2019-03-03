@@ -17,6 +17,7 @@ trigger:
   paths:
     include:
       - infrastructure/azp/*
+      - '*'
     exclude:
     - README.md
     - infrastructure/*
