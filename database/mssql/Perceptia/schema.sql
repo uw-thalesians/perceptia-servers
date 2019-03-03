@@ -98,6 +98,7 @@ CREATE TABLE [UserEmail] (
 	[User_Uuid] UNIQUEIDENTIFIER NOT NULL,
 	[Email_Uuid] UNIQUEIDENTIFIER NOT NULL,
 	CONSTRAINT [PK_UserEmail_Uuid] PRIMARY KEY ([Uuid]),
+	CONSTRAINT [UQ_UserEmail_EmailUuid] UNIQUE ([Email_Uuid])
 )
 ;
 GO

@@ -1,6 +1,6 @@
 /*
 	Title: Perceptia Database Procedures
-	Version: 0.4.1
+	Version: 0.5.0
 */
 -------------------------------------------------------------------------------
 -- Change Log --
@@ -11,7 +11,8 @@
 	2019/02/19, Chris, Created InsertNewAccount, 0.2.0
 	2019/02/19, Chris, Add Get procedures, 0.3.0
 	2019/02/28, Chris, Update procs for new schema, 0.4.0
-	2019/03/01, Chris, Update to reflect field Uuid change, 0.4.1
+	2019/03/02, Chris, Update to reflect field Uuid change, 0.4.1
+	2019/03/02, Chris, Add add,get,delete for email, 0.5.0
 */
 
 -------------------------------------------------------------------------------
@@ -70,6 +71,69 @@ END
 GO
 
 -----------------------------------------------------------
+-- GetUserEmailByUuid --
+-----------------------------------------------------------
+
+CREATE PROCEDURE [USP_GetUserEmailByUuid]
+@Uuid UNIQUEIDENTIFIER
+AS
+SET NOCOUNT ON
+;
+BEGIN
+	SELECT [E].[Email] FROM [User] AS [U]
+		INNER JOIN [UserEmail] AS [UE]
+		ON [U].[Uuid] = [UE].[User_UUID]
+		INNER JOIN [Email] AS [E]
+		ON [UE].[Email_Uuid] = [E].[Uuid]
+		WHERE [U].[Uuid] = @Uuid
+	;
+END
+;
+GO
+
+-----------------------------------------------------------
+-- GetUserEmailByUsername --
+-----------------------------------------------------------
+
+CREATE PROCEDURE [USP_GetUserEmailByUsername]
+@Username NVARCHAR(255)
+AS
+SET NOCOUNT ON
+;
+BEGIN
+	SELECT [E].[Email] FROM [User] AS [U]
+		INNER JOIN [UserEmail] AS [UE]
+		ON [U].[Uuid] = [UE].[User_UUID]
+		INNER JOIN [Email] AS [E]
+		ON [UE].[Email_Uuid] = [E].[Uuid]
+		WHERE [U].[Username] = @Username
+	;
+END
+;
+GO
+
+-----------------------------------------------------------
+-- GetUsernameByEmail --
+-----------------------------------------------------------
+
+CREATE PROCEDURE [USP_GetUsernameByEmail]
+@Email NVARCHAR(255)
+AS
+SET NOCOUNT ON
+;
+BEGIN
+	SELECT [U].[Username] FROM [User] AS [U]
+		INNER JOIN [UserEmail] AS [UE]
+		ON [U].[Uuid] = [UE].[User_UUID]
+		INNER JOIN [Email] AS [E]
+		ON [UE].[Email_Uuid] = [E].[Uuid]
+		WHERE [E].[Email] = @Email
+	;
+END
+;
+GO
+
+-----------------------------------------------------------
 -- GetUserEncodedHashByUsername --
 -----------------------------------------------------------
 
@@ -106,9 +170,7 @@ SET NOCOUNT ON
 ;
 BEGIN TRY
 	IF @Uuid IS NULL
-	BEGIN
-		SET @Uuid = NEWID();
-	END
+		SET @Uuid = NEWID()
 	;
 	DECLARE @CredentialUuid UNIQUEIDENTIFIER;
 	BEGIN TRANSACTION [T1]
@@ -116,28 +178,23 @@ BEGIN TRY
 		([Uuid], [Username], [FullName], [DisplayName])
 		VALUES
 		(@Uuid, @Username, @FullName, @DisplayName)
+		;	
+
+		SET @CredentialUuid = NEWID()
 		;
-			
-	COMMIT TRANSACTION [T1]
-	;
-	BEGIN TRANSACTION [T2]
-		SET @CredentialUuid = NEWID();
 
 		INSERT INTO [Credential]
 		([Uuid],[EncodedHash])
 		VALUES
 		(@CredentialUuid, @EncodedHash)
 		;
-	
-	COMMIT TRANSACTION [T2]
-	;
-	BEGIN TRANSACTION [T3]
+
 		INSERT INTO [UserCredential]
 		([User_Uuid], [Credential_Uuid])
 		VALUES
 		(@Uuid, @CredentialUuid)
 		;
-	COMMIT TRANSACTION [T3]
+	COMMIT TRANSACTION [T1]
 	;
 	-- Return the newly inserted user
 	BEGIN
@@ -156,3 +213,107 @@ BEGIN CATCH
 END CATCH;
 ;
 GO
+
+
+-----------------------------------------------------------
+-- AddUserEmail --
+-----------------------------------------------------------
+
+CREATE PROCEDURE [USP_AddUserEmail]
+@Uuid UNIQUEIDENTIFIER,
+@Email NVARCHAR(255)
+AS
+SET NOCOUNT ON
+;
+BEGIN TRY
+	IF @Uuid IS NULL
+		THROW 50101, N'uuid must not be null', 1
+		;
+	IF @Email IS NULL
+		THROW 50102, N'email must not be null', 1
+		;
+	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @Uuid)
+		THROW 50201, N'user does not exist', 1
+		;
+	;
+	DECLARE @EmailUuid UNIQUEIDENTIFIER;
+	BEGIN TRANSACTION [T1]
+		SET @EmailUuid = NEWID();
+		INSERT INTO [Email]
+		([Uuid], [Email])
+		VALUES
+		(@EmailUuid, @Email)
+		;
+
+		INSERT INTO [UserEmail]
+		([User_Uuid], [Email_Uuid])
+		VALUES
+		(@Uuid, @EmailUuid)
+		;
+	COMMIT TRANSACTION [T1]
+	;
+END TRY
+BEGIN CATCH
+	IF @@TRANCOUNT > 0
+	BEGIN
+		ROLLBACK
+		;
+	END
+	;
+	THROW
+END CATCH;
+;
+GO
+
+-----------------------------------------------------------
+-- DeleteUserEmail --
+-----------------------------------------------------------
+
+CREATE PROCEDURE [USP_DeleteUserEmail]
+@Uuid UNIQUEIDENTIFIER,
+@Email NVARCHAR(255)
+AS
+SET NOCOUNT ON
+;
+BEGIN TRY
+	IF @Uuid IS NULL
+		THROW 50101, N'uuid must not be null', 1
+		;
+	IF @Email IS NULL
+		THROW 50102, N'email must not be null', 1
+		;
+	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @Uuid)
+		THROW 50201, N'user does not exist', 1
+		;
+	;
+	DECLARE @EmailUuid UNIQUEIDENTIFIER
+	;
+	SET @EmailUuid = (SELECT [E].[Uuid] FROM [User] AS [U]
+					INNER JOIN [UserEmail] AS [UE]
+					ON [U].[Uuid] = [UE].[User_UUID]
+					INNER JOIN [Email] AS [E]
+					ON [UE].[Email_Uuid] = [E].[Uuid]
+					WHERE [U].[Uuid] = @Uuid AND [E].[Email] = @Email)
+	;
+	IF @EmailUuid IS NULL
+		THROW 50202, N'user email does not exist', 1
+		;
+	;
+	BEGIN TRANSACTION [T1]
+		DELETE FROM [Email]
+		WHERE [Uuid] = @EmailUuid
+	COMMIT TRANSACTION [T1]
+	;
+END TRY
+BEGIN CATCH
+	IF @@TRANCOUNT > 0
+	BEGIN
+		ROLLBACK
+		;
+	END
+	;
+	THROW
+END CATCH;
+;
+GO
+
