@@ -1,6 +1,6 @@
 /*
 	Title: Perceptia Database Schema
-	Version: 0.3.1
+	Version: 0.3.2
 */
 -------------------------------------------------------------------------------
 -- Change Log --
@@ -11,7 +11,8 @@
 	2019/02/19, Chris, Change DB Collation to support _SC, 0.1.1
 	2019/02/19, Chris, Add Table Definitions, 0.2.0
 	2019/02/28, Chris, Change table structure, 0.3.0
-	2019/03/01, Chris, Change field UUID to Uuid, 0.3.1
+	2019/03/02, Chris, Change field UUID to Uuid, 0.3.1
+	2019/03/02, Chris, On delete cascade, 0.3.2
 */
 
 -------------------------------------------------------------------------------
@@ -143,9 +144,11 @@ GO
 ALTER TABLE [UserEmail]
 	ADD
 	CONSTRAINT [FK_UserEmail_UserUuid] FOREIGN KEY ([User_Uuid])
-		REFERENCES [User] ([Uuid]),
+		REFERENCES [User] ([Uuid])
+		ON DELETE CASCADE,
 	CONSTRAINT [FK_UserEmail_EmailUuid] FOREIGN KEY ([Email_Uuid])
 		REFERENCES [Email] ([Uuid])
+		ON DELETE CASCADE
 ;
 GO
 
@@ -157,9 +160,11 @@ GO
 ALTER TABLE [UserCredential]
 	ADD
 	CONSTRAINT [FK_UserCredential_UserUuid] FOREIGN KEY ([User_Uuid])
-		REFERENCES [User] ([Uuid]),
+		REFERENCES [User] ([Uuid])
+		ON DELETE CASCADE,
 	CONSTRAINT [FK_UserCredential_CredentialUuid] FOREIGN KEY ([Credential_Uuid])
 		REFERENCES [Credential] ([Uuid])
+		ON DELETE CASCADE
 ;
 GO
 
