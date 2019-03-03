@@ -11,8 +11,8 @@ var ErrUserNotFound = errors.New("user not found")
 
 // Store represents a store for Users.
 type Store interface {
-	// GetByUUID returns the User with the given UUID.
-	GetByUUID(uuid uuid.UUID) (*User, error)
+	// GetByUuid returns the User with the given Uuid.
+	GetByUuid(uuid uuid.UUID) (*User, error)
 
 	// GetByUsername returns the User with the given Username.
 	GetByUsername(username string) (*User, error)
@@ -21,8 +21,20 @@ type Store interface {
 	GetEncodedHashByUsername(username string) (string, error)
 
 	// Insert inserts the user into the database, and returns the newly-inserted User.
-	Insert(user *User) (*User, error)
+	Insert(user *NewUser) (*User, error)
+
+	// InsertEmail adds the email to the given user's account
+	InsertEmail(uuid uuid.UUID, email Email) error
+
+	// UpdateFullName updates the full name for the given user
+	UpdateFullName(uuid uuid.UUID, fullName string) (*User, error)
+
+	// UpdateDisplayName updates the display name for the given user
+	UpdateDisplayName(uuid uuid.UUID, displayName string) (*User, error)
 
 	// Delete deletes the user with the given ID.
 	Delete(uuid uuid.UUID) error
+
+	// DeleteEmail deletes the email from the given user's account
+	DeleteEmail(uuid uuid.UUID, email Email) error
 }

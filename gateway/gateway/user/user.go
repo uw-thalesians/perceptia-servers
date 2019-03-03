@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	uuid "github.com/satori/go.uuid"
-
 	"golang.org/x/crypto/argon2"
 )
 
@@ -27,8 +26,8 @@ const InvalidEncodedPasswordHash = ""
 
 // Custom Error types
 var (
-	// ErrEmailInvalid used when the provided email is not valid.
-	ErrEmailInvalid = errors.New("invalid email")
+	// ErrInvalidEmail used when the provided email is not valid.
+	ErrInvalidEmail = errors.New("invalid email")
 
 	// ErrPasswordLengthLessThanMin used when the provided password does not meet minimum length requirements.
 	ErrPasswordLengthLessThanMin = errors.New("password must be at least " +
@@ -63,9 +62,9 @@ var (
 	ErrIncompatibleVersion = errors.New("incompatible version of argon2")
 )
 
-// User represents a user.
+// User represents the standard struct for storing basic user information.
 type User struct {
-	UUID        uuid.UUID `json:"uuid"`
+	Uuid        uuid.UUID `json:"uuid"`
 	Username    string    `json:"username"`
 	FullName    string    `json:"fullName"`
 	DisplayName string    `json:"displayName"`
@@ -82,8 +81,22 @@ type NewUser struct {
 	Username    string `json:"username"`
 	FullName    string `json:"fullName"`
 	DisplayName string `json:"displayName"`
-	Password    string `json:"password"`
-	EncodedHash string `json:"-"`
+	EncodedHash string `json:"encodedHash"`
+}
+
+// Email represents the address part of a user's email
+type Email struct {
+	Address string `json:"email"`
+}
+
+// UpdateFullName represents an update to the user's full name
+type UpdateFullName struct {
+	FullName string `json:"fullName"`
+}
+
+// UpdateDisplayName represents an update to the user's display name
+type UpdateDisplayName struct {
+	DisplayName string `json:"displayName"`
 }
 
 // argon2Params represents the parameters to the Argon2 password hashing algorithm
@@ -107,9 +120,10 @@ var specificArgon2Params = &argon2Params{
 //
 // Validation rules: (Only one error will be returned if multiple validation errors are present;
 // fail order is not guaranteed):
-// - Password must be at least 6 characters.
-// - Password and PasswordConf must match.
-// - UserName must be non-zero length and may not contain spaces.
+// - Username must be non-zero length and may not contain spaces.
+// - FullName must be less than the maximum length for the field.
+// - DisplayName must be less than the maximum length for the field.
+// - EncodedHash must be set and a valid EncodedHash.
 func (nu *NewUser) Validate() error {
 	if err := validateUsername(nu.Username); err != nil {
 		return err
@@ -120,23 +134,33 @@ func (nu *NewUser) Validate() error {
 	if err := validateDisplayName(nu.DisplayName); err != nil {
 		return err
 	}
+	if err := validateEncodedHash(nu.EncodedHash); err != nil {
+		return err
+	}
 	return nil
 }
 
 // PrepNewUser prepares a NewUser struct to be added to the database.
-func (nu *NewUser) PrepNewUser() error {
+func (nu *NewUser) PrepNewUser() {
 	nu.Username = strings.TrimSpace(nu.Username)
 	nu.FullName = strings.TrimSpace(nu.FullName)
 	nu.DisplayName = strings.TrimSpace(nu.DisplayName)
-	encHash, errCEH := createEncodedHash(nu.Password)
-	if errCEH != nil {
-		return errCEH
-	}
-	nu.EncodedHash = encHash
-	return nil
 }
 
-func createEncodedHash(password string) (string, error) {
+// NewEmail creates a Email object using the provided email address.
+// An error is returned if there is an issue with the address.
+func NewEmail(address string) (userEmail *Email, error error) {
+	addr, errPA := mail.ParseAddress(address)
+	if errPA != nil {
+		return nil, ErrInvalidEmail
+	}
+	return &Email{Address: addr.Address}, nil
+}
+
+// CreateEncodedHash takes the provided password and hashes it.
+// If the password is invalid or an error occurs while creating the encoded hash,
+// the error will be returned along with an invalid encoded password hash.
+func CreateEncodedHash(password string) (string, error) {
 	errVP := validatePassword(password)
 	if errVP != nil {
 		return InvalidEncodedPasswordHash, errVP
@@ -148,7 +172,7 @@ func createEncodedHash(password string) (string, error) {
 	return encodedHash, nil
 }
 
-// Authenticate compares the plaintext password against the stored hash.
+// Authenticate compares the plaintext password against the encoded hash.
 // If the password matches with the hashed password true is returned and a nil error.
 // If the passwords don't match false is returned, along with ErrHashNotFromPassword
 func Authenticate(password, encodedHash string) (bool, error) {
@@ -172,7 +196,7 @@ func (c *SignInCredentials) ValidateSignInCredentials() error {
 // If valid, returns nil, otherwise an error.
 func validateEmail(email string) error {
 	if _, err := mail.ParseAddress(email); err != nil {
-		return ErrEmailInvalid
+		return ErrInvalidEmail
 	}
 	return nil
 }
@@ -182,6 +206,15 @@ func validateEmail(email string) error {
 func validatePassword(password string) error {
 	if len([]rune(password)) < ValidPasswordMinLength {
 		return ErrPasswordLengthLessThanMin
+	}
+	return nil
+}
+
+// validateEncodedHash validates the provided encoded hash.
+// If valid, returns nil, otherwise an error.
+func validateEncodedHash(encodedHash string) error {
+	if _, _, _, err := decodeHash(encodedHash); err != nil {
+		return ErrInvalidHash
 	}
 	return nil
 }
