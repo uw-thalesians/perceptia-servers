@@ -21,10 +21,10 @@ type Store interface {
 	GetEncodedHashByUsername(username string) (string, error)
 
 	// Insert inserts the user into the database, and returns the newly-inserted User.
-	Insert(user *NewUser) (*User, error)
+	Insert(newUser *NewUser) (*User, error)
 
 	// InsertEmail adds the email to the given user's account
-	InsertEmail(uuid uuid.UUID, email Email) error
+	InsertEmail(uuid uuid.UUID, email string) error
 
 	// UpdateFullName updates the full name for the given user
 	UpdateFullName(uuid uuid.UUID, fullName string) (*User, error)
@@ -36,5 +36,5 @@ type Store interface {
 	Delete(uuid uuid.UUID) error
 
 	// DeleteEmail deletes the email from the given user's account
-	DeleteEmail(uuid uuid.UUID, email Email) error
+	DeleteEmail(uuid uuid.UUID, email string) error
 }
