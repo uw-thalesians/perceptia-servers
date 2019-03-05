@@ -9,7 +9,7 @@ parameters:
   versionBuildIdTag: ''
 
 steps:
-   - task: Docker@1
+  - task: Docker@1
     displayName: 'Build image'
     inputs:
       command: Build an image
