@@ -1,7 +1,7 @@
 # File: azure-pipelines.yml
 # Main AZP YAML file
 
-name: $(Build.SourceBranchName).$(Date:yyyymmdd)$(Rev:.r)
+name: $(Build.BuildId)
 
 variables:
   - group: Common
