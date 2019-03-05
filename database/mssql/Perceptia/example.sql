@@ -32,7 +32,7 @@ GO
 
 -- Run this first
 DECLARE @UserUuid UNIQUEIDENTIFIER
-SET @UserUuid = NEWID()
+SET @UserUuid = N'557274CD-30BA-4EA2-81F4-286BFB269F5B'
 ;
 EXECUTE USP_CreateUser 
 	@Uuid = @UserUuid, 
@@ -61,3 +61,10 @@ SELECT TOP (1000) [Uuid]
       ,[Email]
       ,[Created]
   FROM [Perceptia].[dbo].[Email]
+
+ -- Shows users
+SELECT TOP (1000) [Uuid]
+      ,[Username]
+      ,[Created]
+  FROM [Perceptia].[dbo].[User]
+
