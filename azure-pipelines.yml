@@ -66,7 +66,7 @@ jobs:
   - name: GatewayImageTagBuildId
     value: $(GatewayImageQualified):$(Build.BuildId)
   - name: GatewayImageTagVersionBuildId
-    value: $(GatewayImageQualified):$(GatewayVersion)-$(Build.BuildId))
+    value: $(GatewayImageQualified):$(GatewayVersion)-$(Build.BuildId)
   pool:
     vmImage: 'Ubuntu-16.04'
   dependsOn: 'TestGatewayUnitTests'
@@ -123,7 +123,7 @@ jobs:
   - name: MssqlImageTagBuildId
     value: $(MssqlImageQualified):$(Build.BuildId)
   - name: MssqlImageTagVersionBuildId
-    value: $(MssqlImageQualified):$(MssqlVersion)-$(Build.BuildId))
+    value: $(MssqlImageQualified):$(MssqlVersion)-$(Build.BuildId)
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
