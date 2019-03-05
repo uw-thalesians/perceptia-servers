@@ -73,7 +73,7 @@ jobs:
   dependsOn: 'TestGatewayUnitTests'
   condition: succeeded()
   steps:
-  - template: dockerStandardBuildTagPush.yml
+  - template: infrastructure/azp/template/step/dockerStandardBuildTagPush.yml
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/gateway/Dockerfile'
       qualifiedImageName: $(GatewayImageQualified)
@@ -93,7 +93,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-  - template: dockerStandardBuildTagPush.yml
+  - template: infrastructure/azp/template/step/dockerStandardBuildTagPush.yml
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/database/mssql/Dockerfile'
       qualifiedImageName: $(MssqlImageQualified)
