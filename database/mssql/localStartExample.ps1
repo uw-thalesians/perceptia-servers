@@ -12,12 +12,13 @@ Set-Variable -Name MSSQL_VOLUME_NAME -Value "mssql_vol"
 docker build --tag "${MSSQL_IMAGE_AND_TAG}" .
 
 docker rm --force ${MSSQL_SERVICE_NAME}
-docker volume rm ${MSSQL_VOLUME_NAME}
+#docker volume rm ${MSSQL_VOLUME_NAME}
 
 docker run `
 --detach `
 --env 'ACCEPT_EULA=Y' `
 --env "SA_PASSWORD=$Env:SA_PASSWORD" `
+--env "SKIP_SETUP_IF_EXISTS=Y" `
 --mount type=volume,source=${MSSQL_VOLUME_NAME},destination=/var/opt/mssql `
 --name=mssql `
 --publish 1401:1433 `
