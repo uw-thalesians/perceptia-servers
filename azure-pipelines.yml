@@ -49,7 +49,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-    - template: $(TemplatePath)/step/goSetupDirectory.yml
+    - template: '$(TemplatePath)/step/goSetupDirectory.yml'
       parameters:
         GOBIN: $(GOBIN)
         GOROOT: $(GOROOT)
@@ -65,17 +65,17 @@ jobs:
   - name: GatewayImageQualified
     value: '$(DockerHubOrg)/$(GatewayImageName)'
   - name: GatewayImageTagVersion
-    value: $(GatewayImageQualified):$(GatewayVersion)
+    value: '$(GatewayImageQualified):$(GatewayVersion)'
   - name: GatewayImageTagVersionBuildId
-    value: $(GatewayImageTagVersion)-build-$(Build.BuildId)
+    value: '$(GatewayImageTagVersion)-build-$(Build.BuildId)'
   - name: GatewayImageTagVersionBuildIdBranch
-    value: $(GatewayImageTagVersionBuildId)-branch-$(Build.SourceBranchName)
+    value: '$(GatewayImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
   pool:
     vmImage: 'Ubuntu-16.04'
   dependsOn: 'TestGatewayUnitTests'
   condition: succeeded()
   steps:
-  - template: $(TemplatePath)/step/dockerStandardBuildTagPush.yml
+  - template: '$(TemplatePath)/step/dockerStandardBuildTagPush.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/gateway/Dockerfile'
       qualifiedImageName: $(GatewayImageQualified)
@@ -87,15 +87,15 @@ jobs:
   - name: MssqlImageQualified
     value: '$(DockerHubOrg)/$(MssqlImageName)'
   - name: MssqlImageTagVersion
-    value: $(MssqlImageQualified):$(MssqlVersion)
+    value: '$(MssqlImageQualified):$(MssqlVersion)'
   - name: MssqlImageTagVersionBuildId
-    value: $(MssqlImageTagVersion)-build-$(Build.BuildId)
+    value: '$(MssqlImageTagVersion)-build-$(Build.BuildId)'
   - name: MssqlImageTagVersionBuildIdBranch
-    value: $(MssqlImageTagVersionBuildId)-branch-$(Build.SourceBranchName)
+    value: '$(MssqlImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-  - template: $(TemplatePath)/step/dockerStandardBuildTagPush.yml
+  - template: '$(TemplatePath)/step/dockerStandardBuildTagPush.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/database/mssql/Dockerfile'
       qualifiedImageName: $(MssqlImageQualified)
