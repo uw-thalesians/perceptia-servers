@@ -9,8 +9,6 @@ variables:
     value: '0.1.1'
   - name: MssqlVersion
     value: '0.3.2'
-  - name: TemplatePath
-    value: 'infrastructure/azp/template'
   
 
 trigger:
@@ -49,7 +47,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-    - template: '$(TemplatePath)/step/goSetupDirectory.yml'
+    - template: 'infrastructure/azp/template/step/goSetupDirectory.yml'
       parameters:
         GOBIN: $(GOBIN)
         GOROOT: $(GOROOT)
@@ -75,7 +73,7 @@ jobs:
   dependsOn: 'TestGatewayUnitTests'
   condition: succeeded()
   steps:
-  - template: '$(TemplatePath)/step/dockerStandardBuildTagPush.yml'
+  - template: 'infrastructure/azp/template/step/dockerStandardBuildTagPush.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/gateway/Dockerfile'
       qualifiedImageName: $(GatewayImageQualified)
@@ -95,7 +93,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-  - template: '$(TemplatePath)/step/dockerStandardBuildTagPush.yml'
+  - template: 'infrastructure/azp/template/step/dockerStandardBuildTagPush.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/database/mssql/Dockerfile'
       qualifiedImageName: $(MssqlImageQualified)
