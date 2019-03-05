@@ -1,6 +1,7 @@
 /*
 	Title: Perceptia Database Procedures
 	Version: 0.5.0
+	Schema Version: 0.3.2
 */
 -------------------------------------------------------------------------------
 -- Change Log --
