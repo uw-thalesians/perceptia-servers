@@ -63,8 +63,6 @@ jobs:
     value: '$(DockerHubOrg)/$(GatewayImageName)'
   - name: GatewayImageTagVersion
     value: $(GatewayImageQualified):$(GatewayVersion)
-  - name: GatewayImageTagBuildId
-    value: $(GatewayImageQualified):build-$(Build.BuildId)
   - name: GatewayImageTagVersionBuildId
     value: $(GatewayImageQualified):$(GatewayVersion)-build-$(Build.BuildId)
   pool:
@@ -87,7 +85,6 @@ jobs:
       qualifyImageName: false
       arguments: |
         $(GatewayImageTagVersion)
-        $(GatewayImageTagBuildId)
         $(GatewayImageTagVersionBuildId)
   - task: Docker@1
     displayName: Login
@@ -102,12 +99,6 @@ jobs:
       imageName: $(GatewayImageTagVersion)
       qualifyImageName: false
   - task: Docker@1
-    displayName: Push BuildId Tag
-    inputs:
-      command: Push an image
-      imageName: $(GatewayImageTagBuildId)
-      qualifyImageName: false
-  - task: Docker@1
     displayName: Push Version BuildId Tag
     inputs:
       command: Push an image
@@ -120,8 +111,6 @@ jobs:
     value: '$(DockerHubOrg)/$(MssqlImageName)'
   - name: MssqlImageTagVersion
     value: $(MssqlImageQualified):$(MssqlVersion)
-  - name: MssqlImageTagBuildId
-    value: $(MssqlImageQualified):build-$(Build.BuildId)
   - name: MssqlImageTagVersionBuildId
     value: $(MssqlImageQualified):$(MssqlVersion)-build-$(Build.BuildId)
   pool:
@@ -142,7 +131,6 @@ jobs:
       qualifyImageName: false
       arguments: |
         $(MssqlImageTagVersion)
-        $(MssqlImageTagBuildId)
         $(MssqlImageTagVersionBuildId)
   - task: Docker@1
     displayName: Login
@@ -155,12 +143,6 @@ jobs:
     inputs:
       command: Push an image
       imageName: $(MssqlImageTagVersion)
-      qualifyImageName: false
-  - task: Docker@1
-    displayName: Push BuildId Tag
-    inputs:
-      command: Push an image
-      imageName: $(MssqlImageTagBuildId)
       qualifyImageName: false
   - task: Docker@1
     displayName: Push Version BuildId Tag
