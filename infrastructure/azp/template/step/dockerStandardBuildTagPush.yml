@@ -1,0 +1,61 @@
+# File: dockerStandardBuildTagPush.yml
+# Standard build, tag, and push process
+
+parameters:
+  dockerFile: ''
+  qualifiedImageName: ''
+  versionBuildIdBranchTag: ''
+  versionTag: ''
+  versionBuildIdTag: ''
+
+steps:
+   - task: Docker@1
+    displayName: 'Build image'
+    inputs:
+      command: Build an image
+      dockerFile: ${{ parameters.dockerFile }}
+      imageName: ${{ parameters.qualifiedImageName }}
+      qualifyImageName: false
+  - task: Docker@1
+    displayName: 'Add branch specific tags'
+    inputs:
+      command: Tag image
+      imageName: ${{ parameters.qualifiedImageName }}
+      qualifyImageName: false
+      arguments: ${{ parameters.versionBuildIdBranchTag }}
+  - task: Docker@1
+    displayName: 'Add production tags'
+    condition: false #TODO: define condition to add production tags on deployment to prod
+    inputs:
+      command: Tag image
+      imageName: ${{ parameters.qualifiedImageName }}
+      qualifyImageName: false
+      arguments: |
+        ${{ parameters.versionTag }}
+        ${{ parameters.versionBuildIdTag }}
+  - task: Docker@1
+    displayName: Login
+    inputs:
+      command: login
+      containerregistrytype: Container Registry
+      dockerRegistryEndpoint: uwthalesiansDockerHubConnection
+  - task: Docker@1
+    displayName: Push Version BuildId Branch Tag
+    inputs:
+      command: Push an image
+      imageName: ${{ parameters.versionBuildIdBranchTag }}
+      qualifyImageName: false
+  - task: Docker@1
+    displayName: Push Version Tag
+    condition: false #TODO: define condition to add production tags on deployment to prod
+    inputs:
+      command: Push an image
+      imageName: ${{ parameters.versionTag }}
+      qualifyImageName: false
+  - task: Docker@1
+    displayName: Push Version BuildId Tag
+    condition: false #TODO: define condition to add production tags on deployment to prod
+    inputs:
+      command: Push an image
+      imageName: ${{ parameters.versionBuildIdTag }}
+      qualifyImageName: false

@@ -4,10 +4,12 @@
 name: $(Build.SourceBranchName).$(Date:yyyymmdd)$(Rev:.r)
 
 variables:
+  - group: Common
   - name: GatewayVersion
     value: '0.1.1'
   - name: MssqlVersion
     value: '0.3.2'
+  
 
 trigger:
   branches:
@@ -58,95 +60,43 @@ jobs:
       displayName: 'Run unit tests'
 - job: 'BuildGatewayImage'
   variables:
-  - group: Common
   - name: GatewayImageQualified
     value: '$(DockerHubOrg)/$(GatewayImageName)'
   - name: GatewayImageTagVersion
     value: $(GatewayImageQualified):$(GatewayVersion)
   - name: GatewayImageTagVersionBuildId
-    value: $(GatewayImageQualified):$(GatewayVersion)-build-$(Build.BuildId)
+    value: $(GatewayImageTagVersion)-build-$(Build.BuildId)
+  - name: GatewayImageTagVersionBuildIdBranch
+    value: $(GatewayImageTagVersionBuildId)-branch-$(Build.SourceBranchName)
   pool:
     vmImage: 'Ubuntu-16.04'
   dependsOn: 'TestGatewayUnitTests'
   condition: succeeded()
   steps:
-  - task: Docker@1
-    displayName: 'Build image'
-    inputs:
-      command: Build an image
+  - template: dockerStandardBuildTagPush.yml
+    parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/gateway/Dockerfile'
-      imageName: $(GatewayImageQualified)
-      qualifyImageName: false
-  - task: Docker@1
-    displayName: 'Add tags'
-    inputs:
-      command: Tag image
-      imageName: $(GatewayImageQualified)
-      qualifyImageName: false
-      arguments: |
-        $(GatewayImageTagVersion)
-        $(GatewayImageTagVersionBuildId)
-  - task: Docker@1
-    displayName: Login
-    inputs:
-      command: login
-      containerregistrytype: Container Registry
-      dockerRegistryEndpoint: uwthalesiansDockerHubConnection
-  - task: Docker@1
-    displayName: Push Version Tag
-    inputs:
-      command: Push an image
-      imageName: $(GatewayImageTagVersion)
-      qualifyImageName: false
-  - task: Docker@1
-    displayName: Push Version BuildId Tag
-    inputs:
-      command: Push an image
-      imageName: $(GatewayImageTagVersionBuildId)
-      qualifyImageName: false
+      qualifiedImageName: $(GatewayImageQualified)
+      versionBuildIdBranchTag: $(GatewayImageTagVersionBuildIdBranch)
+      versionTag: $(GatewayImageTagVersion)
+      versionBuildIdTag: $(GatewayImageTagVersionBuildId)
 - job: 'BuildMssqlImage'
   variables:
-  - group: Common
   - name: MssqlImageQualified
     value: '$(DockerHubOrg)/$(MssqlImageName)'
   - name: MssqlImageTagVersion
     value: $(MssqlImageQualified):$(MssqlVersion)
   - name: MssqlImageTagVersionBuildId
-    value: $(MssqlImageQualified):$(MssqlVersion)-build-$(Build.BuildId)
+    value: $(MssqlImageTagVersion)-build-$(Build.BuildId)
+  - name: MssqlImageTagVersionBuildIdBranch
+    value: $(MssqlImageTagVersionBuildId)-branch-$(Build.SourceBranchName)
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-  - task: Docker@1
-    displayName: 'Build image'
-    inputs:
-      command: Build an image
+  - template: dockerStandardBuildTagPush.yml
+    parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/database/mssql/Dockerfile'
-      imageName: $(MssqlImageQualified)
-      qualifyImageName: false
-  - task: Docker@1
-    displayName: 'Add tags'
-    inputs:
-      command: Tag image
-      imageName: $(MssqlImageQualified)
-      qualifyImageName: false
-      arguments: |
-        $(MssqlImageTagVersion)
-        $(MssqlImageTagVersionBuildId)
-  - task: Docker@1
-    displayName: Login
-    inputs:
-      command: login
-      containerregistrytype: Container Registry
-      dockerRegistryEndpoint: uwthalesiansDockerHubConnection
-  - task: Docker@1
-    displayName: Push Version Tag
-    inputs:
-      command: Push an image
-      imageName: $(MssqlImageTagVersion)
-      qualifyImageName: false
-  - task: Docker@1
-    displayName: Push Version BuildId Tag
-    inputs:
-      command: Push an image
-      imageName: $(MssqlImageTagVersionBuildId)
-      qualifyImageName: false
+      qualifiedImageName: $(MssqlImageQualified)
+      versionBuildIdBranchTag: $(MssqlImageTagVersionBuildIdBranch)
+      versionTag: $(MssqlImageTagVersion)
+      versionBuildIdTag: $(MssqlImageTagVersionBuildId)
