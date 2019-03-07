@@ -73,7 +73,7 @@ jobs:
   - name: ImageTagVersionBuildIdBranch
     value: '$(ImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
   - name: ImageTagVersionLatestBranch
-    value: '$(ImageTagVersion)-build-latest-$(Build.SourceBranchName)'
+    value: '$(ImageTagVersion)-build-latest-branch-$(Build.SourceBranchName)'
   pool:
     vmImage: 'Ubuntu-16.04'
   dependsOn: 'TestGatewayUnitTests'
@@ -99,7 +99,7 @@ jobs:
   - name: ImageTagVersionBuildIdBranch
     value: '$(ImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
   - name: ImageTagVersionLatestBranch
-    value: '$(ImageTagVersion)-build-latest-$(Build.SourceBranchName)'
+    value: '$(ImageTagVersion)-build-latest-branch-$(Build.SourceBranchName)'
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
