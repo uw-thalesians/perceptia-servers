@@ -15,7 +15,9 @@ steps:
       command: Tag image
       imageName: ${{ parameters.qualifiedImageName }}
       qualifyImageName: false
-      arguments: ${{ parameters.versionBuildIdBranchTag }}
+      arguments: |
+        ${{ parameters.versionBuildIdBranchTag }}
+        ${{ parameters.versionLatestBranchTag }}
   - task: Docker@1
     displayName: 'Add production tags'
     condition: false #TODO: define condition to add production tags on deployment to prod
@@ -26,7 +28,6 @@ steps:
       arguments: |
         ${{ parameters.versionTag }}
         ${{ parameters.versionBuildIdTag }}
-        ${{ parameters.versionLatestBranchTag }}
   - task: Docker@1
     displayName: Login
     inputs:
