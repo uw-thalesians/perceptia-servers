@@ -1,4 +1,4 @@
-FROM golang:1.11.5 as builder
+FROM golang:1.12 as builder
 WORKDIR /perceptia-servers/gateway/gateway/
 COPY ./gateway .
 RUN env GOOS=linux GOARCH=386 go build -o gateway .
