@@ -110,7 +110,7 @@ jobs:
   - template: 'infrastructure/azp/template/step/dockerStandardTagPush.yml'
     parameters:
       qualifiedImageName: $(MssqlImageQualified)
-      versionLatestBranchTag: 
+      versionLatestBranchTag: $(ImageTagVersionLatestBranch)
       versionBuildIdBranchTag: $(ImageTagVersionBuildIdBranch)
       versionTag: $(ImageTagVersion)
       versionBuildIdTag: $(ImageTagVersionBuildId)
