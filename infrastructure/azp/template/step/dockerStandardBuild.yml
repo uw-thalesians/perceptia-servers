@@ -1,0 +1,15 @@
+# File: dockerStandardBuild.yml
+# Standard build process for docker image
+
+parameters:
+  dockerFile: ''
+  qualifiedImageName: ''
+
+steps:
+  - task: Docker@1
+    displayName: 'Build image'
+    inputs:
+      command: Build an image
+      dockerFile: ${{ parameters.dockerFile }}
+      imageName: ${{ parameters.qualifiedImageName }}
+      qualifyImageName: false

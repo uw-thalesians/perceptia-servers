@@ -73,9 +73,12 @@ jobs:
   dependsOn: 'TestGatewayUnitTests'
   condition: succeeded()
   steps:
-  - template: 'infrastructure/azp/template/step/dockerStandardBuildTagPush.yml'
+  - template: 'infrastructure/azp/template/step/dockerStandardBuild.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/gateway/Dockerfile'
+      qualifiedImageName: $(GatewayImageQualified)
+  - template: 'infrastructure/azp/template/step/dockerStandardTagPush.yml'
+    parameters:
       qualifiedImageName: $(GatewayImageQualified)
       versionBuildIdBranchTag: $(GatewayImageTagVersionBuildIdBranch)
       versionTag: $(GatewayImageTagVersion)
@@ -93,10 +96,14 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-  - template: 'infrastructure/azp/template/step/dockerStandardBuildTagPush.yml'
+  - template: 'infrastructure/azp/template/step/dockerStandardBuild.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/database/mssql/Dockerfile'
+      qualifiedImageName: $(MssqlImageQualified)
+  - template: 'infrastructure/azp/template/step/dockerStandardTagPush.yml'
+    parameters:
       qualifiedImageName: $(MssqlImageQualified)
       versionBuildIdBranchTag: $(MssqlImageTagVersionBuildIdBranch)
       versionTag: $(MssqlImageTagVersion)
       versionBuildIdTag: $(MssqlImageTagVersionBuildId)
+

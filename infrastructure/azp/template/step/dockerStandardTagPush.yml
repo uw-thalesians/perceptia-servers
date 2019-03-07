@@ -1,21 +1,13 @@
-# File: dockerStandardBuildTagPush.yml
-# Standard build, tag, and push process
+# File: dockerStandardTagPush.yml
+# Standard tag and push process
 
 parameters:
-  dockerFile: ''
   qualifiedImageName: ''
   versionBuildIdBranchTag: ''
   versionTag: ''
   versionBuildIdTag: ''
 
-steps:
-  - task: Docker@1
-    displayName: 'Build image'
-    inputs:
-      command: Build an image
-      dockerFile: ${{ parameters.dockerFile }}
-      imageName: ${{ parameters.qualifiedImageName }}
-      qualifyImageName: false
+  steps:
   - task: Docker@1
     displayName: 'Add branch specific tags'
     inputs:
