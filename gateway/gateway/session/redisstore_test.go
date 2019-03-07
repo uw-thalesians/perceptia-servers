@@ -13,6 +13,8 @@ import (
 	"github.com/go-redis/redis"
 )
 
+// TODO: Update with env var for redis service
+
 /*
 TestRedisStore tests the RedisStore object
 Because the redis.Client is a struct and not an interface, this is really more of an integration than a unit test.

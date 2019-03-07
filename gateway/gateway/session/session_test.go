@@ -85,7 +85,7 @@ func TestSessionGetSessionIDFromParam(t *testing.T) {
 }
 
 /*
-TestSessionCyle is an integration test that runs through the full
+TestSessionCycle is an integration test that runs through the full
 cycle of session methods: BeginSession, GetState, EndSession. It
 uses the MemStore as the session store.
 */
