@@ -1,3 +1,4 @@
+// Package user provides user structs and database implementations for storing user data
 package user
 
 import (
@@ -17,8 +18,9 @@ import (
 // Validation constants
 const (
 	ValidPasswordMinLength    = 8
+	ValidPasswordMaxLength    = 500
 	ValidUsernameMinLength    = 3
-	ValidUserNameMaxLength    = 255
+	ValidUsernameMaxLength    = 255
 	ValidFullNameMaxLength    = 255
 	ValidDisplayNameMaxLength = 255
 )
@@ -32,19 +34,24 @@ var (
 	// ErrInvalidEmail used when the provided email is not valid.
 	ErrInvalidEmail = errors.New("invalid email")
 
-	// ErrPasswordLengthLessThanMin used when the provided password does not meet minimum length requirements.
+	// ErrPasswordLengthLessThanMin used when the provided password does not
+	// meet minimum length requirements.
 	ErrPasswordLengthLessThanMin = errors.New("password must be at least " +
 		string(ValidPasswordMinLength) + " characters long")
 
-	// ErrUserNameLengthLessThanMin used when the provided userName is not long enough.
-	ErrUserNameLengthLessThanMin = errors.New("username must be at least " +
+	// ErrPasswordLengthGreaterThanMax used when the provided password is too long.
+	ErrPasswordLengthGreaterThanMax = errors.New("password must be no more than " +
+		string(ValidPasswordMaxLength) + " characters long")
+
+	// ErrUsernameLengthLessThanMin used when the provided username is not long enough.
+	ErrUsernameLengthLessThanMin = errors.New("username must be at least " +
 		string(ValidUsernameMinLength) + " characters long")
 
-	// ErrUserNameLengthGreaterThanMax used when the provided userName is too long.
-	ErrUserNameLengthGreaterThanMax = errors.New("username must be no more than " +
-		string(ValidUserNameMaxLength) + " characters long")
+	// ErrUsernameLengthGreaterThanMax used when the provided username is too long.
+	ErrUsernameLengthGreaterThanMax = errors.New("username must be no more than " +
+		string(ValidUsernameMaxLength) + " characters long")
 
-	// ErrUserNameHasSpace used when the provided userName has spaces.
+	// ErrUserNameHasSpace used when the provided username has spaces.
 	ErrUserNameHasSpace = errors.New("username must not have any spaces")
 
 	// ErrFullNameLengthGreaterThanMax used when the provided fullName is too long.
@@ -55,7 +62,8 @@ var (
 	ErrDisplayNameLengthGreaterThanMax = errors.New("display name must be no more than " +
 		string(ValidDisplayNameMaxLength) + " characters long")
 
-	// ErrHashNotFromPassword used when the provided password was not the password used to create the user's EncodedHash.
+	// ErrHashNotFromPassword used when the provided password was not
+	// the password used to create the user's EncodedHash.
 	ErrHashNotFromPassword = errors.New("the provided password is not the current password")
 
 	// ErrInvalidCredentials is used when the provided login credentials are invalid
@@ -64,7 +72,8 @@ var (
 	// ErrInvalidHash indicates that the hash was not encoded correctly
 	ErrInvalidHash = errors.New("the encoded hash is not in the correct format")
 
-	// ErrIncompatibleVersion indicates that the hash was created with an incompatible version of argon2
+	// ErrIncompatibleVersion indicates that the hash was created with
+	// an incompatible version of argon2
 	ErrIncompatibleVersion = errors.New("incompatible version of argon2")
 )
 
@@ -90,7 +99,7 @@ type NewUser struct {
 	EncodedHash string `json:"encodedHash"`
 }
 
-// argon2Params represents the parameters to the Argon2 password hashing algorithm
+// argon2Params represents the parameters to the Argon2 password hashing algorithm.
 type argon2Params struct {
 	memory      uint32
 	iterations  uint32
@@ -99,7 +108,7 @@ type argon2Params struct {
 	keyLength   uint32
 }
 
-// specificArgon2Params are the specific parameters used to create the argon2 hash of the password
+// specificArgon2Params are the specific parameters used to create the argon2 hash of the password.
 var specificArgon2Params = &argon2Params{
 	memory:      64 * 1024,
 	iterations:  1,
@@ -108,7 +117,8 @@ var specificArgon2Params = &argon2Params{
 	keyLength:   128,
 }
 
-// ValidateNewUser validates the new user and returns an error if any of the validation rules fail, or nil if it's valid.
+// ValidateNewUser validates the new user and returns an error if any of the validation rules fail,
+// or nil if it's valid.
 //
 // Validation rules: (Only one error will be returned if multiple validation errors are present;
 // fail order is not guaranteed):
@@ -135,9 +145,24 @@ func (nu *NewUser) ValidateNewUser() error {
 
 // PrepNewUser prepares a NewUser struct to be added to the database.
 func (nu *NewUser) PrepNewUser() {
-	nu.Username = strings.TrimSpace(nu.Username)
-	nu.FullName = strings.TrimSpace(nu.FullName)
-	nu.DisplayName = strings.TrimSpace(nu.DisplayName)
+	nu.Username = PrepUsername(nu.Username)
+	nu.FullName = PrepFullName(nu.FullName)
+	nu.DisplayName = PrepDisplayName(nu.DisplayName)
+}
+
+// PrepFullName prepares the provided string to be used.
+func PrepFullName(fullName string) string {
+	return strings.TrimSpace(fullName)
+}
+
+// PrepUsername prepares the provided string to be used.
+func PrepUsername(username string) string {
+	return strings.TrimSpace(username)
+}
+
+// PrepDisplayName prepares the provided string to be used.
+func PrepDisplayName(displayName string) string {
+	return strings.TrimSpace(displayName)
 }
 
 // CleanEmail returns a valid email address extracted from the provided address,
@@ -197,8 +222,11 @@ func ValidateEmail(email string) error {
 // ValidatePassword validates the provided password.
 // If valid, returns nil, otherwise an error.
 func ValidatePassword(password string) error {
-	if len([]rune(password)) < ValidPasswordMinLength {
+	lenPass := len([]rune(password))
+	if lenPass < ValidPasswordMinLength {
 		return ErrPasswordLengthLessThanMin
+	} else if lenPass > ValidPasswordMaxLength {
+		return ErrPasswordLengthGreaterThanMax
 	}
 	return nil
 }
@@ -212,18 +240,18 @@ func ValidateEncodedHash(encodedHash string) error {
 	return nil
 }
 
-// validateUserName validates the provided userName.
+// ValidateUsername validates the provided username.
 // If valid, returns nil, otherwise an error.
 // (If multiple validation errors occur only one error will be returned; order of validation is not guarantied)
-func ValidateUsername(userName string) error {
-	if strings.Contains(userName, " ") {
+func ValidateUsername(username string) error {
+	if strings.Contains(username, " ") {
 		return ErrUserNameHasSpace
 	}
-	lenUserName := len([]rune(userName))
+	lenUserName := len([]rune(username))
 	if lenUserName < ValidUsernameMinLength {
-		return ErrUserNameLengthLessThanMin
-	} else if lenUserName > ValidUserNameMaxLength {
-		return ErrUserNameLengthGreaterThanMax
+		return ErrUsernameLengthLessThanMin
+	} else if lenUserName > ValidUsernameMaxLength {
+		return ErrUsernameLengthGreaterThanMax
 	}
 	return nil
 }
@@ -242,17 +270,20 @@ func ValidateFullName(fullName string) error {
 // If valid, returns nil, otherwise an error.
 // (If multiple validation errors occur only one error will be returned; order of validation is not guarantied)
 func ValidateDisplayName(displayName string) error {
-
 	if len([]rune(displayName)) > ValidFullNameMaxLength {
 		return ErrDisplayNameLengthGreaterThanMax
 	}
 	return nil
 }
 
-// generateFromPassword generates an encoded hash of the provided password using the provided Argon2id parameters `p`.
+// generateFromPassword generates an encoded hash of the provided password
+// using the provided Argon2id parameters `p`.
+//
 // If successful, will return a valid encodedHash string and a nil error.
-// If an error occurs while generating the encoded hash, will return an InvalidEncodedPasswordHash and the error that
+// If an error occurs while generating the encoded hash,
+// will return an InvalidEncodedPasswordHash and the error that
 // occurred.
+//
 // Attribution: https://gist.github.com/alexedwards/34277fae0f48abe36822b375f0f6a621
 func generateFromPassword(password string, p *argon2Params) (encodedHash string, err error) {
 	salt, err := generateRandomBytes(p.saltLength)
@@ -273,8 +304,9 @@ func generateFromPassword(password string, p *argon2Params) (encodedHash string,
 	return encodedHash, nil
 }
 
-// generateRandomBytes generates a byte slice of randomly generated data from a cyrptographically secure source of
-// randomness.
+// generateRandomBytes generates a byte slice of randomly generated data
+// from a cryptographically secure source of randomness.
+//
 // Attribution: https://gist.github.com/alexedwards/34277fae0f48abe36822b375f0f6a621
 func generateRandomBytes(n uint32) ([]byte, error) {
 	b := make([]byte, n)
@@ -286,9 +318,11 @@ func generateRandomBytes(n uint32) ([]byte, error) {
 }
 
 // comparePasswordAndHash compares the provided password and encoded hash.
+//
 // If the provided password was not the password that created the provided hash,
 // the function will return false. Otherwise the function will return true.
 // Any errors that occur will also be returned along with false.
+//
 // Attribution: https://gist.github.com/alexedwards/34277fae0f48abe36822b375f0f6a621
 func comparePasswordAndHash(password, encodedHash string) (match bool, err error) {
 	// Extract the parameters, salt and derived key from the encoded password
@@ -311,6 +345,7 @@ func comparePasswordAndHash(password, encodedHash string) (match bool, err error
 }
 
 // decodeHash extracts the components of the encoded hash and returns them.
+//
 // Attribution: https://gist.github.com/alexedwards/34277fae0f48abe36822b375f0f6a621
 func decodeHash(encodedHash string) (p *argon2Params, salt, hash []byte, err error) {
 	vals := strings.Split(encodedHash, "$")
