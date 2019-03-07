@@ -5,10 +5,16 @@ name: $(Build.BuildId)
 
 variables:
   - group: Common
+  # Gateway Variables
   - name: GatewayVersion
     value: '0.1.1'
+  - name: GatewayImageQualified
+    value: '$(DockerHubOrg)/$(GatewayImageName)'
+  # Mssql Variables
   - name: MssqlVersion
     value: '0.3.2'
+  - name: MssqlImageQualified
+    value: '$(DockerHubOrg)/$(MssqlImageName)'
   
 
 trigger:
@@ -60,14 +66,14 @@ jobs:
       displayName: 'Run unit tests'
 - job: 'BuildGatewayImage'
   variables:
-  - name: GatewayImageQualified
-    value: '$(DockerHubOrg)/$(GatewayImageName)'
-  - name: GatewayImageTagVersion
+  - name: ImageTagVersion
     value: '$(GatewayImageQualified):$(GatewayVersion)'
-  - name: GatewayImageTagVersionBuildId
-    value: '$(GatewayImageTagVersion)-build-$(Build.BuildId)'
-  - name: GatewayImageTagVersionBuildIdBranch
-    value: '$(GatewayImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
+  - name: ImageTagVersionBuildId
+    value: '$(ImageTagVersion)-build-$(Build.BuildId)'
+  - name: ImageTagVersionBuildIdBranch
+    value: '$(ImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
+  - name: ImageTagVersionLatestBranch
+    value: '$(ImageTagVersion)-build-latest-$(Build.SourceBranchName)'
   pool:
     vmImage: 'Ubuntu-16.04'
   dependsOn: 'TestGatewayUnitTests'
@@ -80,19 +86,20 @@ jobs:
   - template: 'infrastructure/azp/template/step/dockerStandardTagPush.yml'
     parameters:
       qualifiedImageName: $(GatewayImageQualified)
-      versionBuildIdBranchTag: $(GatewayImageTagVersionBuildIdBranch)
-      versionTag: $(GatewayImageTagVersion)
-      versionBuildIdTag: $(GatewayImageTagVersionBuildId)
+      versionLatestBranchTag: $(ImageTagVersionLatestBranch)
+      versionBuildIdBranchTag: $(ImageTagVersionBuildIdBranch)
+      versionTag: $(ImageTagVersion)
+      versionBuildIdTag: $(ImageTagVersionBuildId)
 - job: 'BuildMssqlImage'
   variables:
-  - name: MssqlImageQualified
-    value: '$(DockerHubOrg)/$(MssqlImageName)'
-  - name: MssqlImageTagVersion
+  - name: ImageTagVersion
     value: '$(MssqlImageQualified):$(MssqlVersion)'
-  - name: MssqlImageTagVersionBuildId
-    value: '$(MssqlImageTagVersion)-build-$(Build.BuildId)'
-  - name: MssqlImageTagVersionBuildIdBranch
-    value: '$(MssqlImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
+  - name: ImageTagVersionBuildId
+    value: '$(ImageTagVersion)-build-$(Build.BuildId)'
+  - name: ImageTagVersionBuildIdBranch
+    value: '$(ImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
+  - name: ImageTagVersionLatestBranch
+    value: '$(ImageTagVersion)-build-latest-$(Build.SourceBranchName)'
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
@@ -103,7 +110,7 @@ jobs:
   - template: 'infrastructure/azp/template/step/dockerStandardTagPush.yml'
     parameters:
       qualifiedImageName: $(MssqlImageQualified)
-      versionBuildIdBranchTag: $(MssqlImageTagVersionBuildIdBranch)
-      versionTag: $(MssqlImageTagVersion)
-      versionBuildIdTag: $(MssqlImageTagVersionBuildId)
-
+      versionLatestBranchTag: 
+      versionBuildIdBranchTag: $(ImageTagVersionBuildIdBranch)
+      versionTag: $(ImageTagVersion)
+      versionBuildIdTag: $(ImageTagVersionBuildId)

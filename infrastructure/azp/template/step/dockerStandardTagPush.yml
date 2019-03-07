@@ -3,6 +3,7 @@
 
 parameters:
   qualifiedImageName: ''
+  versionLatestBranchTag: ''
   versionBuildIdBranchTag: ''
   versionTag: ''
   versionBuildIdTag: ''
@@ -25,6 +26,7 @@ parameters:
       arguments: |
         ${{ parameters.versionTag }}
         ${{ parameters.versionBuildIdTag }}
+        ${{ parameters.versionLatestBranchTag }}
   - task: Docker@1
     displayName: Login
     inputs:
@@ -36,6 +38,12 @@ parameters:
     inputs:
       command: Push an image
       imageName: ${{ parameters.versionBuildIdBranchTag }}
+      qualifyImageName: false
+  - task: Docker@1
+    displayName: Push Version Latest Branch Tag
+    inputs:
+      command: Push an image
+      imageName: ${{ parameters.versionLatestBranchTag }}
       qualifyImageName: false
   - task: Docker@1
     displayName: Push Version Tag
