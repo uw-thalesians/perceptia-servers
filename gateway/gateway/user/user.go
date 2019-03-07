@@ -36,8 +36,8 @@ var (
 
 	// ErrPasswordLengthLessThanMin used when the provided password does not
 	// meet minimum length requirements.
-	ErrPasswordLengthLessThanMin = errors.New("password must be at least " +
-		string(ValidPasswordMinLength) + " characters long")
+	ErrPasswordLengthLessThanMin = fmt.Errorf("password must be at least %d characters long",
+		ValidPasswordMinLength)
 
 	// ErrPasswordLengthGreaterThanMax used when the provided password is too long.
 	ErrPasswordLengthGreaterThanMax = errors.New("password must be no more than " +
