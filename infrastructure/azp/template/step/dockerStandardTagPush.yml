@@ -8,7 +8,7 @@ parameters:
   versionTag: ''
   versionBuildIdTag: ''
 
-  steps:
+steps:
   - task: Docker@1
     displayName: 'Add branch specific tags'
     inputs:
