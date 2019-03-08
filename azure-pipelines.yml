@@ -1,6 +1,11 @@
 # File: azure-pipelines.yml
+# Main AZP YAML file
 
-name: $(Build.SourceBranchName)_$(Date:yyyymmdd).$(Rev:.r)
+name: $(Build.SourceBranchName).$(Date:yyyymmdd)$(Rev:.r)
+
+variables:
+  - name: GatewayVersion
+    value: '0.1.1'
 
 trigger:
   branches:
@@ -10,6 +15,8 @@ trigger:
     - feature/*
     - hotfix/*
   paths:
+    include:
+      - infrastructure/azp/*
     exclude:
     - README.md
     - infrastructure/*
@@ -26,8 +33,55 @@ pr:
     - infrastructure/*
 
 jobs:
-- job: FakeJob
+- job: 'TestGatewayUnitTests'
+  variables:
+    GOBIN:  '$(GOPATH)/bin' # Go binaries path
+    GOROOT: '/usr/local/go1.11' # Go installation path
+    GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
+    modulePath: '$(system.defaultWorkingDirectory)/gateway/gateway' # Path to the module's code
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-    - bash: echo $(System.HostType)
+    - template: infrastructure/azp/template/step/goSetupDirectory.yml
+      parameters:
+        GOBIN: $(GOBIN)
+        GOROOT: $(GOROOT)
+        GOPATH: $(GOPATH)
+    - bash: go get -v -d ./...
+      workingDirectory: '$(modulePath)'
+      displayName: 'Get dependencies'
+    - bash: go test -tags=unit ./...
+      workingDirectory: '$(modulePath)'
+      displayName: 'Run unit tests'
+- job: 'BuildGatewayImage'
+  variables:
+  - group: Common
+  - name: GatewayImageTagged
+    value: '$(DockerHubOrg)/$(GatewayImageName):$(GatewayVersion)-$(Build.SourceVersion)'
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  dependsOn: 'TestGatewayUnitTests'
+  condition: succeeded()
+  steps:
+  - task: Docker@1
+    displayName: 'Build image'
+    inputs:
+      command: Build an image
+      dockerFile: '$(system.defaultWorkingDirectory)/gateway/Dockerfile'
+      imageName: $(GatewayImageTagged)
+      qualifyImageName: false
+
+  - task: Docker@1
+    displayName: Login
+    inputs:
+      command: login
+      containerregistrytype: Container Registry
+      dockerRegistryEndpoint: uwthalesiansDockerHubConnection
+  - task: Docker@1
+    displayName: Push
+    inputs:
+      command: Push an image
+      imageName: $(GatewayImageTagged)
+      qualifyImageName: false
+
+

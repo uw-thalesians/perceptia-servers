@@ -12,7 +12,7 @@ Each service that makes up the Perceptia application is contained in its own sub
 
 ## [Structure](#structure)
 
-As stated in the [Getting Started](#getting-started) section, this repository is organized into subdirectories for each of the primary microservices for the application. There are a few directories and files however that should be described:
+The Perceptia application's backend is developed using a microservices architecture. This is reflected in the organization of this repository, with each subdirectory roughly cooresponding to one service of the application. There are additional subdirectories to maintain supporting code. Each subdirectory should have a README.md file which provides additional information about the files in that directory and how to use them.
 
 **./infrastructure/** which contains the supporting code for building and deploying the application
 

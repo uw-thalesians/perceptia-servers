@@ -1,0 +1,12 @@
+# File: infrastructure/azp/template/step/goSetupDirectory.yml
+# Step template for setting up GOPATH
+
+steps:
+- bash: |
+    mkdir -p '${{ parameters.GOBIN }}'
+    mkdir -p '${{ parameters.GOPATH }}/pkg'
+    shopt -s extglob # enable extended pattern matching
+    shopt -s dotglob # include filenames beginning with '.'
+    echo '##vso[task.prependpath]${{ parameters.GOBIN }}'
+    echo '##vso[task.prependpath]${{ parameters.GOROOT }}/bin'
+  displayName: 'Set up the Go workspace'
