@@ -1,10 +1,9 @@
 /*
- * Program gateway is an HTTP API Gateway server for the Perceptia application.
- */
+Program gateway is an HTTP API Gateway server for the Perceptia application.
+*/
 package main
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -20,8 +19,6 @@ import (
 const SessionDuration = time.Duration(time.Hour * 24)
 
 func main() {
-	fmt.Print("Hello World!")
-
 	// Get address for server to listen for requests on
 	listenAddr := utility.DefaultEnv("GATEWAY_LISTEN_ADDR", ":443")
 
@@ -49,8 +46,6 @@ func main() {
 			log.Printf("%s", "Error writing response")
 		}
 	})
-
-	log.Printf("tlscert: %s\ntlskey: %s", tlsCertPath, tlsKeyPath)
 
 	//Starts listening at the address set, and passes requests at that address
 	//to the mux. Exits if ListenAndServerTLS fails

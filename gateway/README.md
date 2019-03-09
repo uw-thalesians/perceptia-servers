@@ -36,13 +36,14 @@ The root of the gateway directory contains the supporting files for building the
  
  ### Building the container image
  
-Builds of this container image are automatically triggered by pushes to the GitHub repository. Currently, the latest commit-hash is appended to the image tag and then the image is pushed to the container registry for uwthalesians on DockerHub. The version part of the tag is based on the [semver](https://semver.org/) format.
+Builds of this container image are automatically triggered by pushes to the GitHub repository.
+Builds are tagged based on the version of the API the gateway implements (as defined in an variable in the azure-pipelines.yml file in the root of this repository which should reflect the API version listed in the gateway-service-api.yaml file in this directory). For a complete description of the possible tags see the [gateway container repository](https://hub.docker.com/r/uwthalesians/gateway) on the container registry DockerHub.
  
  ### Running the Gateway Locally
  
- For testing the gateway locally, the localStartExample.ps1 script can be used. This script assumes that docker is already installed and running on the system and that the TLS cert and key have been generated in the ./gateway/encrypt/ subdirectory. Note, the script is a PowerShell script and thus requires a PowerShell shell. Additionally, PowerShell will not run unsigned scripts by default, therefore you may need to enable running unsigned scripts to use it. 
+ TODO: Running the application locally will require more setup than will be describe here. See below for instructions on using the local start example script. 
  
- The example script also builds the docker container on each run. In the future it will instead pull from our container registry the latest image. This has not been done yet as our specific tagging and use of the container registry has not been defined yet. 
+ For testing the gateway locally, the localStartExample.ps1 script can be used. This script assumes that docker is already installed and running on the system and that the TLS cert and key have been generated in the ./gateway/encrypt/ subdirectory. Note, the script is a PowerShell script and thus requires a PowerShell shell. Additionally, PowerShell will not run unsigned scripts by default, therefore you may need to enable running unsigned scripts to use it. 
  
  ### Configuration
  
@@ -54,7 +55,7 @@ Builds of this container image are automatically triggered by pushes to the GitH
  
  Use the following variables to configure the gateway for the given environment.
  
- `GATEWAY_LISTEN_ADDR` (OPTIONAL) identifies what [[host]:[port]] the gateway should listen for requests on. If this variable is not set the gateway will default to ":443".
+ `GATEWAY_LISTEN_ADDR=[[host]:[port]]` (OPTIONAL) identifies what [[host]:[port]] the gateway should listen for requests on. If this variable is not set the gateway will default to ":443".
  
  `GATEWAY_TLSCERTPATH` (REQUIRED) identifies the absolute path to the certificate file to be used by the gateway to make TLS connections. This path is based on where the gateway executable is being run, so if it is being run in a container, the path referenced must be accessible within the container.
  

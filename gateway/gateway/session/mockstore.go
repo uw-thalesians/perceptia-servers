@@ -21,7 +21,7 @@ const (
 	FNDelete MethodName = "Delete"
 )
 
-// MockStore represents a sessions.Store to be used in testing functions that rely on a sessions.Store.
+// MockStore represents a sessions.Store to be used in testing functions that rely on a session Store.
 //
 // If a function is called that was not provided to the MockStore constructor, or added using the AddFunction
 // method, a testing.T.Fatal() will be called.

@@ -1,3 +1,4 @@
+// Package user provides user structs and database implementations for storing user data
 package user
 
 import (
@@ -17,55 +18,68 @@ import (
 // Validation constants
 const (
 	ValidPasswordMinLength    = 8
-	ValidUserNameMinLength    = 3
-	ValidUserNameMaxLength    = 255
+	ValidPasswordMaxLength    = 500
+	ValidUsernameMinLength    = 3
+	ValidUsernameMaxLength    = 255
 	ValidFullNameMaxLength    = 255
 	ValidDisplayNameMaxLength = 255
 )
 
 const InvalidEncodedPasswordHash = ""
 
+const InvalidEmail = ""
+
 // Custom Error types
 var (
-	// ErrEmailInvalid used when the provided email is not valid.
-	ErrEmailInvalid = errors.New("invalid email")
+	// ErrInvalidEmail used when the provided email is not valid.
+	ErrInvalidEmail = errors.New("invalid email")
 
-	// ErrPasswordLengthLessThanMin used when the provided password does not meet minimum length requirements.
-	ErrPasswordLengthLessThanMin = errors.New("password must be at least " +
-		string(ValidPasswordMinLength) + " characters long")
+	// ErrPasswordLengthLessThanMin used when the provided password does not
+	// meet minimum length requirements.
+	ErrPasswordLengthLessThanMin = fmt.Errorf("password must be at least %d characters long",
+		ValidPasswordMinLength)
 
-	// ErrUserNameLengthLessThanMin used when the provided userName is not long enough.
-	ErrUserNameLengthLessThanMin = errors.New("username must be at least " +
-		string(ValidUserNameMinLength) + " characters long")
+	// ErrPasswordLengthGreaterThanMax used when the provided password is too long.
+	ErrPasswordLengthGreaterThanMax = errors.New("password must be no more than " +
+		string(ValidPasswordMaxLength) + " characters long")
 
-	// ErrUserNameLengthGreaterThanMax used when the provided userName is too long.
-	ErrUserNameLengthGreaterThanMax = errors.New("username must be less than " +
-		string(ValidUserNameMaxLength) + " characters long")
+	// ErrUsernameLengthLessThanMin used when the provided username is not long enough.
+	ErrUsernameLengthLessThanMin = errors.New("username must be at least " +
+		string(ValidUsernameMinLength) + " characters long")
 
-	// ErrUserNameHasSpace used when the provided userName has spaces.
+	// ErrUsernameLengthGreaterThanMax used when the provided username is too long.
+	ErrUsernameLengthGreaterThanMax = errors.New("username must be no more than " +
+		string(ValidUsernameMaxLength) + " characters long")
+
+	// ErrUserNameHasSpace used when the provided username has spaces.
 	ErrUserNameHasSpace = errors.New("username must not have any spaces")
 
 	// ErrFullNameLengthGreaterThanMax used when the provided fullName is too long.
-	ErrFullNameLengthGreaterThanMax = errors.New("full name must be less than " +
+	ErrFullNameLengthGreaterThanMax = errors.New("full name must be no more than " +
 		string(ValidFullNameMaxLength) + " characters long")
 
 	// ErrDisplayNameLengthGreaterThanMax used when the provided displayName is too long.
-	ErrDisplayNameLengthGreaterThanMax = errors.New("display name must be less than " +
+	ErrDisplayNameLengthGreaterThanMax = errors.New("display name must be no more than " +
 		string(ValidDisplayNameMaxLength) + " characters long")
 
-	// ErrHashNotFromPassword used when the provided password was not the password used to create the user's EncodedHash.
-	ErrHashNotFromPassword = errors.New("the provided password is not the users current password")
+	// ErrHashNotFromPassword used when the provided password was not
+	// the password used to create the user's EncodedHash.
+	ErrHashNotFromPassword = errors.New("the provided password is not the current password")
 
 	// ErrInvalidCredentials is used when the provided login credentials are invalid
 	ErrInvalidCredentials = errors.New("the provided username or password are invalid")
 
-	ErrInvalidHash         = errors.New("the encoded hash is not in the correct format")
+	// ErrInvalidHash indicates that the hash was not encoded correctly
+	ErrInvalidHash = errors.New("the encoded hash is not in the correct format")
+
+	// ErrIncompatibleVersion indicates that the hash was created with
+	// an incompatible version of argon2
 	ErrIncompatibleVersion = errors.New("incompatible version of argon2")
 )
 
-// User represents a user.
+// User represents the standard struct for storing basic user information.
 type User struct {
-	UUID        uuid.UUID `json:"uuid"`
+	Uuid        uuid.UUID `json:"uuid"`
 	Username    string    `json:"username"`
 	FullName    string    `json:"fullName"`
 	DisplayName string    `json:"displayName"`
@@ -82,11 +96,10 @@ type NewUser struct {
 	Username    string `json:"username"`
 	FullName    string `json:"fullName"`
 	DisplayName string `json:"displayName"`
-	Password    string `json:"password"`
-	EncodedHash string `json:"-"`
+	EncodedHash string `json:"encodedHash"`
 }
 
-// argon2Params represents the parameters to the Argon2 password hashing algorithm
+// argon2Params represents the parameters to the Argon2 password hashing algorithm.
 type argon2Params struct {
 	memory      uint32
 	iterations  uint32
@@ -95,6 +108,7 @@ type argon2Params struct {
 	keyLength   uint32
 }
 
+// specificArgon2Params are the specific parameters used to create the argon2 hash of the password.
 var specificArgon2Params = &argon2Params{
 	memory:      64 * 1024,
 	iterations:  1,
@@ -103,41 +117,69 @@ var specificArgon2Params = &argon2Params{
 	keyLength:   128,
 }
 
-// Validate validates the new user and returns an error if any of the validation rules fail, or nil if its valid.
+// ValidateNewUser validates the new user and returns an error if any of the validation rules fail,
+// or nil if it's valid.
 //
 // Validation rules: (Only one error will be returned if multiple validation errors are present;
 // fail order is not guaranteed):
-// - Password must be at least 6 characters.
-// - Password and PasswordConf must match.
-// - UserName must be non-zero length and may not contain spaces.
-func (nu *NewUser) Validate() error {
-	if err := validateUsername(nu.Username); err != nil {
+//
+// - Username must be non-zero length and may not contain spaces.
+// - FullName must be less than the maximum length for the field.
+// - DisplayName must be less than the maximum length for the field.
+// - EncodedHash must be set and a valid EncodedHash.
+func (nu *NewUser) ValidateNewUser() error {
+	if err := ValidateUsername(nu.Username); err != nil {
 		return err
 	}
-	if err := validateFullName(nu.FullName); err != nil {
+	if err := ValidateFullName(nu.FullName); err != nil {
 		return err
 	}
-	if err := validateDisplayName(nu.DisplayName); err != nil {
+	if err := ValidateDisplayName(nu.DisplayName); err != nil {
+		return err
+	}
+	if err := ValidateEncodedHash(nu.EncodedHash); err != nil {
 		return err
 	}
 	return nil
 }
 
 // PrepNewUser prepares a NewUser struct to be added to the database.
-func (nu *NewUser) PrepNewUser() error {
-	nu.Username = strings.TrimSpace(nu.Username)
-	nu.FullName = strings.TrimSpace(nu.FullName)
-	nu.DisplayName = strings.TrimSpace(nu.DisplayName)
-	encHash, errCEH := createEncodedHash(nu.Password)
-	if errCEH != nil {
-		return errCEH
-	}
-	nu.EncodedHash = encHash
-	return nil
+func (nu *NewUser) PrepNewUser() {
+	nu.Username = PrepUsername(nu.Username)
+	nu.FullName = PrepFullName(nu.FullName)
+	nu.DisplayName = PrepDisplayName(nu.DisplayName)
 }
 
-func createEncodedHash(password string) (string, error) {
-	errVP := validatePassword(password)
+// PrepFullName prepares the provided string to be used.
+func PrepFullName(fullName string) string {
+	return strings.TrimSpace(fullName)
+}
+
+// PrepUsername prepares the provided string to be used.
+func PrepUsername(username string) string {
+	return strings.TrimSpace(username)
+}
+
+// PrepDisplayName prepares the provided string to be used.
+func PrepDisplayName(displayName string) string {
+	return strings.TrimSpace(displayName)
+}
+
+// CleanEmail returns a valid email address extracted from the provided address,
+// or an invalid email and an error if unable to extract the email from the address.
+func CleanEmail(address string) (userEmail string, error error) {
+	addr, errPA := mail.ParseAddress(address)
+	if errPA != nil {
+		return InvalidEmail, ErrInvalidEmail
+	}
+	return addr.Address, nil
+}
+
+// CreateEncodedHash takes the provided password and hashes it.
+// If the password is invalid or an error occurs while creating the encoded hash,
+// the error will be returned along with an invalid encoded password hash.
+func CreateEncodedHash(password string) (string, error) {
+	errVP := ValidatePassword(password)
 	if errVP != nil {
 		return InvalidEncodedPasswordHash, errVP
 	}
@@ -148,7 +190,7 @@ func createEncodedHash(password string) (string, error) {
 	return encodedHash, nil
 }
 
-// Authenticate compares the plaintext password against the stored hash.
+// Authenticate compares the plaintext password against the encoded hash.
 // If the password matches with the hashed password true is returned and a nil error.
 // If the passwords don't match false is returned, along with ErrHashNotFromPassword
 func Authenticate(password, encodedHash string) (bool, error) {
@@ -158,75 +200,90 @@ func Authenticate(password, encodedHash string) (bool, error) {
 	return true, nil
 }
 
-// ValidateSignInCredentails ensures that the supplied username is a valid username.
+// ValidateSignInCredentials ensures that the supplied username is a valid username.
 // A valid username is one that would pass the Validate function for a NewUser.
 // Will return nil if the username is valid as defined above.
 func (c *SignInCredentials) ValidateSignInCredentials() error {
-	if validateUsername(c.Username) != nil || validatePassword(c.Password) != nil {
+	if ValidateUsername(c.Username) != nil || ValidatePassword(c.Password) != nil {
 		return ErrInvalidCredentials
 	}
-	return validateUsername(c.Username)
+	return ValidateUsername(c.Username)
 }
 
-// validateEmail validates the provided email.
+// ValidateEmail validates the provided email.
 // If valid, returns nil, otherwise an error.
-func validateEmail(email string) error {
+func ValidateEmail(email string) error {
 	if _, err := mail.ParseAddress(email); err != nil {
-		return ErrEmailInvalid
+		return ErrInvalidEmail
 	}
 	return nil
 }
 
-// validatePassword validates the provided password.
+// ValidatePassword validates the provided password.
 // If valid, returns nil, otherwise an error.
-func validatePassword(password string) error {
-	if len([]rune(password)) < ValidPasswordMinLength {
+func ValidatePassword(password string) error {
+	lenPass := len([]rune(password))
+	if lenPass < ValidPasswordMinLength {
 		return ErrPasswordLengthLessThanMin
+	} else if lenPass > ValidPasswordMaxLength {
+		return ErrPasswordLengthGreaterThanMax
 	}
 	return nil
 }
 
-// validateUserName validates the provided userName.
+// ValidateEncodedHash validates the provided encoded hash.
+// If valid, returns nil, otherwise an error.
+func ValidateEncodedHash(encodedHash string) error {
+	if _, _, _, err := decodeHash(encodedHash); err != nil {
+		return ErrInvalidHash
+	}
+	return nil
+}
+
+// ValidateUsername validates the provided username.
 // If valid, returns nil, otherwise an error.
 // (If multiple validation errors occur only one error will be returned; order of validation is not guarantied)
-func validateUsername(userName string) error {
-	if strings.Contains(userName, " ") {
+func ValidateUsername(username string) error {
+	if strings.Contains(username, " ") {
 		return ErrUserNameHasSpace
 	}
-	lenUserName := len([]rune(userName))
-	if lenUserName < ValidUserNameMinLength {
-		return ErrUserNameLengthLessThanMin
-	} else if lenUserName > ValidUserNameMaxLength {
-		return ErrUserNameLengthGreaterThanMax
+	lenUserName := len([]rune(username))
+	if lenUserName < ValidUsernameMinLength {
+		return ErrUsernameLengthLessThanMin
+	} else if lenUserName > ValidUsernameMaxLength {
+		return ErrUsernameLengthGreaterThanMax
 	}
 	return nil
 }
 
-// validateFullName validates the provided fullName.
+// ValidateFullName validates the provided fullName.
 // If valid, returns nil, otherwise an error.
 // (If multiple validation errors occur only one error will be returned; order of validation is not guarantied)
-func validateFullName(fullName string) error {
+func ValidateFullName(fullName string) error {
 	if len([]rune(fullName)) > ValidFullNameMaxLength {
 		return ErrFullNameLengthGreaterThanMax
 	}
 	return nil
 }
 
-// validateDisplayName validates the provided displayName.
+// ValidateDisplayName validates the provided displayName.
 // If valid, returns nil, otherwise an error.
 // (If multiple validation errors occur only one error will be returned; order of validation is not guarantied)
-func validateDisplayName(displayName string) error {
-
+func ValidateDisplayName(displayName string) error {
 	if len([]rune(displayName)) > ValidFullNameMaxLength {
 		return ErrDisplayNameLengthGreaterThanMax
 	}
 	return nil
 }
 
-// generateFromPassword generates an encoded hash of the provided password using the provided Argon2id parameters `p`.
+// generateFromPassword generates an encoded hash of the provided password
+// using the provided Argon2id parameters `p`.
+//
 // If successful, will return a valid encodedHash string and a nil error.
-// If an error occurs while generating the encoded hash, will return an InvalidEncodedPasswordHash and the error that
+// If an error occurs while generating the encoded hash,
+// will return an InvalidEncodedPasswordHash and the error that
 // occurred.
+//
 // Attribution: https://gist.github.com/alexedwards/34277fae0f48abe36822b375f0f6a621
 func generateFromPassword(password string, p *argon2Params) (encodedHash string, err error) {
 	salt, err := generateRandomBytes(p.saltLength)
@@ -247,8 +304,9 @@ func generateFromPassword(password string, p *argon2Params) (encodedHash string,
 	return encodedHash, nil
 }
 
-// generateRandomBytes generates a byte slice of randomly generated data from a cyrptographically secure source of
-// randomness.
+// generateRandomBytes generates a byte slice of randomly generated data
+// from a cryptographically secure source of randomness.
+//
 // Attribution: https://gist.github.com/alexedwards/34277fae0f48abe36822b375f0f6a621
 func generateRandomBytes(n uint32) ([]byte, error) {
 	b := make([]byte, n)
@@ -260,9 +318,11 @@ func generateRandomBytes(n uint32) ([]byte, error) {
 }
 
 // comparePasswordAndHash compares the provided password and encoded hash.
+//
 // If the provided password was not the password that created the provided hash,
 // the function will return false. Otherwise the function will return true.
 // Any errors that occur will also be returned along with false.
+//
 // Attribution: https://gist.github.com/alexedwards/34277fae0f48abe36822b375f0f6a621
 func comparePasswordAndHash(password, encodedHash string) (match bool, err error) {
 	// Extract the parameters, salt and derived key from the encoded password
@@ -285,6 +345,7 @@ func comparePasswordAndHash(password, encodedHash string) (match bool, err error
 }
 
 // decodeHash extracts the components of the encoded hash and returns them.
+//
 // Attribution: https://gist.github.com/alexedwards/34277fae0f48abe36822b375f0f6a621
 func decodeHash(encodedHash string) (p *argon2Params, salt, hash []byte, err error) {
 	vals := strings.Split(encodedHash, "$")

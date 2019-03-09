@@ -1,11 +1,21 @@
 # File: azure-pipelines.yml
 # Main AZP YAML file
 
-name: $(Build.SourceBranchName).$(Date:yyyymmdd)$(Rev:.r)
+name: $(Build.BuildId)
 
 variables:
+  - group: Common
+  # Gateway Variables
   - name: GatewayVersion
     value: '0.1.1'
+  - name: GatewayImageQualified
+    value: '$(DockerHubOrg)/$(GatewayImageName)'
+  # Mssql Variables
+  - name: MssqlVersion
+    value: '0.3.2'
+  - name: MssqlImageQualified
+    value: '$(DockerHubOrg)/$(MssqlImageName)'
+  
 
 trigger:
   branches:
@@ -17,6 +27,7 @@ trigger:
   paths:
     include:
       - infrastructure/azp/*
+      - '*'
     exclude:
     - README.md
     - infrastructure/*
@@ -42,7 +53,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-    - template: infrastructure/azp/template/step/goSetupDirectory.yml
+    - template: 'infrastructure/azp/template/step/goSetupDirectory.yml'
       parameters:
         GOBIN: $(GOBIN)
         GOROOT: $(GOROOT)
@@ -55,33 +66,51 @@ jobs:
       displayName: 'Run unit tests'
 - job: 'BuildGatewayImage'
   variables:
-  - group: Common
-  - name: GatewayImageTagged
-    value: '$(DockerHubOrg)/$(GatewayImageName):$(GatewayVersion)-$(Build.SourceVersion)'
+  - name: ImageTagVersion
+    value: '$(GatewayImageQualified):$(GatewayVersion)'
+  - name: ImageTagVersionBuildId
+    value: '$(ImageTagVersion)-build-$(Build.BuildId)'
+  - name: ImageTagVersionBuildIdBranch
+    value: '$(ImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
+  - name: ImageTagVersionLatestBranch
+    value: '$(ImageTagVersion)-build-latest-branch-$(Build.SourceBranchName)'
   pool:
     vmImage: 'Ubuntu-16.04'
   dependsOn: 'TestGatewayUnitTests'
   condition: succeeded()
   steps:
-  - task: Docker@1
-    displayName: 'Build image'
-    inputs:
-      command: Build an image
+  - template: 'infrastructure/azp/template/step/dockerStandardBuild.yml'
+    parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/gateway/Dockerfile'
-      imageName: $(GatewayImageTagged)
-      qualifyImageName: false
-
-  - task: Docker@1
-    displayName: Login
-    inputs:
-      command: login
-      containerregistrytype: Container Registry
-      dockerRegistryEndpoint: uwthalesiansDockerHubConnection
-  - task: Docker@1
-    displayName: Push
-    inputs:
-      command: Push an image
-      imageName: $(GatewayImageTagged)
-      qualifyImageName: false
-
-
+      qualifiedImageName: $(GatewayImageQualified)
+  - template: 'infrastructure/azp/template/step/dockerStandardTagPush.yml'
+    parameters:
+      qualifiedImageName: $(GatewayImageQualified)
+      versionLatestBranchTag: $(ImageTagVersionLatestBranch)
+      versionBuildIdBranchTag: $(ImageTagVersionBuildIdBranch)
+      versionTag: $(ImageTagVersion)
+      versionBuildIdTag: $(ImageTagVersionBuildId)
+- job: 'BuildMssqlImage'
+  variables:
+  - name: ImageTagVersion
+    value: '$(MssqlImageQualified):$(MssqlVersion)'
+  - name: ImageTagVersionBuildId
+    value: '$(ImageTagVersion)-build-$(Build.BuildId)'
+  - name: ImageTagVersionBuildIdBranch
+    value: '$(ImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
+  - name: ImageTagVersionLatestBranch
+    value: '$(ImageTagVersion)-build-latest-branch-$(Build.SourceBranchName)'
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+  - template: 'infrastructure/azp/template/step/dockerStandardBuild.yml'
+    parameters:
+      dockerFile: '$(system.defaultWorkingDirectory)/database/mssql/Dockerfile'
+      qualifiedImageName: $(MssqlImageQualified)
+  - template: 'infrastructure/azp/template/step/dockerStandardTagPush.yml'
+    parameters:
+      qualifiedImageName: $(MssqlImageQualified)
+      versionLatestBranchTag: $(ImageTagVersionLatestBranch)
+      versionBuildIdBranchTag: $(ImageTagVersionBuildIdBranch)
+      versionTag: $(ImageTagVersion)
+      versionBuildIdTag: $(ImageTagVersionBuildId)
