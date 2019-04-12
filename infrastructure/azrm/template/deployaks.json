@@ -1,0 +1,35 @@
+{
+"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+"contentVersion": "1.0.0.0",
+"parameters": {
+
+},
+"resources": [
+        {
+                "name": "perceptiaCluster",
+                "type": "Microsoft.ContainerService/managedClusters",
+                "apiVersion": "2018-03-31",
+                "location": "westus2",
+                "tags": {
+                        "use" : "capstone"
+                },
+                "properties": {
+                        "kubernetesVersion": "1.11.9",
+                        "agentPoolProfiles": [
+                        {
+                        "count": 1,
+                        "dnsPrefix": "perceptiaCluster-dns",
+                        "vmSize": "Standard_B2ms",
+                        "osDiskSizeGB": 0,
+                        "osType": "Linux",
+                        "enableAutoScaling": false,
+                        "name": "perceptiaClusterNodePool"
+                        }
+                        ],
+                        "addonProfiles": {},
+                        "enableRBAC": true,
+                        "enablePodSecurityPolicy": true
+                }
+                }
+]
+}

@@ -13,6 +13,17 @@
                 "tags":{
                       "use": "capstone"  
                 }
+                },
+                {
+                "type": "Microsoft.Resources/resourceGroups",
+                "apiVersion": "2018-11-01",
+                "location": "westus2",
+                "name": "perceptiaWeb",
+                "properties": {
+                },
+                "tags":{
+                        "use": "capstone"  
+                }
                 }
         ],
         "outputs": {}
