@@ -20,10 +20,10 @@ variables:
 trigger:
   branches:
     include:
-    - master
     - develop
     - feature/*
     - hotfix/*
+    - release/*
   paths:
     include:
       - infrastructure/azp/*
@@ -38,6 +38,7 @@ pr:
     include:
     - master
     - develop
+    - release/*
   paths:
     exclude:
     - README.md
@@ -47,7 +48,7 @@ jobs:
 - job: 'TestGatewayUnitTests'
   variables:
     GOBIN:  '$(GOPATH)/bin' # Go binaries path
-    GOROOT: '/usr/local/go1.11' # Go installation path
+    GOROOT: '/usr/local/go1.12.1' # Go installation path
     GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
     modulePath: '$(system.defaultWorkingDirectory)/gateway/gateway' # Path to the module's code
   pool:
@@ -90,6 +91,7 @@ jobs:
       versionBuildIdBranchTag: $(ImageTagVersionBuildIdBranch)
       versionTag: $(ImageTagVersion)
       versionBuildIdTag: $(ImageTagVersionBuildId)
+      tagProduction: or(eq(variables[ 'productionTags'], 'true'), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
 - job: 'BuildMssqlImage'
   variables:
   - name: ImageTagVersion
@@ -114,3 +116,4 @@ jobs:
       versionBuildIdBranchTag: $(ImageTagVersionBuildIdBranch)
       versionTag: $(ImageTagVersion)
       versionBuildIdTag: $(ImageTagVersionBuildId)
+      tagProduction: or(eq(variables[ 'productionTags'], 'true'), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
