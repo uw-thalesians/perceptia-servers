@@ -9,7 +9,9 @@ The API Gateway service serves as the primary entry point for the Perceptia appl
 The Gateway service is designed to run within a linux container. This README will describe the key files used to build and run this service in a container. Additionally, there are certain environment variables that the application expects to be present in order to run. These environment variables will also be described in this document. 
 
 ## Setup
+
 ### Directory Structure
+
 #### Root ./
 
 The root of the gateway directory contains the supporting files for building the application.
@@ -26,53 +28,53 @@ The root of the gateway directory contains the supporting files for building the
 
 #### Gateway ./gateway/
 
- Directory containing the source code for the gateway service.
- 
- **main.go:** the source code containing the main function for the gateway service
- 
- **go.mod:** file containing the modules used by the application and its dependencies. Used by the go command line tools to identify which packages and their specific versions to retrieve when building the gateway service into an executable 
- 
- **go.sum:** used to track and ensure validity of retrieved package files listed in go.mod
- 
- ### Building the container image
- 
+Directory containing the source code for the gateway service.
+
+**main.go:** the source code containing the main function for the gateway service
+
+**go.mod:** file containing the modules used by the application and its dependencies. Used by the go command line tools to identify which packages and their specific versions to retrieve when building the gateway service into an executable
+
+**go.sum:** used to track and ensure validity of retrieved package files listed in go.mod
+
+### Building the container image
+
 Builds of this container image are automatically triggered by pushes to the GitHub repository.
 Builds are tagged based on the version of the API the gateway implements (as defined in an variable in the azure-pipelines.yml file in the root of this repository which should reflect the API version listed in the gateway-service-api.yaml file in this directory). For a complete description of the possible tags see the [gateway container repository](https://hub.docker.com/r/uwthalesians/gateway) on the container registry DockerHub.
- 
- ### Running the Gateway Locally
- 
- TODO: Running the application locally will require more setup than will be describe here. See below for instructions on using the local start example script. 
- 
- For testing the gateway locally, the localStartExample.ps1 script can be used. This script assumes that docker is already installed and running on the system and that the TLS cert and key have been generated in the ./gateway/encrypt/ subdirectory. Note, the script is a PowerShell script and thus requires a PowerShell shell. Additionally, PowerShell will not run unsigned scripts by default, therefore you may need to enable running unsigned scripts to use it. 
- 
- ### Configuration
- 
- #### Requirements
- 
- TODO
- 
- #### Environment Variables
- 
+
+### Running the Gateway Locally
+
+TODO: Running the application locally will require more setup than will be describe here. See below for instructions on using the local start example script.
+
+For testing the gateway locally, the localStartExample.ps1 script can be used. This script assumes that docker is already installed and running on the system and that the TLS cert and key have been generated in the ./gateway/encrypt/ subdirectory. Note, the script is a PowerShell script and thus requires a PowerShell shell. Additionally, PowerShell will not run unsigned scripts by default, therefore you may need to enable running unsigned scripts to use it.
+
+### Configuration
+
+#### Requirements
+
+TODO
+
+#### Environment Variables
+
  Use the following variables to configure the gateway for the given environment.
+
+`GATEWAY_LISTEN_ADDR=[[host]:[port]]` (OPTIONAL) identifies what [[host]:[port]] the gateway should listen for requests on. If this variable is not set the gateway will default to ":443".
+
+`GATEWAY_TLSCERTPATH` (REQUIRED) identifies the absolute path to the certificate file to be used by the gateway to make TLS connections. This path is based on where the gateway executable is being run, so if it is being run in a container, the path referenced must be accessible within the container.
+
+`GATEWAY_TLSKEYPATH` (REQUIRED) identifies the absolute path to the key file for the certificate identified by the "GATEWAY_TLSCERTPATH" variable. This path is based on where the gateway executable is being run, so if it is being run in a container, the path referenced must be accessible within the container.
+
+#### Integration
+
+TODO
  
- `GATEWAY_LISTEN_ADDR=[[host]:[port]]` (OPTIONAL) identifies what [[host]:[port]] the gateway should listen for requests on. If this variable is not set the gateway will default to ":443".
- 
- `GATEWAY_TLSCERTPATH` (REQUIRED) identifies the absolute path to the certificate file to be used by the gateway to make TLS connections. This path is based on where the gateway executable is being run, so if it is being run in a container, the path referenced must be accessible within the container.
- 
- `GATEWAY_TLSKEYPATH` (REQUIRED) identifies the absolute path to the key file for the certificate identified by the "GATEWAY_TLSCERTPATH" variable. This path is based on where the gateway executable is being run, so if it is being run in a container, the path referenced must be accessible within the container.
- 
- #### Integration
- 
- TODO
- 
- #### Testing
- 
- Go build tags are used to identify test types and allow selectively running tests, such as unit tests and integration tests. Testing files have the go build directive options to identify which build tags to run the test for:
- 
- `// +build tag_example all unit etc`
- 
- With this build directive at the top of the `some_test.go` file, followed by a blank line, when go test is run only the explicit tags provided to go test that match a build directive tag will be run. Example: 
- 
- `go test -tags=unit ./...` 
- 
- This command (assuming it is run from the same directory as the root go.mod file) will run all test files that contain the `unit` build tag.
+#### Testing
+
+Go build tags are used to identify test types and allow selectively running tests, such as unit tests and integration tests. Testing files have the go build directive options to identify which build tags to run the test for:
+
+`// +build tag_example all unit etc`
+
+With this build directive at the top of the `some_test.go` file, followed by a blank line, when go test is run only the explicit tags provided to go test that match a build directive tag will be run. Example:
+
+`go test -tags=unit ./...`
+
+This command (assuming it is run from the same directory as the root go.mod file) will run all test files that contain the `unit` build tag.
