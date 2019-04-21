@@ -1,0 +1,57 @@
+{
+        "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+        "contentVersion": "1.0.0.0",
+        "parameters": {
+            "resourceName": {
+                "value": "perceptiaCluster"
+            },
+            "location": {
+                "value": "westus2"
+            },
+            "dnsPrefix": {
+                "value": "perceptiaCluster-dns"
+            },
+            "agentCount": {
+                "value": 1
+            },
+            "agentVMSize": {
+                "value": "Standard_B2ms"
+            },
+            "kubernetesVersion": {
+                "value": "1.11.9"
+            },
+            "networkPlugin": {
+                "value": "azure"
+            },
+            "enableRBAC": {
+                "value": true
+            },
+            "enableHttpApplicationRouting": {
+                "value": false
+            },
+            "vnetSubnetID": {
+                "value": "/subscriptions/845419c0-8828-43de-b0cf-793e05e113aa/resourceGroups/perceptiaAksCluster/providers/Microsoft.Network/virtualNetworks/perceptiaAksCluster-vnet/subnets/default"
+            },
+            "serviceCidr": {
+                "value": "10.0.0.0/16"
+            },
+            "dnsServiceIP": {
+                "value": "10.0.0.10"
+            },
+            "dockerBridgeCidr": {
+                "value": "172.17.0.1/16"
+            },
+            "principalId": {
+                "value": "a60ce480-5252-43a0-b669-c4513e315fcc"
+            },
+            "workspaceName": {
+                "value": "DefaultWorkspace-845419c0-8828-43de-b0cf-793e05e113aa-EUS"
+            },
+            "omsWorkspaceId": {
+                "value": "/subscriptions/845419c0-8828-43de-b0cf-793e05e113aa/resourcegroups/defaultresourcegroup-eus/providers/microsoft.operationalinsights/workspaces/defaultworkspace-845419c0-8828-43de-b0cf-793e05e113aa-eus"
+            },
+            "workspaceRegion": {
+                "value": "eastus"
+            }
+        }
+    }
