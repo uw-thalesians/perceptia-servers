@@ -1,0 +1,1 @@
+docker run -d --name aq-mysql -e MYSQL_ROOT_PASSWORD=mrpw -e user_pass=8aWZjNadxspXQEHu --network aq-net uw-thalesians/aq-mysql
