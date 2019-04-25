@@ -1,1 +1,7 @@
 CREATE USER any_quiz IDENTIFIED BY '{pass}';
+
+USE any_quiz_db;
+
+GRANT SELECT, INSERT, UPDATE ON quiz_questions TO any_quiz;
+GRANT SELECT, INSERT, UPDATE ON quiz_users TO any_quiz;
+GRANT SELECT, INSERT, UPDATE ON quizzes TO any_quiz;

@@ -19,5 +19,27 @@ RUN docker-php-ext-install pdo_mysql
 # enable cgi to allow python scripts to be run as cgi scripts
 RUN a2enmod cgi
 
+RUN pip install --upgrade pip
+RUN apt remove -y python-pip
+
+# install python modules used by AnyQuiz
+
+# install a few packages at a time to lower env mem/swap requirements (avoid error 137)
+RUN pip install wikipedia mysql-connector
+RUN pip install numpy
+RUN pip install wasabi cymem preshed pathlib srsly murmurhash
+RUN pip install blis plac tqdm thinc functools32 jsonschema
+RUN pip install spacy 
+RUN pip install nltk
+
+# download used nltk data/packages
+RUN python -m nltk.downloader averaged_perceptron_tagger -d /usr/share/nltk_data
+RUN python -m nltk.downloader punkt -d /usr/share/nltk_data
+RUN python -m nltk.downloader wordnet -d /usr/share/nltk_data
+
+
+# download spacy en model
+# RUN 
+
 EXPOSE 80/tcp
 EXPOSE 3306/tcp
