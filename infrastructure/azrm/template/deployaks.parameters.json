@@ -17,11 +17,8 @@
         "agentVMSize": {
             "value": "Standard_A2m_v2"
         },
-        "osDiskSizeGB": {
-            "value": 32
-        },
         "kubernetesVersion": {
-            "value": "1.11.9"
+            "value": "1.13.5"
         },
         "networkPlugin": {
             "value": "kubenet"
@@ -42,7 +39,7 @@
             "value": "eastus"
         },
         "principalId": {
-            "value": "10c824db-686e-4866-b271-b0dc8031e8d5"
+            "value": "5f6e8a67-b296-40d1-b224-71a4c29941be"
         }
     }
 }
