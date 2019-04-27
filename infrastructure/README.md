@@ -11,3 +11,5 @@ The following list describes the purpose of the directories and files in this su
 **./azp/** the azp directory contains the supporting files for Azure Pipelines such as YAML template files
 
 **./azrm/** the azrm directory contains the Azure Resource Manager template files and deployment scripts
+
+**./kube/** the kube directory contains the Kubernetes API Object config files and deployment scripts

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-deployment
+  labels:
+    app: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+      - name: gateway
+        image: uwthalesians/gateway:0.1.1-build-89-branch-develop
+        ports:
+        - containerPort: 443
+          name: "https"
+        env:
+          - name: GATEWAY_TLSCERTPATH
+            value: "/encrypt/tls.crt"
+          - name: GATEWAY_TLSKEYPATH
+            value: "/encrypt/tls.key"
+        volumeMounts:
+          - name: "encrypt"
+            mountPath: "/encrypt"
+            readOnly: true
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+      volumes:
+        - name: "encrypt"
+          secret:
+            secretName: api-tls

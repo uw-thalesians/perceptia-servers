@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: gateway
+spec:
+  selector:
+    app: gateway
+  ports:
+  - protocol: TCP
+    port: 443
+    targetPort: "https"
+    name: https
+  loadBalancerIP: 52.247.237.51
+  type: LoadBalancer

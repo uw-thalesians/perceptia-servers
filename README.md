@@ -16,6 +16,10 @@ The Perceptia application's backend is developed using a microservices architect
 
 **./infrastructure/** which contains the supporting code for building and deploying the application
 
+**./gateway/** contains the source files for the API gateway service for the application
+
+**./database/** contains the files needed to build the databases used by the micro-services
+
 **azure-pipelines.yml** which defines the continuous integration pipeline for the application, including automated testing and artifact building
 
 ## [Azure Boards Integration](#azure-boards-integration)

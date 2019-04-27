@@ -1,0 +1,1 @@
+kubectl apply -f .\..\deploy\common -f .\..\deploy\dev --namespace development
