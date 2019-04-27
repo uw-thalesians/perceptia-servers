@@ -3,7 +3,12 @@ kind: Deployment
 metadata:
   name: gateway-deployment
   labels:
-    app: gateway
+    app.kubernetes.io/name: gateway
+    app.kubernetes.io/instance: gateway-1
+    app.kubernetes.io/version: "0.1.1"
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/component: server
+    app.kubernetes.io/part-of: perceptia
 spec:
   replicas: 1
   selector:
@@ -13,6 +18,12 @@ spec:
     metadata:
       labels:
         app: gateway
+        app.kubernetes.io/name: gateway
+        app.kubernetes.io/instance: gateway-1
+        app.kubernetes.io/version: "0.1.1"
+        app.kubernetes.io/managed-by: kubectl
+        app.kubernetes.io/component: server
+        app.kubernetes.io/part-of: perceptia
     spec:
       containers:
       - name: gateway
