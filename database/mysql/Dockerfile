@@ -7,5 +7,7 @@ SHELL ["/bin/bash", "-c"]
 COPY create_tables.sql create_user.sql.template /docker-entrypoint-initdb.d/
 COPY parse-template.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/parse-template.sh
+RUN printf "[mysqld]\nlog_error=/var/lib/mysql/mysql_error.log\ngeneral_log_file=/var/lib/mysql/mysql_general.log\ngeneral_log=1\n" >> /etc/mysql/my.cnf
+
 ENTRYPOINT [ "/usr/local/bin/parse-template.sh" ]
 CMD ["mysqld"]

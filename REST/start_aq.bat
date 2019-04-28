@@ -1,1 +1,0 @@
-docker run -d --name php-apache-test -p 8082:80 --network aq-net --mount type=bind,source="c:/development/any_quiz",target=/var/www/html uw-thalesians/aq-rest

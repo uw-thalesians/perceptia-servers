@@ -37,9 +37,22 @@ RUN python -m nltk.downloader averaged_perceptron_tagger -d /usr/share/nltk_data
 RUN python -m nltk.downloader punkt -d /usr/share/nltk_data
 RUN python -m nltk.downloader wordnet -d /usr/share/nltk_data
 
+RUN python -m spacy download en_vectors_web_lg
 
-# download spacy en model
-# RUN 
+RUN python -m spacy download en_core_web_md
+
+# download spacy en model alternative method
+# With external URL
+#pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.1.0/en_core_web_sm-2.1.0.tar.gz
+
+#add first run script to fill out template files with mysql app user password provided from environment variable
+COPY parse-template.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/parse-template.sh
+
+COPY aq/ /var/www/html/
 
 EXPOSE 80/tcp
 EXPOSE 3306/tcp
+
+ENTRYPOINT ["parse-template.sh"]
+CMD ["apache2-foreground"]
