@@ -125,9 +125,8 @@ func (ms *MsSqlStore) Insert(newUser *NewUser) (*User, error) {
 	if errQ != nil {
 		if errQ == sql.ErrNoRows {
 			return &user, ErrUserNotFound
-		} else {
-			return &user, errQ
 		}
+		return &user, errQ
 	}
 	errUQ := user.Uuid.Scan(userInfo.Uuid.String())
 	if errUQ != nil {

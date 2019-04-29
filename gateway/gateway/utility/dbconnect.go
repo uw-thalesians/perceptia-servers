@@ -1,6 +1,7 @@
 package utility
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -44,6 +45,18 @@ func Establish(driverName, dsn string, ping bool) (*sql.DB, error) {
 	return sqlDB, nil
 }
 
+// BuildDsn uses the provided values to build a URL based DSN to connect to a database.
+//
+// Parameters
+// scheme is the connection scheme, such as "sqlserver"
+// username: to authenticate to the server with, such as "sa"
+// password: for the account given by the username
+// hostname: for the server hosting the database, such as "localhost"
+// port: for the port the server is listening for a connection on
+// database: for the database to use for all requests using this connection
+//
+// Return values:
+// dsn: database connection string in format: "<scheme>://<username>:<password>@<hostname>:<port>?params=p1"
 func BuildDsn(scheme, username, password, hostname, port, database string) (dsn *url.URL) {
 	query := url.Values{}
 	query.Add("app name", "gateway")
@@ -53,5 +66,22 @@ func BuildDsn(scheme, username, password, hostname, port, database string) (dsn 
 		User:     url.UserPassword(username, password),
 		Host:     fmt.Sprintf("%s:%s", hostname, port),
 		RawQuery: query.Encode(),
+	}
+}
+
+// PingDatabase will periodically check to see if the database connection is still
+func PingDatabase(ctx context.Context, db *sql.DB, sleepFailTime time.Duration, sleepTestTime time.Duration) {
+	for {
+		select {
+		case <-ctx.Done():
+			log.Print("PingDatabase: ping check canceled")
+			return
+		default:
+			if err := db.Ping(); err != nil {
+				log.Printf("PingDatabase: sent ping at: %s; error: %s", time.Now().String(), err)
+				time.Sleep(sleepFailTime)
+			}
+			time.Sleep(sleepTestTime)
+		}
 	}
 }

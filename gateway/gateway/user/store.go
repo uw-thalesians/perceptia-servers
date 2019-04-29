@@ -10,6 +10,9 @@ import (
 var ErrUserNotFound = errors.New("user not found")
 
 // Store represents a store for Users.
+//
+// Store abstracts the common actions involving the database for users,
+// abstracting the underlying interaction with the database.
 type Store interface {
 	// GetByUuid returns the User with the given Uuid.
 	GetByUuid(uuid uuid.UUID) (*User, error)

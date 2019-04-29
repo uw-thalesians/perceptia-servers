@@ -13,6 +13,7 @@ import (
 )
 
 // Basic Tests to run
+// All tests rely on an active connection to the database.
 func TestMsSqlStore(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -31,6 +32,7 @@ func TestMsSqlStore(t *testing.T) {
 
 // Basic tests define
 
+// TestMsSqlStore_BasicCRUD runs tests designed to go through the basic CRUD ("Create Read Update Delete" cycle.
 var TestMsSqlStore_BasicCRUD = func(ms *MsSqlStore) func(*testing.T) {
 	return func(t *testing.T) {
 		encodedHash, errCEH := CreateEncodedHash("TestIngPasswordHash")
@@ -84,14 +86,14 @@ var TestMsSqlStore_BasicCRUD = func(ms *MsSqlStore) func(*testing.T) {
 				// Create
 				user, errIU := ms.Insert(test.newUser)
 				if test.expectErrorCreate && errIU == nil {
-					t.Errorf("Test: %s; error expected creating user, but no error occured; detail: %s", test.name, test.detail)
+					t.Fatalf("Test: %s; error expected creating user, but no error occured; detail: %s", test.name, test.detail)
 				} else if !test.expectErrorCreate && errIU != nil {
-					t.Errorf("Test: %s; error not expected creating user, but error occured: %s; detail: %s", test.name, errIU, test.detail)
+					t.Fatalf("Test: %s; error not expected creating user, but error occured: %s; detail: %s", test.name, errIU, test.detail)
 				}
 				if test.expectedUser.DisplayName != user.DisplayName ||
 					test.expectedUser.FullName != user.FullName ||
 					test.expectedUser.Username != user.Username {
-					t.Errorf("Test: %s; user returned when creating user does not match expected user:\nuser returned:\n%+v\nexpected user:\n%+v\n; detail: %s", test.name, user, test.expectedUser, test.detail)
+					t.Fatalf("Test: %s; user returned when creating user does not match expected user:\nuser returned:\n%+v\nexpected user:\n%+v\n; detail: %s", test.name, user, test.expectedUser, test.detail)
 				}
 
 				// Read
@@ -123,9 +125,9 @@ var TestMsSqlStore_BasicCRUD = func(ms *MsSqlStore) func(*testing.T) {
 				if test.updateDisplayName {
 					userReadUpd, errUUD := ms.UpdateDisplayName(user.Uuid, test.updateToDisplayName)
 					if test.expectErrorUpdate && errUUD == nil {
-						t.Errorf("Test: %s; error expected updating user, but no error occured; detail: %s", test.name, test.detail)
+						t.Fatalf("Test: %s; error expected updating user, but no error occured; detail: %s", test.name, test.detail)
 					} else if !test.expectErrorUpdate && errUUD != nil {
-						t.Errorf("Test: %s; error not expected updating user, but error occured: %s; detail: %s", test.name, errUUD, test.detail)
+						t.Fatalf("Test: %s; error not expected updating user, but error occured: %s; detail: %s", test.name, errUUD, test.detail)
 					}
 					if test.updateToDisplayName != userReadUpd.DisplayName ||
 						test.expectedUser.FullName != userReadUpd.FullName ||
@@ -138,9 +140,9 @@ var TestMsSqlStore_BasicCRUD = func(ms *MsSqlStore) func(*testing.T) {
 				// Delete
 				errD := ms.Delete(user.Uuid)
 				if test.expectErrorDelete && errD == nil {
-					t.Errorf("Test: %s; error expected deleting user, but no error occured; detail: %s", test.name, test.detail)
+					t.Fatalf("Test: %s; error expected deleting user, but no error occured; detail: %s", test.name, test.detail)
 				} else if !test.expectErrorDelete && errD != nil {
-					t.Errorf("Test: %s; error not expected deleting user, but error occured: %s; detail: %s", test.name, errD, test.detail)
+					t.Fatalf("Test: %s; error not expected deleting user, but error occured: %s; detail: %s", test.name, errD, test.detail)
 				}
 
 			})
