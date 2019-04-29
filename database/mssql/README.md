@@ -46,6 +46,10 @@ During development, a custom docker container will be run which contains both th
 
 Please refer to the description on the container registry for specifics on how to configure it. The information below only provides an exmaple setup.
 
+ `SKIP_SETUP=Y` (optional) if value is `Y` will skip running setup-db.sh script which bootstraps the database schema, any other value besides `Y` will be ignored, as if `SKIP_SETUP` was not set
+
+`SKIP_SETUP_IF_EXISTS=Y` (optional) if value is `Y` will skip running setup-db.sh script which bootstraps the database schema if the Perceptia database already exists. Any other value besides `Y` will be ignored, as if `SKIP_SETUP_IF_EXISTS` was not set
+
 #### Example Setup using uwthalesians/mssql image
 
 First: pull the image from docker
