@@ -1,7 +1,7 @@
 /*
 	Title: Perceptia Database Procedures
-	Version: 0.5.0
-	Schema Version: 0.3.2
+	Version: 0.7.1
+	Schema Version: 0.6.0
 */
 -------------------------------------------------------------------------------
 -- Change Log --
@@ -14,6 +14,9 @@
 	2019/02/28, Chris, Update procs for new schema, 0.4.0
 	2019/03/02, Chris, Update to reflect field Uuid change, 0.4.1
 	2019/03/02, Chris, Add add,get,delete for email, 0.5.0
+	2019/04/28, Chris, Add delete for user, 0.6.0
+	2019/04/28, Chris, Add Update Hash, DisplayName, FullName for user, 0.7.0
+	2019/04/28, Chris, Fix params for Update sp, 0.7.1
 */
 
 -------------------------------------------------------------------------------
@@ -318,3 +321,167 @@ END CATCH;
 ;
 GO
 
+-----------------------------------------------------------
+-- DeleteUser --
+-----------------------------------------------------------
+
+CREATE PROCEDURE [USP_DeleteUser]
+@Uuid UNIQUEIDENTIFIER
+AS
+SET NOCOUNT ON
+;
+BEGIN TRY
+	IF @Uuid IS NULL
+		THROW 50101, N'uuid must not be null', 1
+		;
+	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @Uuid)
+		THROW 50201, N'user does not exist', 1
+		;
+	BEGIN TRANSACTION [T1]
+		DELETE FROM [User]
+		WHERE [Uuid] = @Uuid
+	COMMIT TRANSACTION [T1]
+	;
+END TRY
+BEGIN CATCH
+	IF @@TRANCOUNT > 0
+	BEGIN
+		ROLLBACK
+		;
+	END
+	;
+	THROW
+END CATCH;
+;
+GO
+
+-----------------------------------------------------------
+-- UpdateUserEncodedHash --
+-----------------------------------------------------------
+
+CREATE PROCEDURE [USP_UpdateUserEncodedHash]
+@Uuid UNIQUEIDENTIFIER
+,@EncodedHash NVARCHAR(500)
+AS
+SET NOCOUNT ON
+;
+BEGIN TRY
+	IF @Uuid IS NULL
+		THROW 50101, N'uuid must not be null', 1
+		;
+	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @Uuid)
+		THROW 50201, N'user does not exist', 1
+		;
+	DECLARE @CredentialUuid UNIQUEIDENTIFIER
+	;
+	BEGIN TRANSACTION [T1]
+		DELETE FROM [Credential]
+		WHERE [Uuid] = (SELECT [C].[Uuid] FROM [Credential] AS [C]
+			INNER JOIN [UserCredential] AS [UC]
+				ON [C].[Uuid] = [UC].[Credential_Uuid]
+			WHERE [UC].[User_Uuid] = @Uuid)
+		;
+
+		SET @CredentialUuid = NEWID()
+		;
+
+		INSERT INTO [Credential]
+		([Uuid],[EncodedHash])
+		VALUES
+		(@CredentialUuid, @EncodedHash)
+		;
+
+		INSERT INTO [UserCredential]
+		([User_Uuid], [Credential_Uuid])
+		VALUES
+		(@Uuid, @CredentialUuid)
+		;
+		
+	COMMIT TRANSACTION [T1]
+	;
+END TRY
+BEGIN CATCH
+	IF @@TRANCOUNT > 0
+	BEGIN
+		ROLLBACK
+		;
+	END
+	;
+	THROW
+END CATCH;
+;
+GO
+
+-----------------------------------------------------------
+-- UpdateUserFullName --
+-----------------------------------------------------------
+
+CREATE PROCEDURE [USP_UpdateUserFullName]
+@Uuid UNIQUEIDENTIFIER
+,@FullName NVARCHAR(255)
+AS
+SET NOCOUNT ON
+;
+BEGIN TRY
+	IF @Uuid IS NULL
+		THROW 50101, N'uuid must not be null', 1
+		;
+	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @Uuid)
+		THROW 50201, N'user does not exist', 1
+		;
+	BEGIN TRANSACTION [T1]
+		UPDATE [User]
+			SET [FullName] = @FullName
+			WHERE [Uuid] = @Uuid
+		;
+	COMMIT TRANSACTION [T1]
+	;
+END TRY
+BEGIN CATCH
+	IF @@TRANCOUNT > 0
+	BEGIN
+		ROLLBACK
+		;
+	END
+	;
+	THROW
+END CATCH;
+;
+GO
+
+-----------------------------------------------------------
+-- UpdateUserDisplayName --
+-----------------------------------------------------------
+
+CREATE PROCEDURE [USP_UpdateUserDisplayName]
+@Uuid UNIQUEIDENTIFIER
+,@DisplayName NVARCHAR(255)
+AS
+SET NOCOUNT ON
+;
+BEGIN TRY
+	IF @Uuid IS NULL
+		THROW 50101, N'uuid must not be null', 1
+		;
+	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @Uuid)
+		THROW 50201, N'user does not exist', 1
+		;
+	BEGIN TRANSACTION [T1]
+		UPDATE [User]
+			SET [DisplayName] = @DisplayName
+			WHERE [Uuid] = @Uuid
+		;
+	COMMIT TRANSACTION [T1]
+	;
+END TRY
+BEGIN CATCH
+	IF @@TRANCOUNT > 0
+	BEGIN
+		ROLLBACK
+		;
+	END
+	;
+	THROW
+END CATCH;
+;
+GO
