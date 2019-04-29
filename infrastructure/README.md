@@ -13,3 +13,5 @@ The following list describes the purpose of the directories and files in this su
 **./azrm/** the azrm directory contains the Azure Resource Manager template files and deployment scripts
 
 **./kube/** the kube directory contains the Kubernetes API Object config files and deployment scripts
+
+**./local/** the local directory contains the scripts needed to run the backend locally
