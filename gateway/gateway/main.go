@@ -18,6 +18,8 @@ import (
 // the session was started the session should be treated as no longer valid.
 const SessionDuration = time.Duration(time.Hour * 24)
 
+const sqlDriverName = "sqlserver"
+
 func main() {
 	// Get address for server to listen for requests on
 	listenAddr := utility.DefaultEnv("GATEWAY_LISTEN_ADDR", ":443")
@@ -32,6 +34,46 @@ func main() {
 	// Fail if the path to the key is not provided
 	if errTLSKeyPath != nil {
 		log.Fatal(errTLSKeyPath)
+	}
+
+	mssqlScheme, errMSS := utility.RequireEnv("MSSQL_SCHEME")
+	// Fail if the value is not provided
+	if errMSS != nil {
+		log.Fatal(errMSS)
+	}
+	mssqlUsername, errMSU := utility.RequireEnv("MSSQL_USERNAME")
+	// Fail if the value is not provided
+	if errMSU != nil {
+		log.Fatal(errMSU)
+	}
+	mssqlPassword, errMSP := utility.RequireEnv("MSSQL_PASSWORD")
+	// Fail if the value is not provided
+	if errMSP != nil {
+		log.Fatal(errMSP)
+	}
+	mssqlHost, errMSH := utility.RequireEnv("MSSQL_HOST")
+	// Fail if the value is not provided
+	if errMSH != nil {
+		log.Fatal(errMSH)
+	}
+	mssqlPort, errMSPO := utility.RequireEnv("MSSQL_PORT")
+	// Fail if the value is not provided
+	if errMSPO != nil {
+		log.Fatal(errMSPO)
+	}
+	mssqlDatabase, errMSDB := utility.RequireEnv("MSSQL_DATABASE")
+	// Fail if the value is not provided
+	if errMSDB != nil {
+		log.Fatal(errMSDB)
+	}
+
+	// Create DSN to use for connection to mssql
+	mssqlDsn := utility.BuildDsn(mssqlScheme, mssqlUsername, mssqlPassword, mssqlHost, mssqlPort, mssqlDatabase)
+
+	// Connect to mssql database
+	mssqlDb, errEMSD := utility.Establish(sqlDriverName, mssqlDsn.String(), true)
+	if errEMSD == utility.ErrInvalidDsn {
+		log.Fatalf("The provided DSN: %s, was invalid: %s", mssqlDsn.String(), errEMSD)
 	}
 
 	// Create new mux router

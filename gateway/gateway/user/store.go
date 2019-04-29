@@ -32,6 +32,9 @@ type Store interface {
 	// UpdateDisplayName updates the display name for the given user
 	UpdateDisplayName(uuid uuid.UUID, displayName string) (*User, error)
 
+	// UpdateEncodedHash updates the encoded hash stored for the user
+	UpdateEncodedHash(uuid uuid.UUID, encodedHash string) error
+
 	// Delete deletes the user with the given ID.
 	Delete(uuid uuid.UUID) error
 

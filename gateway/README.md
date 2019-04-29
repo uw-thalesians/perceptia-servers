@@ -57,11 +57,23 @@ TODO
 
  Use the following variables to configure the gateway for the given environment.
 
-`GATEWAY_LISTEN_ADDR=[[host]:[port]]` (OPTIONAL) identifies what [[host]:[port]] the gateway should listen for requests on. If this variable is not set the gateway will default to ":443".
+`GATEWAY_LISTEN_ADDR=[[<host>]:[<port>]]` (OPTIONAL) identifies what host and port the gateway should listen for requests on. If this variable is not set the gateway will default to ":443".
 
 `GATEWAY_TLSCERTPATH` (REQUIRED) identifies the absolute path to the certificate file to be used by the gateway to make TLS connections. This path is based on where the gateway executable is being run, so if it is being run in a container, the path referenced must be accessible within the container.
 
 `GATEWAY_TLSKEYPATH` (REQUIRED) identifies the absolute path to the key file for the certificate identified by the "GATEWAY_TLSCERTPATH" variable. This path is based on where the gateway executable is being run, so if it is being run in a container, the path referenced must be accessible within the container.
+
+`MSSQL_SCHEME=<scheme>` (REQUIRED) identifies the scheme to use to connect to the mssql database
+
+`MSSQL_USERNAME=<username>` (REQUIRED) identifies the username to login to the mssql database with
+
+`MSSQL_PASSWORD=<password>` (REQUIRED) the password used to login to the mssql database
+
+`MSSQL_HOST=<host>` (REQUIRED) the host where the mssql database can be reached
+
+`MSSQL_PORT=<port>` (REQUIRED) the port where the mssql database can be reached
+
+`MSSQL_DATABASE=<database>` (REQUIRED) the database to use for the connection
 
 #### Integration
 
