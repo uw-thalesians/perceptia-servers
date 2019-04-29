@@ -71,7 +71,7 @@ func main() {
 	mssqlDsn := utility.BuildDsn(mssqlScheme, mssqlUsername, mssqlPassword, mssqlHost, mssqlPort, mssqlDatabase)
 
 	// Connect to mssql database
-	mssqlDb, errEMSD := utility.Establish(sqlDriverName, mssqlDsn.String(), true)
+	_, errEMSD := utility.Establish(sqlDriverName, mssqlDsn.String(), true)
 	if errEMSD == utility.ErrInvalidDsn {
 		log.Fatalf("The provided DSN: %s, was invalid: %s", mssqlDsn.String(), errEMSD)
 	}
