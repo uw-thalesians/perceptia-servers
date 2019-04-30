@@ -22,6 +22,8 @@ This directory contains the code used to manage the mssql databse(s) used by the
 
   * [Start with Script](#start-local-script)
 
+  * [Start with Docker Commands](#start-local-docker-commands)
+
 ## [Getting Started](#getting-started)
 
 In order to use a database locally, you will need to run a docker container for the database server and attach a storage medium to that container for the database files (if you want the data to persist). This document provides an overview of the structure of this direcotry, the specific database(s) provided, and how to [setup](#setup-server) the database server.
@@ -149,3 +151,7 @@ This subsection explains the meaning of the various docker options supplied to t
 `--name=mssql` specifies the name that will be given to the container when it runs. If the container were attached to a docker network then it could be reached by other containers on that network by its name
 
 `--network "perceptia-net"` specifies the docker network the container should be attached to. By default, all containers in a docker network can communicate with all other containers
+
+### [Start with Docker Commands](#start-local-docker-commands)
+
+TODO
