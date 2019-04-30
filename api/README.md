@@ -98,4 +98,4 @@ The [api](./../api/) directory is organized to reflect the major version of the 
 
 ### [AnyQuiz Service API](#api-spec-anyquiz)
 
-* TODO
+* 0.0.0 - [API Specification](./v1/anyquiz/0.1.0.yaml) | [API Documentation](./v1/anyquiz/0.1.0.html) THIS IS A PLACEHOLDER
