@@ -84,7 +84,7 @@ Example response: `{"name":"Perceptia API Health Report","version":"0.1.1","stat
 
 ## [API Specifications](#api-specifications)
 
-The Perceptia API is documented using the OpenApi standard, version 3. Each service of the Perceptia application maintains its own API specification in its respective directory. Additionally, each specification is maintained in the [api](./../api/) directory of this repository.
+The Perceptia API is documented using the [OpenApi standard](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md), version 3. Each service of the Perceptia application maintains its own API specification in its respective directory. Additionally, each specification is maintained in the [api](./../api/) directory of this repository.
 
 The [api](./../api/) directory is organized to reflect the major version of the API, such that routes with the {apiVersion} of "v1" are located in the directory [v1](./v1). The version subdirectory is further organized by collection (service or resource), such that the gateway service has its API archived in the [v1/gateway](./v1/gateway) directory. Note, the files in the collection subdirectory are labeled based on the version of the API they document, using the [semver](https://semver.org/spec/v2.0.0.html) format. The `*.yaml` files are the OpenApi specification, and the `*.html` files are the visual form of the specification.
 
