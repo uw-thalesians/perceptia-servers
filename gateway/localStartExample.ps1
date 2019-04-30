@@ -15,6 +15,7 @@ Set-Variable -Name GATEWAY_IMAGE_TAG -Value "${LATEST_COMMIT}"
 Set-Variable -Name GATEWAY_IMAGE_AND_TAG -Value "${GATEWAY_IMAGE_NAME}:${GATEWAY_IMAGE_TAG}"
 Set-Variable -Name GATEWAY_CONTAINER_NAME -Value "gateway"
 
+Write-Host "Building gateway image: $GATEWAY_IMAGE_AND_TAG"
 docker build --tag "${GATEWAY_IMAGE_AND_TAG}" --no-cache .
 
 Set-Variable -Name GATEWAY_TLSCERTPATH -Value "/encrypt/gateway_tlscert.pem"
