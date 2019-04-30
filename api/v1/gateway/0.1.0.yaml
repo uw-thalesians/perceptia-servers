@@ -1,0 +1,42 @@
+openapi: 3.0.2
+info:
+  title: Gateway Service API
+  description: This document describes the APIs that are provided directly by the
+    Gateway service of the Perceptia application. All other APIs in the Perceptia
+    application are handled by seperate services which the Gateway passes along.
+  contact:
+    name: Christopher Kites
+    email: chriskites@gmail.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  version: 0.1.0
+servers:
+- url: https://api.perceptia.info
+  description: Perceptia Production API Server
+- url: https://api.dev.perceptia.info
+  description: Perceptia Development API Server
+- url: https://localhost:4443
+  description: Localhost Development API Server
+paths:
+  /v1/health:
+    get:
+      tags:
+      - health
+      summary: Checks if the gateway is responding to requests.
+      description: This path
+      operationId: getGatewayHealth
+      responses:
+        200:
+          description: Plain text noting gateway is okay
+          content:
+            text/plain:
+              schema:
+                type: string
+        503:
+          description: Plain text noting service is down
+          content:
+            text/plain:
+              schema:
+                type: string
+components: {}
