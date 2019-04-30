@@ -108,6 +108,8 @@ Use the following variables to configure the gateway for the given environment.
 
 `GATEWAY_TLSKEYPATH=<pathToCertKey>` (REQUIRED) identifies the absolute path to the key file for the certificate identified by the "GATEWAY_TLSCERTPATH" variable. This path is based on where the gateway executable is being run, so if it is being run in a container, the path referenced must be accessible within the container.
 
+`GATEWAY_SESSION_KEY=<sessionkey>` (REQUIRED) the session key used to sign login sessions
+
 `MSSQL_SCHEME=<scheme>` (REQUIRED) identifies the scheme to use to connect to the mssql database
 
 `MSSQL_USERNAME=<username>` (REQUIRED) identifies the username to login to the mssql database with
@@ -126,25 +128,29 @@ This setup explains how to build and start the server locally.
 
 ### [Start with Script](#start-local-script)
 
-Building and starting the gateway container locally is more involed than running one script. The following must be setup:
+Building and starting the gateway container locally can be more involed than running one script. The following must be setup:
 
 1. Populate the [./gateway/encrypt](./gateway/encrypt) directory with the apprioriate TLS certificates for localhost. See [./gateway/encrypt/README.md](./gateway/encrypt/README.md) for instructions.
 
-2. Ensure service dependencies are set up to run.
+2. Ensure service dependencies are set up to run. If using the PowerShell script, the dependencies should be started by default. (Meaing, if you are using the PowerShell script with the default options you should not need to start the dependencies)
 
-   * [mssql](https://hub.docker.com/r/uwthalesians/mssql): image with version 0.7.1 bootstraped
+   * [mssql](https://hub.docker.com/r/uwthalesians/mssql): image with version 0.7.1 bootstraped (see [local start script](./localStartExample.ps1) for example)
 
-   * [redis](TODO): TODO
+   * [redis](https://hub.docker.com/_/redis): redis:5.0.4-alpine (see [local start script](./localStartExample.ps1) for example)
 
 #### PowerShell
 
 For testing the gateway locally, the [localStartExample.ps1](./localStartExample.ps1) script can be used. This script assumes that docker is already installed and running on the system and that the TLS cert and key have been generated (see note above). Note, the script is a PowerShell script and thus requires a PowerShell shell. Additionally, PowerShell will not run unsigned scripts by default, therefore you may need to enable running unsigned scripts to use it.
 
-The PowerShell script, [localStartExample.ps1](./localStartExample.ps1) will build the gateway image, loading in the Perceptia database files and bootstrap scripts. This script has several command line options which allow you to customize the instance.
+The PowerShell script, [localStartExample.ps1](./localStartExample.ps1) will run the gateway image as a container inside a docker network and exposed to localhost. This script has several command line options which allow you to customize the instance.
 
 ##### Comand Line Options
 
-The script accepts several comand line options which can be set when running the script in a PowerShell terminal. No positional options, all options require the explicit flag
+The script accepts several comand line options which can be set when running the script in a PowerShell terminal. No positional options.
+
+Unless you need to run your own mssql container or build the gateway container locally, you should not have to provide any options to the local start script.
+
+However, if you want to retian redis and mssql database between runs of the containers, you need to include the 
 
 Run: `.\locaStartExample.ps1 `
 
@@ -164,6 +170,16 @@ Run: `.\locaStartExample.ps1 `
 
 `-GatewayPort` which is the port the gateway service should be exposed on the host machine, default value is "4443"
 
+`-SkipRedis` (switch) will skip starting the redis dependency, default is: false. If you are starting your own redis instance include the option by including the switch
+
+`-SkipMsSql` (switch) will skip starting the mssql dependency, default is: false. If you are starting your own mssql instance, set option by including the switch
+
+`-KeepMsSqlDb` (switch) will start the mssql dependency with an existing database if it already exists, default is: false. If you want to retain a previously created database, set the option by including the switch
+
+`-KeepRedisDb` (switch) will start the redis dependency with an existing database if it already exists, default is: false. If you want to retain a previously created database, set the option by including the switch
+
+`-BuildGateway` (switch) will build the gateway using the local source, default is: false. To set true, include the switch
+
 ### [Start with Docker Commands](#start-local-docker-commands)
 
 For directions to start the container locally using a script, see [Start Server Locally](#start-local).
@@ -174,7 +190,7 @@ For directions to start the container locally using a script, see [Start Server 
 
 2. run the container image (replace variables with the correct values)
 
-   `docker run --detach --env GATEWAY_TLSCERTPATH="$GATEWAY_TLSCERTPATH" --env GATEWAY_TLSKEYPATH="$GATEWAY_TLSKEYPATH" --env MSSQL_DATABASE="$MSSQL_DATABASE" --env MSSQL_HOST="$MSSQL_HOST" --env MSSQL_PASSWORD="$MSSQL_PASSWORD" --env MSSQL_PORT="$MSSQL_PORT" --env MSSQL_SCHEME="$MSSQL_SCHEME" --env MSSQL_USERNAME="$MSSQL_USERNAME" --name ${GATEWAY_CONTAINER_NAME} --network $PerceptiaDockerNet --publish "${GatewayPort}:443" --restart on-failure --mount type=bind,source="$GATEWAY_TLSMOUNTSOURCE",target="/encrypt/",readonly 0.1.1-build-latest-branch-develop`
+   `docker run --detach --env GATEWAY_SESSION_KEY="$GATEWAY_SESSION_KEY" --env GATEWAY_TLSCERTPATH="$GATEWAY_TLSCERTPATH" --env GATEWAY_TLSKEYPATH="$GATEWAY_TLSKEYPATH" --env MSSQL_DATABASE="$MSSQL_DATABASE" --env MSSQL_HOST="$MSSQL_HOST" --env MSSQL_PASSWORD="$MSSQL_PASSWORD" --env MSSQL_PORT="$MSSQL_PORT" --env MSSQL_SCHEME="$MSSQL_SCHEME" --env MSSQL_USERNAME="$MSSQL_USERNAME" --name ${GATEWAY_CONTAINER_NAME} --network $PerceptiaDockerNet --publish "${GatewayPort}:443" --restart on-failure --mount type=bind,source="$GATEWAY_TLSMOUNTSOURCE",target="/encrypt/",readonly 0.1.1-build-latest-branch-develop`
 
 ## [Testing](#testing)
 
