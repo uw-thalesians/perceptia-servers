@@ -4,23 +4,39 @@
 
 This repository contains the source files for the services that make up the Perceptia application.
 
+## [Contents](#contents)
+
+* [Getting Started](#getting-started)
+
+* [Structure](#structure)
+
+* [Setup](#setup)
+
+* [Azure Boards Integration](#azure-boards-integration)
+
+* [Public Repository Security Considerations](#security-considerations)
+
 ## [Getting Started](#getting-started)
 
 Each service that makes up the Perceptia application is contained in its own subdirectory from the root of the repository (see [Structure](#structure) below).
-
-## [Setup](#setup)
 
 ## [Structure](#structure)
 
 The Perceptia application's backend is developed using a microservices architecture. This is reflected in the organization of this repository, with each subdirectory roughly cooresponding to one service of the application. There are additional subdirectories to maintain supporting code. Each subdirectory should have a README.md file which provides additional information about the files in that directory and how to use them.
 
-**./infrastructure/** which contains the supporting code for building and deploying the application
+[./infrastructure/](./infrastructure/) which contains the supporting code for building and deploying the application
 
-**./gateway/** contains the source files for the API gateway service for the application
+[./gateway/](./gateway/) contains the source files for the API gateway service for the application
 
-**./database/** contains the files needed to build the databases used by the micro-services
+[./database/](./database/) contains the files needed to build the databases used by the micro-services
 
-**azure-pipelines.yml** which defines the continuous integration pipeline for the application, including automated testing and artifact building
+[./api/](./api/) contains the API specifications for the various Perceptia services
+
+[./azure-pipelines.yml](./azure-pipelines.yml) which defines the continuous integration pipeline for the application, including automated testing and artifact building
+
+## [Setup](#setup)
+
+TODO
 
 ## [Azure Boards Integration](#azure-boards-integration)
 
