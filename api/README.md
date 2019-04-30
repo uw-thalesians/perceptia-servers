@@ -90,6 +90,8 @@ The [api](./../api/) directory is organized to reflect the major version of the 
 
 Note, each collection is versioned independently of each other, and thus versions are specific to a given collection, and each collection handles the processing of different major and minor versions of their respective API specifications.
 
+A note about API versions below 1, such as 0.1.0. These versions are under development, and thus breaking changes may be made. Once the API reaches version 1, no breaking changes will be made, only non-breaking fixes and new features will be added. Version 0 APIs are served under the "v1" url path.
+
 ### [Gateway Service API](#api-spec-gateway)
 
 [Version 1](./v1/gateway)
