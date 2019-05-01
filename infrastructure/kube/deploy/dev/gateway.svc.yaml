@@ -2,13 +2,20 @@ kind: Service
 apiVersion: v1
 metadata:
   name: gateway
+  labels:
+    app.kubernetes.io/name: gateway
+    app.kubernetes.io/instance: gateway-1
+    app.kubernetes.io/version: "0.1.1"
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/component: server
+    app.kubernetes.io/part-of: perceptia
 spec:
   selector:
     app: gateway
   ports:
   - protocol: TCP
     port: 443
-    targetPort: "https"
+    targetPort: https
     name: https
   loadBalancerIP: 52.247.237.51
   type: LoadBalancer
