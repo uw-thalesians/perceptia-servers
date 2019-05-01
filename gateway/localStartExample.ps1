@@ -38,7 +38,7 @@ if ($BuildGateway) {
     Write-Host "Building gateway image: $GATEWAY_IMAGE_AND_TAG"
     docker build --tag "${GATEWAY_IMAGE_AND_TAG}" --no-cache .
 } else {
-    Set-Variable -Name GATEWAY_IMAGE_AND_TAG -Value "uwthalesians/gateway:0.1.1-build-latest-branch-nightingale-login"
+    Set-Variable -Name GATEWAY_IMAGE_AND_TAG -Value "uwthalesians/gateway:0.2.0-build-latest-branch-nightingale-login"
 }
 
 Set-Variable -Name GATEWAY_TLSCERTPATH -Value "/encrypt/gateway_tlscert.pem"

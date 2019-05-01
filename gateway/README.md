@@ -148,7 +148,7 @@ Building and starting the gateway container locally can be more involed than run
 
 For testing the gateway locally, the [localStartExample.ps1](./localStartExample.ps1) script can be used. This script assumes that docker is already installed and running on the system and that the TLS cert and key have been generated (see note above). Note, the script is a PowerShell script and thus requires a PowerShell shell. Additionally, PowerShell will not run unsigned scripts by default, therefore you may need to enable running unsigned scripts to use it.
 
-The PowerShell script, [localStartExample.ps1](./localStartExample.ps1) will run the gateway image as a container inside a docker network and exposed to localhost. This script has several command line options which allow you to customize the instance.
+The PowerShell script, [localStartExample.ps1](./localStartExample.ps1) will run the gateway image as a container inside a docker network and expose it to localhost. This script has several command line options which allow you to customize the instance.
 
 ##### Comand Line Options
 
@@ -198,11 +198,11 @@ For directions to start the container locally using a script, see [Start Server 
 
 1. pull the image from docker (check [registry](https://hub.docker.com/r/uwthalesians/gateway) for latest images)
 
-   `docker pull uwthalesians/0.1.1-build-latest-branch-develop`
+   `docker pull uwthalesians/0.2.0-build-latest-branch-develop`
 
 2. run the container image (replace variables with the correct values)
 
-   `docker run --detach --env GATEWAY_SESSION_KEY="$GATEWAY_SESSION_KEY" --env GATEWAY_TLSCERTPATH="$GATEWAY_TLSCERTPATH" --env GATEWAY_TLSKEYPATH="$GATEWAY_TLSKEYPATH" --env MSSQL_DATABASE="$MSSQL_DATABASE" --env MSSQL_HOST="$MSSQL_HOST" --env MSSQL_PASSWORD="$MSSQL_PASSWORD" --env MSSQL_PORT="$MSSQL_PORT" --env MSSQL_SCHEME="$MSSQL_SCHEME" --env MSSQL_USERNAME="$MSSQL_USERNAME" --name ${GATEWAY_CONTAINER_NAME} --network $PerceptiaDockerNet --publish "${GatewayPort}:443" --restart on-failure --mount type=bind,source="$GATEWAY_TLSMOUNTSOURCE",target="/encrypt/",readonly 0.1.1-build-latest-branch-develop`
+   See end of [localStartExample.ps1](./localStartExample.ps1) for example docker run
 
 ## [Testing](#testing)
 

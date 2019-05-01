@@ -7,7 +7,7 @@ variables:
   - group: Common
   # Gateway Variables
   - name: GatewayVersion
-    value: '0.1.1'
+    value: '0.2.0'
   - name: GatewayImageQualified
     value: '$(DockerHubOrg)/$(GatewayImageName)'
   # Mssql Variables
