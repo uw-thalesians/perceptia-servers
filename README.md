@@ -28,15 +28,21 @@ The Perceptia application's backend is developed using a microservices architect
 
 [./gateway/](./gateway/) contains the source files for the API gateway service for the application
 
-[./database/](./database/) contains the files needed to build the databases used by the micro-services
+[./database/](./database/) contains the files needed to build the databases used by the microservices
 
 [./api/](./api/) contains the API specifications for the various Perceptia services
 
 [./azure-pipelines.yml](./azure-pipelines.yml) which defines the continuous integration pipeline for the application, including automated testing and artifact building
 
+[./.gitignore](./gitignore) configures git to ignore certain files and not check them into the repository
+
+[./.gitattributes](./gitattributes) additional configuration options for git
+
+[./LICENSE](./LICENSE) is the license for the source code in this repository (unless under a different license)
+
 ## [Setup](#setup)
 
-TODO
+The Perceptia backend is deployed to Azure, for which the Azure Pipelines file defines the basic build process for the services. Local development will be supported once the major services have been added to this repository. Until then, the [local start script in the gateway directory](./gateway/localStartExample.ps1) allows one to run the API gateway for the Perceptia backend locally. Best to read the [gateway README](./gateway/README.md) before starting the script.
 
 ## [Azure Boards Integration](#azure-boards-integration)
 

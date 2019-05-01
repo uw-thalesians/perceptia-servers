@@ -1,6 +1,6 @@
 openapi: 3.0.2
 info:
-  version: 0.1.1
+  version: "0.2.0"
   title: Gateway Service API
   description: This document describes the APIs that are provided directly by the Gateway service of the Perceptia application. All other APIs in the Perceptia application are handled by seperate services which the Gateway passes along.
   contact:
@@ -21,23 +21,41 @@ servers:
         description: 'The port the server listens on'
         default: '4443'
 paths:
-  /v1/testHealth:
+  /api/v1/gateway/health:
     get:
-      summary: Gets the current health of the api gateway
-      description: This path is not intended for production use. This is only for testing purposes and will be removed at some point.
+      summary: Reports the status of the gateway, and the services it exposes.
+      description: Provides basic health information about the gateway. Output can be expanded and filtered using the optional query parameters.
       operationId: getGatewayHealth
       tags:
         - health
       responses:
         '200':
-          description: Plain text noting gateway is okay
+          description: health response
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-        '503':
-          description: Plain text noting service is down
-          content:
-            text/plain:
-              schema:
-                type: string
+                $ref: '#/components/schemas/Health'
+components:
+  schemas:
+    Health:
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: human text describing health report
+          example: "Perceptia API Health Report"
+        version:
+          type: string
+          description: text representation of the specific version of the api that created this report
+          example: "1.1.1"
+        status:
+          type: string
+          description: |
+            "Current status of the gateway, one of: starting: gateway is still coming up and may not respond to all requests; ready: ready to recieve requests; failed: some error has occured, quality of a given response is unknown"
+          enum: [
+            "starting",
+            "ready",
+            "failed"
+          ]
+          example: "ready"

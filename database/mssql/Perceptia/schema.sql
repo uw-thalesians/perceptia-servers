@@ -1,6 +1,6 @@
 /*
 	Title: Perceptia Database Schema
-	Version: 0.3.2
+	Version: 0.5.0
 */
 -------------------------------------------------------------------------------
 -- Change Log --
@@ -13,6 +13,9 @@
 	2019/02/28, Chris, Change table structure, 0.3.0
 	2019/03/02, Chris, Change field UUID to Uuid, 0.3.1
 	2019/03/02, Chris, On delete cascade, 0.3.2
+	2019/04/28, Chris, Update sp to 0.6.0, 0.4.0
+	2019/04/28, Chris, Update sp to 0.7.0, 0.5.0
+	2019/04/28, Chris, Update sp to 0.7.1, 0.5.0
 */
 
 -------------------------------------------------------------------------------
