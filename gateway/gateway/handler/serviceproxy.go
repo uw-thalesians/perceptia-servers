@@ -21,7 +21,7 @@ func (cx *Context) NewServiceProxy(hostname, port string) *httputil.ReverseProxy
 		Director: func(r *http.Request) {
 			r.URL.Scheme = "http"
 			r.URL.Host = hostnameAndPort
-			// Remove existing X-User header
+			// Remove existing User Uuid header
 			r.Header.Del(HeaderPerceptiaUserUuid)
 
 			if user, errGAU := cx.getUserFromRequest(r); errGAU == nil && user != nil {

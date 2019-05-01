@@ -192,6 +192,9 @@ func main() {
 		return
 	})
 
+	// Add Middleware
+	gmuxApi.Use(handler.NewCors)
+
 	//Starts listening at the address set, and passes requests at that address
 	//to the mux. Exits if ListenAndServerTLS fails
 	log.Printf("server is listening at https://%s...", listenAddr)
