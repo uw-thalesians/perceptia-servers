@@ -42,6 +42,8 @@ This directory is organized around specific database(s), each with their own sub
 
 [localStartExample.ps1:](./localStartExample.ps1) PowerShell script providing an example of running the ms sql server container. See [manual-setup](#manual-setup) below for more information about this script
 
+[.dockerignore:](./.dockerignore)
+
 ### [Databases](#structure-databases)
 
 Each database is contained in a subdirectory of this directory. Each directory contains the necessary files, such as sql files, to bootstrap the given database. This includes the database schema and any stored procedures.
@@ -128,7 +130,7 @@ Run: `.\locaStartExample.ps1 -MsSqlSkipSetupIfExist Y`
 
 `-MsSqlPassword` which is used to pass in either the password to use to secure the mssql server, the default value is: "SecureNow!"
 
-`-MsSqlPort` which is the port the docker container should listen for requests on and send to the mssql server, default value is: "1401",
+`-MsSqlPortPublish` which is the port the docker container should listen for requests on and send to the mssql server, default value is: "1401",
 
 `-MsSqlSkipSetupIfExist` which allows setting what value is passed for the custom image environment variable SKIP_SETUP_IF_EXISTS (see [custom image env vars](#custom-image-env-vars)), default value is: "N", meaning setup will run (unless another option over rules this)
 

@@ -88,7 +88,7 @@ Commands:
 
 ### [Custom Image](#setup-server-custom-image)
 
-The Gateway image will be used during development and production. Information about this custom image can be found in the Thalesians container registry on DockerHub [uwthalesians/mssql](https://hub.docker.com/r/uwthalesians/gateway).
+The Gateway image will be used during development and production. Information about this custom image can be found in the Thalesians container registry on DockerHub [uwthalesians/gateway](https://hub.docker.com/r/uwthalesians/gateway).
 
 Please refer to the description on the [container registry](https://hub.docker.com/r/uwthalesians/gateway) for specifics on how to configure it. The information below only provides an exmaple setup.
 
@@ -104,9 +104,9 @@ Use the following variables to configure the gateway for the given environment.
 
 `GATEWAY_LISTEN_ADDR=[[<host>]:[<port>]]` (OPTIONAL) identifies what host and port the gateway should listen for requests on. If this variable is not set the gateway will default to ":443".
 
-`GATEWAY_TLSCERTPATH=<pathToCert>` (REQUIRED) identifies the absolute path to the certificate file to be used by the gateway to make TLS connections. This path is based on where the gateway executable is being run, so if it is being run in a container, the path referenced must be accessible within the container.
+`GATEWAY_TLSCERTPATH=<pathToCert>` (REQUIRED) identifies the absolute path to the certificate file to be used by the gateway to make TLS connections. This path is based on where the gateway executable is being run, so if it is being run in a container, the path referenced must be accessible within the container
 
-`GATEWAY_TLSKEYPATH=<pathToCertKey>` (REQUIRED) identifies the absolute path to the key file for the certificate identified by the "GATEWAY_TLSCERTPATH" variable. This path is based on where the gateway executable is being run, so if it is being run in a container, the path referenced must be accessible within the container.
+`GATEWAY_TLSKEYPATH=<pathToCertKey>` (REQUIRED) identifies the absolute path to the key file for the certificate identified by the "GATEWAY_TLSCERTPATH" variable. This path is based on where the gateway executable is being run, so if it is being run in a container, the path referenced must be accessible within the container
 
 `GATEWAY_SESSION_KEY=<sessionkey>` (REQUIRED) the session key used to sign login sessions
 
@@ -140,15 +140,15 @@ Building and starting the gateway container locally can be more involed than run
 
 2. Ensure service dependencies are set up to run. If using the PowerShell script, the dependencies should be started by default. (Meaing, if you are using the PowerShell script with the default options you should not need to start the dependencies)
 
-   * [mssql](https://hub.docker.com/r/uwthalesians/mssql): image with version 0.7.1 bootstraped (see [local start script](./localStartExample.ps1) for example)
+   * [mssql](https://hub.docker.com/r/uwthalesians/mssql): image with version 0.7.1 bootstraped (see [local start script](./../database/mssql/localStartExample.ps1) for example)
 
-   * [redis](https://hub.docker.com/_/redis): redis:5.0.4-alpine (see [local start script](./localStartExample.ps1) for example)
+   * [redis](https://hub.docker.com/_/redis): redis:5.0.4-alpine (see [local start script](./../database/mssql/localStartExample.ps1) for example)
 
 #### PowerShell
 
-For testing the gateway locally, the [localStartExample.ps1](./localStartExample.ps1) script can be used. This script assumes that docker is already installed and running on the system and that the TLS cert and key have been generated (see note above). Note, the script is a PowerShell script and thus requires a PowerShell shell. Additionally, PowerShell will not run unsigned scripts by default, therefore you may need to enable running unsigned scripts to use it.
+For testing the gateway locally, the [localStartExample.ps1](./localStartExample.ps1) script can be used. This script assumes that docker is already installed and running on the system and that the TLS cert and key have been generated (see note above). Note, the script is a PowerShell script and thus requires a PowerShell shell. Additionally, PowerShell will not run unsigned scripts by default, therefore you [may need to enable running unsigned scripts](https://superuser.com/questions/106360/how-to-enable-execution-of-powershell-scripts) to use it.
 
-The PowerShell script, [localStartExample.ps1](./localStartExample.ps1) will run the gateway image as a container inside a docker network and expose it to localhost. This script has several command line options which allow you to customize the instance.
+The PowerShell script, [localStartExample.ps1](./localStartExample.ps1) will run the gateway image as a container inside a docker network and expose it to localhost. This script has several command line options which allow you to customize the instance. By default this script will also start the gateway dependencies (redis and mssql servers).
 
 ##### Comand Line Options
 
@@ -156,9 +156,11 @@ The script accepts several comand line options which can be set when running the
 
 Unless you need to run your own mssql container or build the gateway container locally, you should not have to provide any options to the local start script.
 
-However, if you want to retian redis and mssql databases between runs of the containers, you need to include the -KeepMsSqlDb and -KeepMsSqlDb flags.
+Run: `.\locaStartExample.ps1`
 
-Run: `.\locaStartExample.ps1 `
+However, **if you want to retian redis and mssql databases between runs of the containers**, you need to include the -KeepMsSqlDb and -KeepMsSqlDb switch parameters.
+
+Run: `.\locaStartExample.ps1 -KeepMsSqlDb -KeepRedisDb`
 
 `-MsSqlDatabase` (string) which is used to pass in the name of the database to use for connections to the server, default value is: "Perceptia"
 

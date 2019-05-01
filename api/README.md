@@ -1,6 +1,6 @@
 # Perceptia API
 
-The Perceptia API is a REST based api. The purpose of this document is to define the general syntax for the API, and provide references to the various API specifications that make up the Perceptia API.
+The Perceptia API is a REST based api. The purpose of this document is to define the general syntax for the API and provide references to the various API specifications that make up the Perceptia API.
 
 ## [Contents](#Contents)
 
@@ -16,7 +16,7 @@ The Perceptia API is a REST based api. The purpose of this document is to define
 
 The Perceptia API (API) is designed to service the Perceptia Application, which is currently being developed as a Web Application. This service, and the APIs it exposes are not intended for use by thrid-parties.
 
-The API is designed with the REST model, with JSON as the primary format for request and response communication. As the API is still under development, breaking changes may occur. For the current API specs, see the individual OpenApi specification documents located in their respecitive directories (for which a listing can be found: [API Specifications](#api-specifications)).
+The API is a REST based archetecture, with JSON as the primary format for request and response communication. As the API is still under development, breaking changes may occur. For the current API specs, see the individual OpenApi specification documents located in their respecitive directories (for which a listing can be found: [API Specifications](#api-specifications)).
 
 Note, each services repository may contain an OpenApi Yaml file `*-api.yaml` defining the API the code implements.
 
@@ -52,7 +52,7 @@ This section lists the common elements used in the API, including query paramete
 
 ### [Query Parameters](#query-parameters)
 
-This subsection lists the query parameters that are common to all API calls. Note, parameters may not be used by all api collections (in which case their inclusion will have no effect on the processing of the request)
+This subsection lists the query parameters that are common to all API calls. Note, parameters may not be used by all API collections (in which case their inclusion will have no effect on the processing of the request)
 
 Syntax: `/api/v{majorVersion}/{collection}/{collectionSpecific}?{queryParameters}`
 
@@ -80,7 +80,7 @@ Example request: `/api/v1/anyquiz/read/apple`
 
 Make request using curl: `curl -X GET "https://api.perceptia.info/api/v1/gateway/health`
 
-Example response: `{"name":"Perceptia API Health Report","version":"0.1.1","status":"ready"}`
+Example response: `{"name":"Perceptia API Health Report","version":"0.2.0","status":"ready"}`
 
 ## [API Specifications](#api-specifications)
 
@@ -97,6 +97,10 @@ A note about API versions below 1, such as 0.1.0. These versions are under devel
 [Version 1](./v1/gateway)
 
 * 0.1.0 - [API Specification](./v1/gateway/0.1.0.yaml) | [API Documentation](./v1/gateway/0.1.0.html)
+
+  * 0.1.1 - [API Specification](./v1/gateway/0.1.1.yaml) | [API Documentation](./v1/gateway/0.1.1.html)
+
+* 0.2.0 - [API Specification](./v1/gateway/0.2.0.yaml) | [API Documentation](./v1/gateway/0.2.0.html)
 
 [Gateway Service API - Current](./../gateway/gateway-service-api.yaml)
 

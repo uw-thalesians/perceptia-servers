@@ -192,8 +192,14 @@ func main() {
 		return
 	})
 
-	// Add Middleware
+	// Add Middleware to "/api"
 	gmuxApi.Use(handler.NewCors)
+
+	// Add Middleware to "/api/{majorVersion}"
+
+	// Add Middleware to "/api/{majorVersion}/gateway"
+
+	// Add Middleware to "/api/{majorVersion}/anyquiz"
 
 	//Starts listening at the address set, and passes requests at that address
 	//to the mux. Exits if ListenAndServerTLS fails

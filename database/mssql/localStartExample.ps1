@@ -1,6 +1,6 @@
 Param (
     [String]$MsSqlPassword = "SecureNow!",
-    [String]$MsSqlPort = "1401",
+    [String]$MsSqlPortPublish = "1401",
     [String]$MsSqlSkipSetupIfExist = "N",
     [String]$MsSqlSkipSetup = "N",
     [String]$PerceptiaDockerNet = "perceptia-net"
@@ -31,8 +31,8 @@ docker run `
 --mount type=volume,source=${MSSQL_VOLUME_NAME},destination=/var/opt/mssql `
 --name=${MSSQL_SERVICE_NAME} `
 --network $PerceptiaDockerNet `
---publish "${MsSqlPort}:1433" `
+--publish "${MsSqlPortPublish}:1433" `
 ${MSSQL_IMAGE_AND_TAG}
 
 Write-Host "MsSql Server is listening inside docker network: ${PerceptiaDockerNet} at: ${MSSQL_SERVICE_NAME}:1433"
-Write-Host "MsSql Server is listening on the host at: localhost:${MsSqlPort}"
+Write-Host "MsSql Server is listening on the host at: localhost:${MsSqlPortPublish}"
