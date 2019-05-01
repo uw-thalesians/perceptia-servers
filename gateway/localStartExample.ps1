@@ -3,11 +3,16 @@ Param (
     [String]$MsSqlHost = "mssql",
     [String]$MsSqlPassword = "SecureNow!",
     [String]$MsSqlPort = "1433",
+    [String]$MsSqlPortPublish = "1401",
     [String]$MsSqlScheme = "sqlserver",
     [String]$MsSqlUsername = "sa",
     [String]$PerceptiaDockerNet = "perceptia-net",
     [String]$GatewayPort = "4443",
     [String]$RedisPort = "6379",
+    [String]$RedisPortPublish = "6379",
+    [String]$RedisHost = "redis",
+    [String]$AqRestPort = "80",
+    [String]$AqRestHost = "aqrest",
     [switch]$SkipRedis = $false,
     [switch]$KeepRedisDb = $false,
     [switch]$KeepMsSqlDb = $false,
@@ -56,7 +61,7 @@ docker network create -d bridge $PerceptiaDockerNet
 if (!$SkipRedis) {
     Write-Host "SkipRedis
  option true, starting redis dependency"
-    Set-Variable -Name REDIS_SERVICE_NAME -Value "redis"
+    Set-Variable -Name REDIS_SERVICE_NAME -Value $RedisHost
     Set-Variable -Name REDIS_VOLUME_NAME -Value redis_vol
 
     docker rm --force $REDIS_SERVICE_NAME
@@ -70,11 +75,11 @@ if (!$SkipRedis) {
     --detach `
     --name $REDIS_SERVICE_NAME `
     --network $PerceptiaDockerNet `
-    --publish "${RedisPort}:6379" `
+    --publish "${RedisPortPublish}:6379" `
     --mount type=volume,source=${REDIS_VOLUME_NAME},destination=/data `
     redis:5.0.4-alpine
     Write-Host "Redis Server is listening inside docker network: ${PerceptiaDockerNet} at: ${REDIS_SERVICE_NAME}:1433"
-    Write-Host "Redis Server is listening on the host at: localhost:${MsSqlPort}"
+    Write-Host "Redis Server is listening on the host at: localhost:${MsSqlPortPublish}"
 }
 
 if (!$SkipMsSql) {
@@ -97,15 +102,17 @@ if (!$SkipMsSql) {
     --mount type=volume,source=${MSSQL_VOLUME_NAME},destination=/var/opt/mssql `
     --name=${MSSQL_SERVICE_NAME} `
     --network $PerceptiaDockerNet `
-    --publish "${MsSqlPort}:1433" `
+    --publish "${MsSqlPortPublish}:1433" `
     ${MSSQL_IMAGE_AND_TAG}
 
     Write-Host "MsSql Server is listening inside docker network: ${PerceptiaDockerNet} at: ${MSSQL_SERVICE_NAME}:1433"
-    Write-Host "MsSql Server is listening on the host at: localhost:${MsSqlPort}"
+    Write-Host "MsSql Server is listening on the host at: localhost:${MsSqlPortPublish}"
 }
 
 docker run `
 --detach `
+--env AQREST_HOSTNAME="$AqRestHost" `
+--env AQREST_PORT="$AqRestPort" `
 --env GATEWAY_SESSION_KEY="$GATEWAY_SESSION_KEY" `
 --env GATEWAY_TLSCERTPATH="$GATEWAY_TLSCERTPATH" `
 --env GATEWAY_TLSKEYPATH="$GATEWAY_TLSKEYPATH" `
@@ -115,6 +122,7 @@ docker run `
 --env MSSQL_PORT="$MSSQL_PORT" `
 --env MSSQL_SCHEME="$MSSQL_SCHEME" `
 --env MSSQL_USERNAME="$MSSQL_USERNAME" `
+--env REDIS_ADDRESS="${RedisHost}:$RedisPort" `
 --name ${GATEWAY_CONTAINER_NAME} `
 --network $PerceptiaDockerNet `
 --publish "${GatewayPort}:443" `

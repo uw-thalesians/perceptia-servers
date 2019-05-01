@@ -1,5 +1,7 @@
 package handler
 
+import "errors"
+
 // HTTP Header Names.
 const (
 	HeaderContentType     = "Content-Type"
@@ -8,6 +10,12 @@ const (
 	HeaderACAllowHeaders  = "Access-Control-Allow-Headers"
 	HeaderACExposeHeaders = "Access-Control-Expose-Headers"
 	HeaderACMaxAge        = "Access-Control-Max-Age"
+)
+
+// Custom HTTP Header Names
+const (
+	HeaderPerceptiaUserUuid    = "Perceptia-User-Uuid"
+	HeaderPerceptiaSessionUuid = "Perceptia-SessionUuid"
 )
 
 // HTTP Content-Type Header Values.
@@ -34,9 +42,11 @@ const messageSignedOut = "signed out"
 
 // Handler Error Constants.
 var (
-//errUnexpected                 = errors.New("an unexpected error has occurred")
-//errInvalidCredentials         = errors.New("invalid credentials")
-//errMethodNotAllowed           = errors.New("method not allowed")
+	errUnexpected = errors.New("an unexpected error has occurred")
+
+	//errInvalidCredentials         = errors.New("invalid credentials")
+	errMethodNotAllowed = errors.New("method not allowed")
+
 //errInvalidUserReference       = errors.New("users collection expects 'me' or a user ID number")
 //errUserNotFound               = errors.New("user not found")
 //errInvalidEmail               = errors.New("invalid email")

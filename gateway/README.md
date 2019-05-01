@@ -122,6 +122,12 @@ Use the following variables to configure the gateway for the given environment.
 
 `MSSQL_DATABASE=<database>` (REQUIRED) the database to use for the connection
 
+`AQREST_HOSTNAME=<hostname>` (REQUIRED) the hostname of the aqrest service
+
+`AQREST_PORT=<port>` (REQUIRED) the port that the aqrest service is listening on
+
+`REDIS_ADDRESS=<hostname:port>` (REQUIRED) the hostname and port the redis server is listening on
+
 ## [Start Server Locally](#start-local)
 
 This setup explains how to build and start the server locally.
@@ -150,7 +156,7 @@ The script accepts several comand line options which can be set when running the
 
 Unless you need to run your own mssql container or build the gateway container locally, you should not have to provide any options to the local start script.
 
-However, if you want to retian redis and mssql database between runs of the containers, you need to include the 
+However, if you want to retian redis and mssql databases between runs of the containers, you need to include the -KeepMsSqlDb and -KeepMsSqlDb flags.
 
 Run: `.\locaStartExample.ps1 `
 
@@ -162,6 +168,8 @@ Run: `.\locaStartExample.ps1 `
 
 `-MsSqlPort` (string) which is the port the docker container should listen for requests on and send to the mssql server, default value is: "1433",
 
+`-MsSqlPortPublish` (string) which is the port to publish the mssql container if run by this script, default is: "1401"
+
 `-MsSqlScheme` (string) which is the URL type scheme used to connect to the mssql database server, default value is: "sqlserver"
 
 `-MsSqlUsername` (string) which is the username used to connect to the mssql database server, default value is: "sa"
@@ -169,6 +177,10 @@ Run: `.\locaStartExample.ps1 `
 `-PerceptiaDockerNet` (string) which is the name of the docker network the container should be attached to when run, default value is "perceptia-net"
 
 `-GatewayPort` which is the port the gateway service should be exposed on the host machine, default value is "4443"
+
+`-RedisPort` which is the port the gateway should reach the redis container at, default is: "6379
+
+`-RedisPortPublish` which is the port to publish the redis container if run by this script, default is: "6379"
 
 `-SkipRedis` (switch) will skip starting the redis dependency, default is: false. If you are starting your own redis instance include the option by including the switch
 

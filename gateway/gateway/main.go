@@ -10,6 +10,13 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/uw-thalesians/perceptia-servers/gateway/gateway/session"
+
+	"github.com/uw-thalesians/perceptia-servers/gateway/gateway/user"
+
+	"github.com/go-redis/redis"
+	"github.com/uw-thalesians/perceptia-servers/gateway/gateway/handler"
+
 	"log"
 	"net/http"
 	"os"
@@ -24,10 +31,14 @@ import (
 
 // SessionDuration is the time a session is valid. If it has been longer than time.Duration since
 // the session was started the session should be treated as no longer valid.
-const SessionDuration = time.Duration(time.Hour * 24)
+const SessionDuration = time.Duration(time.Hour * 48)
 
 // sqlDriverName is the name of the SQL driver to register with the go sql lib
 const sqlDriverName = "sqlserver"
+
+const (
+	ServiceAqRest = "anyquiz"
+)
 
 func main() {
 	// Setup Logger
@@ -48,6 +59,13 @@ func main() {
 	// Fail if the path to the key is not provided
 	if errTLSKeyPath != nil {
 		logger.Log("error", errTLSKeyPath, "result", "exit")
+		os.Exit(1)
+	}
+
+	sessionSigningKey, errSSK := utility.RequireEnv("GATEWAY_SESSION_KEY")
+	// Fail if the key data is not provided
+	if errSSK != nil {
+		logger.Log("error", errSSK, "result", "exit")
 		os.Exit(1)
 	}
 
@@ -88,6 +106,28 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Read in Redis connection string
+	redisAddress, errRDAD := utility.RequireEnv("REDIS_ADDRESS")
+	// Fail if the value is not provided
+	if errRDAD != nil {
+		logger.Log("error", errRDAD, "result", "exit")
+		os.Exit(1)
+	}
+
+	// Read in service names
+	aqRestHostname, errAQHN := utility.RequireEnv("AQREST_HOSTNAME")
+	// Fail if the value is not provided
+	if errAQHN != nil {
+		logger.Log("error", errAQHN, "result", "exit")
+		os.Exit(1)
+	}
+	aqRestPort, errAQPN := utility.RequireEnv("AQREST_PORT")
+	// Fail if the value is not provided
+	if errAQPN != nil {
+		logger.Log("error", errAQPN, "result", "exit")
+		os.Exit(1)
+	}
+
 	// Create DSN to use for connection to mssql
 	mssqlDsn := utility.BuildDsn(mssqlScheme, mssqlUsername, mssqlPassword, mssqlHost, mssqlPort, mssqlDatabase)
 
@@ -104,11 +144,34 @@ func main() {
 	pingDbCtx := context.TODO()
 	go utility.PingDatabase(pingDbCtx, perceptiaDb, time.Second*10, time.Minute)
 
+	//Create a new Redis client.
+	rc := redis.NewClient(&redis.Options{Addr: redisAddress, Password: "", DB: 0})
+
+	// Setup Stores
+	userStore, errNMSDB := user.NewMsSqlStore(perceptiaDb)
+	if errNMSDB != nil {
+		logger.Log("error", errNMSDB, "result", "exit")
+		os.Exit(1)
+	}
+
+	sessionStore := session.NewRedisStore(rc, SessionDuration)
+
+	// Create Handler Context
+	hcx := handler.NewContext(sessionStore, userStore, sessionSigningKey, logger)
+
 	// Create new mux router
 	gmux := mux.NewRouter()
 
+	gmuxApi := gmux.PathPrefix("/api").Subrouter()
+
+	gmuxApiV := gmuxApi.PathPrefix("/{majorVersion:v[0-9]+}").Subrouter()
+
+	gmuxApiV.PathPrefix("/" + ServiceAqRest).Handler(hcx.NewServiceProxy(aqRestHostname, aqRestPort))
+
+	gmuxApiVGateway := gmuxApiV.PathPrefix("/gateway").Subrouter()
+
 	// Health check route
-	gmux.HandleFunc("/v1/health", func(w http.ResponseWriter, request *http.Request) {
+	gmuxApiVGateway.HandleFunc("/health", func(w http.ResponseWriter, request *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		type healthObj struct {
 			Name    string `json:"name"`
@@ -118,7 +181,7 @@ func main() {
 
 		healthStatus := healthObj{
 			Name:    "Perceptia API Health Report",
-			Version: "0.1.1",
+			Version: "0.2.0",
 			Status:  "ready",
 		}
 		w.WriteHeader(http.StatusOK)

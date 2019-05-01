@@ -13,6 +13,17 @@ type MsSqlStore struct {
 	database *sql.DB
 }
 
+// NewMsSqltore constructs a new MsSqlStore.
+// If *sql.DB is nil, function will return an error.
+func NewMsSqlStore(db *sql.DB) (*MsSqlStore, error) {
+	if db == nil {
+		return nil, errors.New("NewMsSqlStore: db cannot be nil")
+	}
+	return &MsSqlStore{
+		db,
+	}, nil
+}
+
 type userInfo struct {
 	Uuid        mssql.UniqueIdentifier
 	Username    string

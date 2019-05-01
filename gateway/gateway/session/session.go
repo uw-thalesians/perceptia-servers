@@ -9,7 +9,7 @@ import (
 )
 
 const HeaderAuthorization = "Authorization"
-const ParamAuthorization = "auth"
+const ParamAuthorization = "access_token"
 const SchemeBearer = "Bearer "
 
 // ErrNoSessionID is used when no session ID was found in the Authorization header.
