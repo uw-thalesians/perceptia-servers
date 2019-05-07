@@ -162,13 +162,13 @@ func main() {
 	// Create new mux router
 	gmux := mux.NewRouter()
 
-	gmuxApi := gmux.PathPrefix("/api").Subrouter()
+	gmuxApi := gmux.PathPrefix("/api/").Subrouter()
 
-	gmuxApiV := gmuxApi.PathPrefix("/{majorVersion:v[0-9]+}").Subrouter()
+	gmuxApiV := gmuxApi.PathPrefix("/{majorVersion:v[0-9]+}/").Subrouter()
 
-	gmuxApiV.PathPrefix("/" + ServiceAqRest).Handler(hcx.NewServiceProxy(aqRestHostname, aqRestPort))
+	gmuxApiV.PathPrefix("/" + ServiceAqRest + "/").Handler(hcx.NewServiceProxy(aqRestHostname, aqRestPort))
 
-	gmuxApiVGateway := gmuxApiV.PathPrefix("/gateway").Subrouter()
+	gmuxApiVGateway := gmuxApiV.PathPrefix("/gateway/").Subrouter()
 
 	// Health check route
 	gmuxApiVGateway.HandleFunc("/health", func(w http.ResponseWriter, request *http.Request) {

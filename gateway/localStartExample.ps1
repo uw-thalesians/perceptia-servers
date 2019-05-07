@@ -59,8 +59,7 @@ docker rm --force ${GATEWAY_CONTAINER_NAME}
 docker network create -d bridge $PerceptiaDockerNet
 
 if (!$SkipRedis) {
-    Write-Host "SkipRedis
- option true, starting redis dependency"
+    Write-Host "SkipRedis option false, starting redis dependency"
     Set-Variable -Name REDIS_SERVICE_NAME -Value $RedisHost
     Set-Variable -Name REDIS_VOLUME_NAME -Value redis_vol
 
@@ -83,13 +82,14 @@ if (!$SkipRedis) {
 }
 
 if (!$SkipMsSql) {
+    Write-Host "SkipMsSql option false, starting mssql dependency"
     Set-Variable -Name MSSQL_SERVICE_NAME -Value "mssql"
     Set-Variable -Name MSSQL_IMAGE_AND_TAG -Value uwthalesians/mssql:0.7.1-build-129-branch-merge
     Set-Variable -Name MSSQL_VOLUME_NAME -Value "mssql_vol"
 
     docker rm --force ${MSSQL_SERVICE_NAME}
 
-    if ($KeepMsSqlDb) {
+    if (!$KeepMsSqlDb) {
         Write-Host "KeepMsSqlDb option false, removing previous database"
         docker volume rm ${MSSQL_VOLUME_NAME}
     }
