@@ -24,7 +24,8 @@ type Context struct {
 
 // NewContext creates a new Context, initialized using the provided handler context values.
 // Returns a pointer to the created Context.
-func NewContext(sessionStore session.Store, userStore user.Store, sessionSigningKey string, logger kitlog.Logger) *Context {
+func NewContext(sessionStore session.Store, userStore user.Store,
+	sessionSigningKey string, logger kitlog.Logger) *Context {
 	if sessionStore == nil || userStore == nil || len(sessionSigningKey) <= 0 {
 		panic("all parameters must not be nil or empty")
 	}
@@ -35,8 +36,9 @@ func NewContext(sessionStore session.Store, userStore user.Store, sessionSigning
 // Will return true if valid JSON header is present in the request.
 func (cx *Context) ensureJSONHeader(w http.ResponseWriter, r *http.Request) bool {
 	if !strings.HasPrefix(r.Header.Get(HeaderContentType), ContentTypeJSON) {
-		cx.handleError(w, r, nil, "", fmt.Sprintf("error: %s (%s) not supported, request body must have %s of (%s)",
-			HeaderContentType, r.Header.Get(HeaderContentType), HeaderContentType, ContentTypeJSON),
+		cx.handleError(w, r, nil, "",
+			fmt.Sprintf("error: %s (%s) not supported, request body must have %s of (%s)",
+				HeaderContentType, r.Header.Get(HeaderContentType), HeaderContentType, ContentTypeJSON),
 			http.StatusUnsupportedMediaType)
 		return false
 	}
@@ -69,7 +71,7 @@ func (cx *Context) handleError(w http.ResponseWriter, r *http.Request, errorToLo
 func (cx *Context) logError(r *http.Request, errorToLog error, logContext, clientErrorMessage string,
 	statusCode int) string {
 	logReference := uuid.NewV4().String()
-	cx.logger.Log("logReference", logReference,
+	_ = cx.logger.Log("logReference", logReference,
 		"context", logContext, "error", errorToLog,
 		"messageToClient", clientErrorMessage,
 		"httpStatusCode", statusCode)

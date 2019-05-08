@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
+echo "Creating request and generating x509 cert and key"
+
 openssl req -x509 -out gateway_tlscert.pem -keyout gateway_tlskey.pem \
-  -newkey rsa:2048 -nodes -sha256 \
-  -subj '/CN=localhost' -extensions EXT -config <( \
-   printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+    -newkey rsa:2048 -nodes -sha256 \
+    -extensions EXT -config openssl.conf

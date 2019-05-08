@@ -36,8 +36,9 @@ const SessionDuration = time.Duration(time.Hour * 48)
 // sqlDriverName is the name of the SQL driver to register with the go sql lib
 const sqlDriverName = "sqlserver"
 
+// services and the name of the collection to proxy on
 const (
-	ServiceAqRest = "anyquiz"
+	serviceAqRest = "anyquiz"
 )
 
 func main() {
@@ -52,57 +53,57 @@ func main() {
 	tlsCertPath, errTLSCertPath := utility.RequireEnv("GATEWAY_TLSCERTPATH")
 	// Fail if the path to the cert is not provided
 	if errTLSCertPath != nil {
-		logger.Log("error", errTLSCertPath, "result", "exit")
+		_ = logger.Log("error", errTLSCertPath, "result", "exit")
 		os.Exit(1)
 	}
 	tlsKeyPath, errTLSKeyPath := utility.RequireEnv("GATEWAY_TLSKEYPATH")
 	// Fail if the path to the key is not provided
 	if errTLSKeyPath != nil {
-		logger.Log("error", errTLSKeyPath, "result", "exit")
+		_ = logger.Log("error", errTLSKeyPath, "result", "exit")
 		os.Exit(1)
 	}
 
 	sessionSigningKey, errSSK := utility.RequireEnv("GATEWAY_SESSION_KEY")
 	// Fail if the key data is not provided
 	if errSSK != nil {
-		logger.Log("error", errSSK, "result", "exit")
+		_ = logger.Log("error", errSSK, "result", "exit")
 		os.Exit(1)
 	}
 
 	mssqlScheme, errMSS := utility.RequireEnv("MSSQL_SCHEME")
 	// Fail if the value is not provided
 	if errMSS != nil {
-		logger.Log("error", errMSS, "result", "exit")
+		_ = logger.Log("error", errMSS, "result", "exit")
 		os.Exit(1)
 	}
 	mssqlUsername, errMSU := utility.RequireEnv("MSSQL_USERNAME")
 	// Fail if the value is not provided
 	if errMSU != nil {
-		logger.Log("error", errMSU, "result", "exit")
+		_ = logger.Log("error", errMSU, "result", "exit")
 		os.Exit(1)
 	}
 	mssqlPassword, errMSP := utility.RequireEnv("MSSQL_PASSWORD")
 	// Fail if the value is not provided
 	if errMSP != nil {
-		logger.Log("error", errMSP, "result", "exit")
+		_ = logger.Log("error", errMSP, "result", "exit")
 		os.Exit(1)
 	}
 	mssqlHost, errMSH := utility.RequireEnv("MSSQL_HOST")
 	// Fail if the value is not provided
 	if errMSH != nil {
-		logger.Log("error", errMSH, "result", "exit")
+		_ = logger.Log("error", errMSH, "result", "exit")
 		os.Exit(1)
 	}
 	mssqlPort, errMSPO := utility.RequireEnv("MSSQL_PORT")
 	// Fail if the value is not provided
 	if errMSPO != nil {
-		logger.Log("error", errMSPO, "result", "exit")
+		_ = logger.Log("error", errMSPO, "result", "exit")
 		os.Exit(1)
 	}
 	mssqlDatabase, errMSDB := utility.RequireEnv("MSSQL_DATABASE")
 	// Fail if the value is not provided
 	if errMSDB != nil {
-		logger.Log("error", errMSDB, "result", "exit")
+		_ = logger.Log("error", errMSDB, "result", "exit")
 		os.Exit(1)
 	}
 
@@ -110,7 +111,7 @@ func main() {
 	redisAddress, errRDAD := utility.RequireEnv("REDIS_ADDRESS")
 	// Fail if the value is not provided
 	if errRDAD != nil {
-		logger.Log("error", errRDAD, "result", "exit")
+		_ = logger.Log("error", errRDAD, "result", "exit")
 		os.Exit(1)
 	}
 
@@ -118,13 +119,13 @@ func main() {
 	aqRestHostname, errAQHN := utility.RequireEnv("AQREST_HOSTNAME")
 	// Fail if the value is not provided
 	if errAQHN != nil {
-		logger.Log("error", errAQHN, "result", "exit")
+		_ = logger.Log("error", errAQHN, "result", "exit")
 		os.Exit(1)
 	}
 	aqRestPort, errAQPN := utility.RequireEnv("AQREST_PORT")
 	// Fail if the value is not provided
 	if errAQPN != nil {
-		logger.Log("error", errAQPN, "result", "exit")
+		_ = logger.Log("error", errAQPN, "result", "exit")
 		os.Exit(1)
 	}
 
@@ -134,10 +135,10 @@ func main() {
 	// Connect to mssql database
 	perceptiaDb, errEMSD := utility.Establish(sqlDriverName, mssqlDsn.String(), true)
 	if errEMSD == utility.ErrInvalidDsn {
-		logger.Log("msg", "provided dsn invalid", "dsn", mssqlDsn.String(), "error", errEMSD, "result", "exit")
+		_ = logger.Log("msg", "provided dsn invalid", "dsn", mssqlDsn.String(), "error", errEMSD, "result", "exit")
 		os.Exit(1)
 	} else if errEMSD == utility.ErrUnableToPing {
-		logger.Log("msg", "unable to ping database", "dsn", mssqlDsn.String(), "error", errEMSD)
+		_ = logger.Log("msg", "unable to ping database", "dsn", mssqlDsn.String(), "error", errEMSD)
 	}
 
 	// Periodically check status of mssql database connection
@@ -150,7 +151,7 @@ func main() {
 	// Setup Stores
 	userStore, errNMSDB := user.NewMsSqlStore(perceptiaDb)
 	if errNMSDB != nil {
-		logger.Log("error", errNMSDB, "result", "exit")
+		_ = logger.Log("error", errNMSDB, "result", "exit")
 		os.Exit(1)
 	}
 
@@ -166,7 +167,7 @@ func main() {
 
 	gmuxApiV := gmuxApi.PathPrefix("/{majorVersion:v[0-9]+}/").Subrouter()
 
-	gmuxApiV.PathPrefix("/" + ServiceAqRest + "/").Handler(hcx.NewServiceProxy(aqRestHostname, aqRestPort))
+	gmuxApiV.PathPrefix("/" + serviceAqRest + "/").Handler(hcx.NewServiceProxy(aqRestHostname, aqRestPort))
 
 	gmuxApiVGateway := gmuxApiV.PathPrefix("/gateway/").Subrouter()
 
