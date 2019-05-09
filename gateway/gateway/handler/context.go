@@ -123,6 +123,11 @@ func (cx *Context) handleMethodNotAllowed(w http.ResponseWriter, r *http.Request
 		errMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
 }
 
+func (cx *Context) handleVersionNotSupported(w http.ResponseWriter, r *http.Request, supported, requested string) {
+	cx.handleError(w, r, nil, fmt.Sprintf("major version of API not supported; requested=%s supported=%s", requested, supported),
+		errMethodNotAllowed.Error(), http.StatusNotFound)
+}
+
 func (cx *Context) getUserFromRequest(r *http.Request) (*user.User, error) {
 	//validate the session token in the request,
 	//fetch the session state from the session store,

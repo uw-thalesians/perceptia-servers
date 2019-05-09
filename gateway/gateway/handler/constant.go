@@ -47,10 +47,15 @@ var (
 	//errInvalidCredentials         = errors.New("invalid credentials")
 	errMethodNotAllowed = errors.New("method not allowed")
 
-//errInvalidUserReference       = errors.New("users collection expects 'me' or a user ID number")
-//errUserNotFound               = errors.New("user not found")
-//errInvalidEmail               = errors.New("invalid email")
-//errAccountEmailAlreadyExists  = errors.New("an account with the provided email already exists")
-//errAccountUserNameUnavailable = errors.New("username unavailable, please select a different user name")
+	//errInvalidUserReference       = errors.New("users collection expects 'me' or a user ID number")
+	//errUserNotFound               = errors.New("user not found")
+	//errInvalidEmail               = errors.New("invalid email")
+	errAccountUserNameUnavailable = errors.New("username unavailable, please select a different user name")
+
 //errActionNotAuthorized        = errors.New("action not authorized for the requested resource")
+)
+
+// request variables
+const (
+	ReqVarMajorVersion = "majorVersion"
 )

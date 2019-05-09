@@ -165,8 +165,10 @@ func main() {
 
 	gmuxApi := gmux.PathPrefix("/api/").Subrouter()
 
-	gmuxApiV := gmuxApi.PathPrefix("/{majorVersion:v[0-9]+}/").Subrouter()
+	// "/api/v1/"
+	gmuxApiV := gmuxApi.PathPrefix("/{" + handler.ReqVarMajorVersion + ":v[0-9]+}/").Subrouter()
 
+	// "/api/vX/anyquiz/"
 	gmuxApiV.PathPrefix("/" + serviceAqRest + "/").Handler(hcx.NewServiceProxy(aqRestHostname, aqRestPort))
 
 	gmuxApiVGateway := gmuxApiV.PathPrefix("/gateway/").Subrouter()
