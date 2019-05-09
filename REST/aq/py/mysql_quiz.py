@@ -28,14 +28,17 @@ def get_all_text():
 
 def put_text(keyword, summary):
     row_id=None
+    source = 'wiki'
     try:
         cnx = mysql.connector.connect(user=mysql_user, password=mysql_pass, host=mysql_host, port=mysql_port, database=mysql_db)
         cursor = cnx.cursor()
 
-        query = "insert into quizzes (keyword, summary) VALUES (%s, %s)"
+        print("about to insert from python")
+
+        query = "insert into quizzes (keyword, summary, source, total_read_count) VALUES (%s, %s, %s, %s)"
         vals = (keyword, summary)
 
-        cursor.execute(query, vals)
+        cursor.execute(query, vals, source, 1)
 
         row_id = cursor.lastrowid
         #print(curRetrieveQuiz)

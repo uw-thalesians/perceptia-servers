@@ -34,32 +34,42 @@ class Connection
 		);
 	}
 
-    public function findQuiz($keyword)
+    public function findQuiz($keyword, $source)
     {
 
-        $sql = "SELECT * FROM quizzes WHERE keyword=:keyword";
+        if(!isset($source)) {
+            $source = "wiki";
+        }
+
+        $sql = "SELECT * FROM quizzes WHERE keyword=:keyword and source=:source";
+
+        //$update_read = "UPDATE read_count ";
 
         $quiz = null;
 
         try {
 
+            // print_r($keyword);
+            // print_r($source);
+
             $stmt = Connection::$conn->prepare($sql);
 
             $stmt->bindValue(":keyword", $keyword, PDO::PARAM_STR);
+            $stmt->bindValue(":source", $source, PDO::PARAM_STR);
 
             $stmt->execute();
 
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if($row) {
-
+                // print_r($row);
                 $quiz = new Quiz( $row );
 
             } else {
-
-                $summary = $this->fetchSummary($keyword);
-
-                $quiz = $this->addNewQuiz($keyword, $summary);
+                // print_r("row not found");
+                $summary = $this->fetchSummary($keyword, $source);
+                // print_r($summary);
+                $quiz = $this->addNewQuiz($keyword, $summary, $source);
             }
 
         } catch (Exception $e) {
@@ -69,35 +79,84 @@ class Connection
         return $quiz;
     }
 
-    private function fetchSummary($keyword) {
+    private function fetchSummary($keyword, $source) {
 
-        //curl call py script
         $curl_handle= curl_init();
-        $server = "localhost";
-        $wikipedia_python_rest_query = $server.$this->_f3->get("BASE")."/py/w_rest.py?keyword=" . urlencode($keyword);
-        #$wikipedia_python_rest_query = $server . "/?keyword=" . urlencode($keyword);
-        #print_r($wikipedia_python_rest_query);
+        $summary = "";
 
-        curl_setopt($curl_handle, CURLOPT_URL, $wikipedia_python_rest_query);
-        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
-        #curl_setopt($curl_handle, CURLOPT_PORT, 27277);
+        $safe_keyword = urlencode($keyword);
 
-        $json = curl_exec($curl_handle);
-        #print_r(curl_error($curl_handle));
-        #print_r(curl_getinfo($curl_handle, CURLINFO_HTTP_CODE));
+        switch($source) {
+            case "solr_url":
+                
+                
+                $solr_stream_url = "http://aqsolr:8983/solr/stream/update/extract?uprefix=attr_&fmap.content=body&commit=true";
+                // print_r($solr_stream_url);
+                
+                curl_setopt($curl_handle, CURLOPT_URL, $solr_stream_url);
+                curl_setopt($curl_handle, CURLOPT_POST, 1);
+                curl_setopt($curl_handle, CURLOPT_POSTFIELDS, "stream.url=" . $safe_keyword);
+                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
+                //curl_setopt($curl_handle, CURLOPT_PORT, 8983);
+
+                $json = curl_exec($curl_handle);
+
+                // print_r($json);
+                // print_r(curl_error($curl_handle));
+                // print_r(curl_getinfo($curl_handle, CURLINFO_HTTP_CODE));
+                
+                $solr_select_stream_name = "http://aqsolr:8983/solr/stream/select?q=attr_stream_name:" . "\"". $safe_keyword . "\"";
+                // print_r($solr_select_stream_name);
+
+                curl_setopt($curl_handle, CURLOPT_URL, $solr_select_stream_name);
+                curl_setopt($curl_handle, CURLOPT_POST, 0);
+
+                $response = curl_exec($curl_handle);
+                
+                // print_r($response);
+                // print_r(curl_error($curl_handle));
+                // print_r(curl_getinfo($curl_handle, CURLINFO_HTTP_CODE));
+
+                $response = json_decode($response, true)["response"];
+                // print_r($response);
+
+                $summary = $response["docs"][0]["attr_body"][0];
+                // print_r($summary);
+
+                break;
+
+            case "wiki":
+                $server = "localhost";
+                //curl call py script
+                $wikipedia_python_rest_query = $server.$this->_f3->get("BASE")."/py/w_rest.py?keyword=" . urlencode($keyword);
+                #$wikipedia_python_rest_query = $server . "/?keyword=" . urlencode($keyword);
+                #print_r($wikipedia_python_rest_query);
+
+                curl_setopt($curl_handle, CURLOPT_URL, $wikipedia_python_rest_query);
+                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
+                #curl_setopt($curl_handle, CURLOPT_PORT, 27277);
+
+                $json = curl_exec($curl_handle);
+                #print_r(curl_error($curl_handle));
+                #print_r(curl_getinfo($curl_handle, CURLINFO_HTTP_CODE));
+                
+                #print_r($json);
+
+                $summary = json_decode($json, true)["summary_text"];
+
+                break;
+        }
+
         curl_close($curl_handle);
-        #print_r($json);
-
-        $summary = json_decode($json, true)["summary_text"];
 
         #print_r($summary);
 
         return $summary;
     }
 
-    private function addNewQuiz($keyword, $summary)//, $lang)
+    private function addNewQuiz($keyword, $summary, $source)//, $lang)
     {
-        $sql = "INSERT INTO quizzes (keyword, image, summary) VALUES (:keyword, :image, :summary)";
+        $sql = "INSERT INTO quizzes (keyword, image, summary, source) VALUES (:keyword, :image, :summary, :source)";
 
         //https://cse.google.com/cse/create/new
         //https://developers.google.com/custom-search/json-api/v1/introduction#identify_your_application_to_google_with_api_key
@@ -148,15 +207,15 @@ class Connection
         //print_r($google_cse_rest_api_get);
 
         //Google Custom Search v1 REST API
-        ////curl_setopt($curl, CURLOPT_URL, $google_cse_rest_api_get);
-        ////curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curl, CURLOPT_URL, $google_cse_rest_api_get);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
-        ////$json = curl_exec($curl);
+        $json = curl_exec($curl);
 
         //print_r($json);
 
-        ////$search = json_decode($json, true);
-        $search = array();
+        $search = json_decode($json, true);
+        // $search = array();
         $search_results = 0;
 
         //var_dump($search);
@@ -200,48 +259,18 @@ class Connection
                     $filename = str_replace(" ", "_", urldecode($filename));
                     //print_r($filename);
 
-                    curl_setopt($curl, CURLOPT_HEADER, 0);
-                    curl_setopt($curl, CURLOPT_BINARYTRANSFER, 1);
-                    curl_setopt($curl, CURLOPT_URL, $imageURL);
-
-                    curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-
-                    $localPath = 'images/' . $filename;
-
-
-                    if( file_exists($localPath) ) {
-                        //try to create a unique filename
-                        $pathComponents = pathinfo($localPath);
-
-                        $localPath = 'images/' . $pathComponents['filename'] . time() . "." . $pathComponents['extension'];
-
-                        //print_r($localPath);
-
-                        //if somehow something still went wrong, use default quiz.png
-                        if(file_exists($localPath))
-                            unset($localPath);
-                    }
-
-                    //var_dump($localPath);
-
-                    if(isset($localPath)) {
-                        $localFile = fopen($localPath, 'w');
-
-                        curl_setopt($curl, CURLOPT_FILE, $localFile);
-                        curl_exec($curl);
-                        fclose($localFile);
-                    }
+                    $remotePath = $imageURL;
                 }
                 $tries++;
-            } while((filesize($localPath) < 10000) && $tries < 10);
+            } while((filesize($remotePath) < 10000) && $tries < 10);
 
             curl_close($curl);
         }else{
             //var_dump($json);
         }
 
-        if(!isset($localPath))
-            $localPath = 'images/quiz.png';
+        if(!isset($remotePath))
+            $remotePath = 'images/quiz.png';
 
         try {
 
@@ -249,12 +278,12 @@ class Connection
 
             $stmt->bindValue(":keyword", $keyword);
             $stmt->bindValue(":summary", $summary);
-            $stmt->bindValue(":image", $localPath);
-            //$stmt->bindValue(":lang", $lang);
+            $stmt->bindValue(":image", $remotePath);
+            $stmt->bindValue(":source", $source);
 
             $stmt->execute();
 
-            $quiz = $this->findQuiz($keyword);//, $lang);
+            $quiz = $this->findQuiz($keyword, $source);
 
         } catch (Exception $e){
             echo "Error creating quiz: " . $e->getMessage();
@@ -282,15 +311,62 @@ class Connection
         return $quiz;
     }
 
-    public function getAllQuizzes()
+    public function getAllQuizzes($start, $end, $sort)
     {
         $quizzes = array();
 
-        $sql = "SELECT * FROM quizzes ORDER BY keyword";
+        $order = " keyword ";
+
+        switch($sort) {
+            default:
+                $sort = 'alpha';
+                break;
+            case "new":
+                $order = 'when';
+                break;
+            case "most_read":
+                $order = 'total_read_count';
+                break;
+            /*case "trending":
+                //calculate from request table with timestamp within last 'x' months
+                $
+                //$order = " "
+                break;
+            */
+        }
+
+        $sql = "SELECT * FROM quizzes ORDER BY :order LIMIT :start, :row_count";
+
+        //print_r($sql);
+
+        $count_sql = "SELECT COUNT(*) FROM quizzes";
 
         try {
 
+            //mysql doesnt allow subquery as limit clause, and this allows us to specify a row_count s.t.
+            //start+row_count < end
+            $stmt = Connection::$conn->prepare($count_sql);
+            $stmt->execute();
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $num_rows = (int)$rows[0]["COUNT(*)"];
+            #print_r($num_rows);
+            if($end == -1 || $num_rows < (int)$end) {
+                $end = $num_rows;
+            }
+
             $stmt = Connection::$conn->prepare($sql);
+
+            if(isset($start)) {
+                $stmt->bindValue(":start", (int)$start, PDO::PARAM_INT);
+            } else {
+                $stmt->bindValue(":start", 0, PDO::PARAM_INT);
+            }
+
+            $row_count = $end-$start;
+
+            $stmt->bindValue(":row_count", $row_count, PDO::PARAM_INT);
+            $stmt->bindValue(":order", $order, PDO::PARAM_STR);
 
             $stmt->execute();
 
@@ -305,7 +381,7 @@ class Connection
             echo "Error getting questions: " + $e->getMessage();
         }
 
-        return $quizzes;
+        return array("sort"=> $sort, "quizzes" => $quizzes, "start"=>$start, "end"=>$end);
     }
 
     public function getRandomQuizzes($numberQuizzes)
@@ -374,9 +450,9 @@ class Connection
         return $answers;
     }
 
-    public function getQuizQuestions($keyword)//, $lang)
+    public function getQuizQuestions($keyword, $source)//, $lang)
     {
-        $quiz = $this->findQuiz($keyword);//, $lang);
+        $quiz = $this->findQuiz($keyword, $source);//, $lang);
 
         #print_r($quiz);
 	$sql = "SELECT * FROM quiz_questions WHERE quiz_id=:quiz_id LIMIT 10";
@@ -468,14 +544,11 @@ class Connection
 
             $boolResult = (!strcmp($row['answer'], $answer))?true:false;
 
-            //header("Content-type: application/json");
-            //echo json_encode(array("answer"=>$answer, "realanswer"=>$row['answer'], "result"=>$boolResult));
-
         } catch(Exception $e){
-            header("Content-type: application/json");
+            
             echo json_encode(array("status" => "error grading: " . $e->getMessage()));
         }
-
+/*
         $sql = "select * from quiz_users WHERE username=:username;";
 
         try {
@@ -517,11 +590,10 @@ class Connection
 
         } catch(Exception $e){
 
-            header("Content-type: application/json");
             echo json_encode(array("status" => "error grading: " . $e->getMessage()));
 
         }
-
+*/
         return $boolResult;
     }
 }
