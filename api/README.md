@@ -62,7 +62,7 @@ Example: `/api/v1/anyquiz/read/apple?param1=val1&param2=val2`
 
 * [apiVersion](#params-api-version)
 
-#### [apiVersion](#params-api-version)
+#### [Params API Version](#params-api-version)
 
 Parameter: `apiVersion={major.minor.patch}:` where major.minor.patch denotes the minimum required version for the API that this query should be processed by. This parameter can be used to ensure the query won't be run by a version earlier than the one specified
 
@@ -92,7 +92,7 @@ Note, each collection is versioned independently of each other, and thus version
 
 A note about API versions below 1, such as 0.1.0. These versions are under development, and thus breaking changes may be made. Once the API reaches version 1, no breaking changes will be made, only non-breaking fixes and new features will be added. Version 0 APIs are served under the "v1" url path.
 
-### [Gateway Service API](#api-spec-gateway)
+### [Gateway Service API](#gateway-service-api)
 
 [Version 1](./v1/gateway)
 
@@ -104,6 +104,6 @@ A note about API versions below 1, such as 0.1.0. These versions are under devel
 
 [Gateway Service API - Current](./../gateway/gateway-service-api.yaml)
 
-### [AnyQuiz Service API](#api-spec-anyquiz)
+### [AnyQuiz Service API](#anyquzi-service-api)
 
 * 0.0.0 - [API Specification](./v1/anyquiz/0.1.0.yaml) | [API Documentation](./v1/anyquiz/0.1.0.html) THIS IS A PLACEHOLDER
