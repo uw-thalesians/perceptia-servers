@@ -49,6 +49,9 @@ class Connection
 
         try {
 
+            // print_r($keyword);
+            // print_r($source);
+
             $stmt = Connection::$conn->prepare($sql);
 
             $stmt->bindValue(":keyword", $keyword, PDO::PARAM_STR);
@@ -59,13 +62,13 @@ class Connection
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if($row) {
-
+                // print_r($row);
                 $quiz = new Quiz( $row );
 
             } else {
-
-                $summary = $this->fetchSummary($keyword);
-
+                // print_r("row not found");
+                $summary = $this->fetchSummary($keyword, $source);
+                // print_r($summary);
                 $quiz = $this->addNewQuiz($keyword, $summary, $source);
             }
 
@@ -76,27 +79,75 @@ class Connection
         return $quiz;
     }
 
-    private function fetchSummary($keyword) {
+    private function fetchSummary($keyword, $source) {
 
-        //curl call py script
         $curl_handle= curl_init();
-        $server = "localhost";
-        
-        $wikipedia_python_rest_query = $server.$this->_f3->get("BASE")."/py/w_rest.py?keyword=" . urlencode($keyword);
-        #$wikipedia_python_rest_query = $server . "/?keyword=" . urlencode($keyword);
-        #print_r($wikipedia_python_rest_query);
+        $summary = "";
 
-        curl_setopt($curl_handle, CURLOPT_URL, $wikipedia_python_rest_query);
-        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
-        #curl_setopt($curl_handle, CURLOPT_PORT, 27277);
+        $safe_keyword = urlencode($keyword);
 
-        $json = curl_exec($curl_handle);
-        #print_r(curl_error($curl_handle));
-        #print_r(curl_getinfo($curl_handle, CURLINFO_HTTP_CODE));
+        switch($source) {
+            case "solr_url":
+                
+                
+                $solr_stream_url = "http://aqsolr:8983/solr/stream/update/extract?uprefix=attr_&fmap.content=body&commit=true";
+                // print_r($solr_stream_url);
+                
+                curl_setopt($curl_handle, CURLOPT_URL, $solr_stream_url);
+                curl_setopt($curl_handle, CURLOPT_POST, 1);
+                curl_setopt($curl_handle, CURLOPT_POSTFIELDS, "stream.url=" . $safe_keyword);
+                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
+                //curl_setopt($curl_handle, CURLOPT_PORT, 8983);
+
+                $json = curl_exec($curl_handle);
+
+                // print_r($json);
+                // print_r(curl_error($curl_handle));
+                // print_r(curl_getinfo($curl_handle, CURLINFO_HTTP_CODE));
+                
+                $solr_select_stream_name = "http://aqsolr:8983/solr/stream/select?q=attr_stream_name:" . "\"". $safe_keyword . "\"";
+                // print_r($solr_select_stream_name);
+
+                curl_setopt($curl_handle, CURLOPT_URL, $solr_select_stream_name);
+                curl_setopt($curl_handle, CURLOPT_POST, 0);
+
+                $response = curl_exec($curl_handle);
+                
+                // print_r($response);
+                // print_r(curl_error($curl_handle));
+                // print_r(curl_getinfo($curl_handle, CURLINFO_HTTP_CODE));
+
+                $response = json_decode($response, true)["response"];
+                // print_r($response);
+
+                $summary = $response["docs"][0]["attr_body"][0];
+                // print_r($summary);
+
+                break;
+
+            case "wiki":
+                $server = "localhost";
+                //curl call py script
+                $wikipedia_python_rest_query = $server.$this->_f3->get("BASE")."/py/w_rest.py?keyword=" . urlencode($keyword);
+                #$wikipedia_python_rest_query = $server . "/?keyword=" . urlencode($keyword);
+                #print_r($wikipedia_python_rest_query);
+
+                curl_setopt($curl_handle, CURLOPT_URL, $wikipedia_python_rest_query);
+                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
+                #curl_setopt($curl_handle, CURLOPT_PORT, 27277);
+
+                $json = curl_exec($curl_handle);
+                #print_r(curl_error($curl_handle));
+                #print_r(curl_getinfo($curl_handle, CURLINFO_HTTP_CODE));
+                
+                #print_r($json);
+
+                $summary = json_decode($json, true)["summary_text"];
+
+                break;
+        }
+
         curl_close($curl_handle);
-        #print_r($json);
-
-        $summary = json_decode($json, true)["summary_text"];
 
         #print_r($summary);
 
@@ -211,7 +262,7 @@ class Connection
                     $remotePath = $imageURL;
                 }
                 $tries++;
-            } while((filesize($localPath) < 10000) && $tries < 10);
+            } while((filesize($remotePath) < 10000) && $tries < 10);
 
             curl_close($curl);
         }else{

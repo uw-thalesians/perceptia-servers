@@ -23,8 +23,9 @@ $f3->set('AUTOLOAD', 'sql/;view/;controller/;model/;py/;');
 
 $f3->route('GET /api/v1/anyquiz/read/@keyword', function($f3) {
     
-    
     header('Content-Type: application/json');
+    
+    $keyword = $f3->get('PARAMS.keyword');
 
     $source = "wiki";
 
@@ -32,9 +33,13 @@ $f3->route('GET /api/v1/anyquiz/read/@keyword', function($f3) {
         $source = $f3->get('GET.source');
     }
 
+    if( $f3->exists('GET.url') ) {
+        $keyword = $f3->get('GET.url');
+    }
+
     $quizController = new QuizController();
-    $keyword = $f3->get('PARAMS.keyword');
-    $quizController->startJSON( $keyword, $source );
+    
+    $quizController->startJSON( $keyword, $source);
 });
 
 $f3->route('GET /api/v1/anyquiz/list', function($f3) {
