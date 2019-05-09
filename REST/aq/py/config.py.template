@@ -2,6 +2,6 @@
 
 mysql_user = "any_quiz"
 mysql_pass = "{pass}"
-mysql_host = "aq-mysql"
+mysql_host = "aqmysql"
 mysql_db   = "any_quiz_db"
 mysql_port = "3306" 
