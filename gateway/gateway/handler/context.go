@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -24,19 +25,30 @@ type Context struct {
 
 // NewContext creates a new Context, initialized using the provided handler context values.
 // Returns a pointer to the created Context.
-func NewContext(sessionStore session.Store, userStore user.Store, sessionSigningKey string, logger kitlog.Logger) *Context {
+func NewContext(sessionStore session.Store, userStore user.Store,
+	sessionSigningKey string, logger kitlog.Logger) *Context {
 	if sessionStore == nil || userStore == nil || len(sessionSigningKey) <= 0 {
 		panic("all parameters must not be nil or empty")
 	}
 	return &Context{sessionSigningKey, sessionStore, userStore, logger}
 }
 
+type Error struct {
+	Reference   string `json:"reference"`
+	ServerError bool   `json:"serverError,omitempty"`
+	ClientError bool   `json:"clientError,omitempty"`
+	Message     string `json:"message"`
+	Context     string `json:"context"`
+	Code        int    `json:"Code"`
+}
+
 // ensureJSONHeader is a helper method to handle checking for the application/json content-type header.
 // Will return true if valid JSON header is present in the request.
 func (cx *Context) ensureJSONHeader(w http.ResponseWriter, r *http.Request) bool {
 	if !strings.HasPrefix(r.Header.Get(HeaderContentType), ContentTypeJSON) {
-		cx.handleError(w, r, nil, "", fmt.Sprintf("error: %s (%s) not supported, request body must have %s of (%s)",
-			HeaderContentType, r.Header.Get(HeaderContentType), HeaderContentType, ContentTypeJSON),
+		cx.handleError(w, r, nil, "",
+			fmt.Sprintf("error: %s (%s) not supported, request body must have %s of (%s)",
+				HeaderContentType, r.Header.Get(HeaderContentType), HeaderContentType, ContentTypeJSON),
 			http.StatusUnsupportedMediaType)
 		return false
 	}
@@ -62,6 +74,21 @@ func (cx *Context) handleError(w http.ResponseWriter, r *http.Request, errorToLo
 	return
 }
 
+// handleError will handle logging error and respond to client with correct message and status code.
+// If len(clientErrorMessage) == 0 will only log error and will not send error to client.
+// If you only need to log an error without sending error to client you should use logError instead.
+func (cx *Context) handleErrorJson(w http.ResponseWriter, r *http.Request, errorToLog error, logContext string,
+	clientErrorJson *Error,
+	statusCode int) {
+	logReference := cx.logError(r, errorToLog, logContext, clientErrorJson.Message, statusCode)
+	clientErrorJson.Reference = logReference
+	// Only send error to client if clientErrorMessage provided.
+	if clientErrorJson != nil {
+		_, _ = cx.respondEncode(w, clientErrorJson, statusCode)
+	}
+	return
+}
+
 // logError will log an error provided to it, any context including message sent to client.
 // Will return a string containing the log reference to be used by the caller to associate further logging or
 // response to client with this logged error.
@@ -69,7 +96,7 @@ func (cx *Context) handleError(w http.ResponseWriter, r *http.Request, errorToLo
 func (cx *Context) logError(r *http.Request, errorToLog error, logContext, clientErrorMessage string,
 	statusCode int) string {
 	logReference := uuid.NewV4().String()
-	cx.logger.Log("logReference", logReference,
+	_ = cx.logger.Log("logReference", logReference,
 		"context", logContext, "error", errorToLog,
 		"messageToClient", clientErrorMessage,
 		"httpStatusCode", statusCode)
@@ -121,6 +148,11 @@ func (cx *Context) handleMethodNotAllowed(w http.ResponseWriter, r *http.Request
 		errMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
 }
 
+func (cx *Context) handleVersionNotSupported(w http.ResponseWriter, r *http.Request, supported, requested string) {
+	cx.handleError(w, r, nil, fmt.Sprintf("major version of API not supported; requested=%s supported=%s", requested, supported),
+		errMethodNotAllowed.Error(), http.StatusNotFound)
+}
+
 func (cx *Context) getUserFromRequest(r *http.Request) (*user.User, error) {
 	//validate the session token in the request,
 	//fetch the session state from the session store,
@@ -154,4 +186,44 @@ func (cx *Context) getSessionStateFromRequest(r *http.Request) (*SessionState, e
 	}
 	authSess.SessionID = sessToken
 	return authSess, nil
+}
+
+// respond allows sending a text or json object as the response, based on the item provided.
+// For a text item, item should be of type string. All other types of item will be encoded as json.
+// Respond will handle logging any errors that occur. respond will return an error if any errors occur,
+// and a string that may contain the log reference.
+func (cx *Context) respond(w http.ResponseWriter, item interface{}, statusCode int) (error, string) {
+	switch item.(type) {
+	case string:
+		return cx.respondText(w, item.(string), statusCode)
+	default:
+		return cx.respondEncode(w, item, statusCode)
+	}
+}
+
+// respondEncode will encode the provided object to the provided response stream.
+// If an error occurs will log that error and return the error that occurred, and the logging reference string.
+func (cx *Context) respondEncode(w http.ResponseWriter, objToEncode interface{}, statusCode int) (error,
+	string) {
+	w.Header().Set(HeaderContentType, ContentTypeJSON)
+	w.WriteHeader(statusCode)
+	err := json.NewEncoder(w).Encode(objToEncode)
+	if err != nil {
+		logReference := cx.logError(nil, err, fmt.Sprintf("error encoding object of type: %T, object:%v", objToEncode,
+			objToEncode), "", statusCode)
+		return err, logReference
+	}
+	return nil, ""
+}
+
+func (cx *Context) respondText(w http.ResponseWriter, textToSend string, statusCode int) (error, string) {
+	w.Header().Set(HeaderContentType, ContentTypeTextPlain)
+	w.WriteHeader(statusCode)
+	_, err := io.WriteString(w, textToSend)
+	if err != nil {
+		logReference := cx.logError(nil, err, fmt.Sprintf("error writing textToSend to response stream"), "",
+			statusCode)
+		return err, logReference
+	}
+	return nil, ""
 }
