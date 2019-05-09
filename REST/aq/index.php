@@ -21,7 +21,7 @@ $f3->set('DEBUG', 3);
 
 $f3->set('AUTOLOAD', 'sql/;view/;controller/;model/;py/;');
 
-$f3->route('GET /v1/read/@keyword', function($f3) {
+$f3->route('GET /api/v1/anyquiz/read/@keyword', function($f3) {
     
     
     header('Content-Type: application/json');
@@ -37,7 +37,7 @@ $f3->route('GET /v1/read/@keyword', function($f3) {
     $quizController->startJSON( $keyword, $source );
 });
 
-$f3->route('GET /v1/list', function($f3) {
+$f3->route('GET /api/v1/anyquiz/list', function($f3) {
     $start = 0;
     $end = -1;
     $sort = 'alpha';
@@ -58,7 +58,7 @@ $f3->route('GET /v1/list', function($f3) {
 
 });
 
-$f3->route('GET /v1/questions/@keyword', function($f3) {
+$f3->route('GET /api/v1/anyquiz/questions/@keyword', function($f3) {
 
     $quizController = new QuizController();
 
@@ -75,7 +75,7 @@ $f3->route('GET /v1/questions/@keyword', function($f3) {
 
 });
 
-$f3->route('POST /v1/questions/grade', function() {
+$f3->route('POST /api/v1/anyquiz/questions/grade', function() {
     header('Content-Type: application/json');
     
     $quizController = new QuizController();
