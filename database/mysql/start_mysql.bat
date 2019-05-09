@@ -1,1 +1,1 @@
-docker run -d --name aqmysql --volume mysql:/var/lib/mysql --cap-add syslog -e MYSQL_ROOT_PASSWORD=mrpw -e user_pass=8aWZjNadxspXQEHu  -m="1g" --memory-swap="1g" --network aqnet uw-thalesians/aqmysql
+docker run -d --name aqmysql --volume mysql:/var/lib/mysql --cap-add syslog -e MYSQL_ROOT_PASSWORD=mrpw -e user_pass=8aWZjNadxspXQEHu  -m="1g" --memory-swap="1g" --network perceptia-net uw-thalesians/aqmysql
