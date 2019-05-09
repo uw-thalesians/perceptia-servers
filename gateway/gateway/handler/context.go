@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -30,6 +31,15 @@ func NewContext(sessionStore session.Store, userStore user.Store,
 		panic("all parameters must not be nil or empty")
 	}
 	return &Context{sessionSigningKey, sessionStore, userStore, logger}
+}
+
+type Error struct {
+	Reference   string `json:"reference"`
+	ServerError bool   `json:"serverError,omitempty"`
+	ClientError bool   `json:"clientError,omitempty"`
+	Message     string `json:"message"`
+	Context     string `json:"context"`
+	Code        int    `json:"Code"`
 }
 
 // ensureJSONHeader is a helper method to handle checking for the application/json content-type header.
@@ -60,6 +70,21 @@ func (cx *Context) handleError(w http.ResponseWriter, r *http.Request, errorToLo
 			completeClientMessage = fmt.Sprintf("error reference: %s\n%s", logReference, completeClientMessage)
 		}
 		http.Error(w, completeClientMessage, statusCode)
+	}
+	return
+}
+
+// handleError will handle logging error and respond to client with correct message and status code.
+// If len(clientErrorMessage) == 0 will only log error and will not send error to client.
+// If you only need to log an error without sending error to client you should use logError instead.
+func (cx *Context) handleErrorJson(w http.ResponseWriter, r *http.Request, errorToLog error, logContext string,
+	clientErrorJson *Error,
+	statusCode int) {
+	logReference := cx.logError(r, errorToLog, logContext, clientErrorJson.Message, statusCode)
+	clientErrorJson.Reference = logReference
+	// Only send error to client if clientErrorMessage provided.
+	if clientErrorJson != nil {
+		_, _ = cx.respondEncode(w, clientErrorJson, statusCode)
 	}
 	return
 }
@@ -161,4 +186,44 @@ func (cx *Context) getSessionStateFromRequest(r *http.Request) (*SessionState, e
 	}
 	authSess.SessionID = sessToken
 	return authSess, nil
+}
+
+// respond allows sending a text or json object as the response, based on the item provided.
+// For a text item, item should be of type string. All other types of item will be encoded as json.
+// Respond will handle logging any errors that occur. respond will return an error if any errors occur,
+// and a string that may contain the log reference.
+func (cx *Context) respond(w http.ResponseWriter, item interface{}, statusCode int) (error, string) {
+	switch item.(type) {
+	case string:
+		return cx.respondText(w, item.(string), statusCode)
+	default:
+		return cx.respondEncode(w, item, statusCode)
+	}
+}
+
+// respondEncode will encode the provided object to the provided response stream.
+// If an error occurs will log that error and return the error that occurred, and the logging reference string.
+func (cx *Context) respondEncode(w http.ResponseWriter, objToEncode interface{}, statusCode int) (error,
+	string) {
+	w.Header().Set(HeaderContentType, ContentTypeJSON)
+	w.WriteHeader(statusCode)
+	err := json.NewEncoder(w).Encode(objToEncode)
+	if err != nil {
+		logReference := cx.logError(nil, err, fmt.Sprintf("error encoding object of type: %T, object:%v", objToEncode,
+			objToEncode), "", statusCode)
+		return err, logReference
+	}
+	return nil, ""
+}
+
+func (cx *Context) respondText(w http.ResponseWriter, textToSend string, statusCode int) (error, string) {
+	w.Header().Set(HeaderContentType, ContentTypeTextPlain)
+	w.WriteHeader(statusCode)
+	_, err := io.WriteString(w, textToSend)
+	if err != nil {
+		logReference := cx.logError(nil, err, fmt.Sprintf("error writing textToSend to response stream"), "",
+			statusCode)
+		return err, logReference
+	}
+	return nil, ""
 }

@@ -42,7 +42,7 @@ const messageSignedOut = "signed out"
 
 // Handler Error Constants.
 var (
-	errUnexpected = errors.New("an unexpected error has occurred")
+	errUnexpected = errors.New("an unexpected error has occurred, try again if request did not complete")
 
 	//errInvalidCredentials         = errors.New("invalid credentials")
 	errMethodNotAllowed = errors.New("method not allowed")

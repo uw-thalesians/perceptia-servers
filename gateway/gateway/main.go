@@ -168,9 +168,12 @@ func main() {
 	// "/api/v1/"
 	gmuxApiV := gmuxApi.PathPrefix("/{" + handler.ReqVarMajorVersion + ":v[0-9]+}/").Subrouter()
 
+	//// Service Routes
+
 	// "/api/vX/anyquiz/"
 	gmuxApiV.PathPrefix("/" + serviceAqRest + "/").Handler(hcx.NewServiceProxy(aqRestHostname, aqRestPort))
 
+	//// Gateway routes
 	gmuxApiVGateway := gmuxApiV.PathPrefix("/gateway/").Subrouter()
 
 	// Health check route
@@ -194,6 +197,11 @@ func main() {
 		}
 		return
 	})
+
+	// Users routes
+	gmuxApiVGatewayUsers := gmuxApiVGateway.PathPrefix("/users").Subrouter()
+
+	gmuxApiVGatewayUsers.PathPrefix("").HandlerFunc(hcx.UsersDefaultHandler)
 
 	// Add Middleware to "/api"
 	gmuxApi.Use(handler.NewCors)
