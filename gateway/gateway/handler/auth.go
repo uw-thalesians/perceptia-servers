@@ -510,25 +510,60 @@ func (cx *Context) sessionsHandlerV1Post(w http.ResponseWriter, r *http.Request)
 			Message:     errInvalidCredentials.Error(),
 			Code:        0,
 		}
-		cx.handleErrorJson(w, r, errVC,
+		cx.handleErrorJson(w, r, errGEH,
 			"provided credentials are not valid", retErr, http.StatusUnauthorized)
 		return
 	}
 	valid, errAuth := user.Authenticate(credentials.Password, validUserHash)
 	if errAuth != nil {
-		//TODO
-		cx.handleError(w, r, nil, "", errInvalidCredentials,
-			http.StatusUnauthorized)
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     errUnexpected.Error(),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, errAuth,
+			"error occurred when trying to validate credentials", retErr, http.StatusInternalServerError)
+		return
+	}
+	if !valid {
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     errInvalidCredentials.Error(),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, errAuth,
+			"provided credentials are not the same as were used to create the hash for this user",
+			retErr, http.StatusUnauthorized)
+		return
+	}
+	userPro, errGUUN := cx.userStore.GetByUsername(credentials.Username)
+	if errGUUN != nil {
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     errUserNotFound.Error(),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, errGUUN,
+			"user was not found in database but should be in database", retErr, http.StatusBadRequest)
 		return
 	}
 	// Begin new session
-	sessState := NewSessionState(time.Now(), *userBE)
-	_, errSID := sessions.BeginSession(cx.signingKey, cx.sessionStore, sessState, w)
+	sessState := NewSessionState(time.Now(), *userPro)
+	_, errSID := session.BeginSession(cx.sessionSigningKey, cx.sessionStore, sessState, w)
 	if errSID != nil {
-		cx.handleError(w, r, errSID, "error beginning new session", errUnexpected,
-			http.StatusInternalServerError)
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     "unable to create new session, please try again",
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, errSID,
+			"issue creating session", retErr, http.StatusInternalServerError)
 		return
 	}
 	// Send response
-	cx.respondEncode(w, userBE, http.StatusCreated)
+	_, _ = cx.respondEncode(w, userPro, http.StatusCreated)
 }
