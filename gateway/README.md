@@ -10,23 +10,23 @@ The API Gateway service serves as the primary entry point for the Perceptia appl
 
 * [Structure](#structure)
 
-  * [Config and Setup Files](#structure-files)
+  * [Config and Setup Files](#config-and-setup-files)
 
-  * [Gateway Source](#structure-gateway-source)
+  * [Gateway Source](#gateway-source)
 
 * [Setup Server](#setup-server)
 
-  * [Building the Image](#setup-server-build-image)
+  * [Building the Image](#building-the-image)
 
-  * [Custom Image](#setup-server-custom-image)
+  * [Custom Image](#custom-image)
 
-    * [Image Specific Options](#custom-image-specific-options)
+    * [Image Specific Options](#image-specific-options)
 
-* [Start Server Locally](#start-local)
+* [Start Server Locally](#start-server-locally)
 
-  * [Start with Script](#start-local-script)
+  * [Start with Script](#start-with-script)
 
-  * [Start with Docker Commands](#start-local-docker-commands)
+  * [Start with Docker Commands](#start-with-docker-commands)
 
 * [Testing](#testing)
   
@@ -38,7 +38,7 @@ The Gateway service is designed to run within a linux container. This README wil
 
 The root of the gateway directory contains the supporting files for building the application.
 
-### [Config and Setup Files](#structure-files)
+### [Config and Setup Files](#config-and-setup-files)
 
 [Dockerfile:](./Dockerfile) multi-stage docker file to build the gateway executable and the gateway image
 
@@ -52,7 +52,7 @@ The root of the gateway directory contains the supporting files for building the
 
 [testGatewayUnit.ps1:](./testGatewayUnit.ps1) is meant for runing the gateway unit tests locally with coverage
 
-### [Gateway Source](#structure-gateway-source)
+### [Gateway Source](#gateway-source)
 
 The [gateway](./gateway/) directory contains the source files for the gateway executable.
 
@@ -66,13 +66,13 @@ The [gateway](./gateway/) directory contains the source files for the gateway ex
 
 The gateway executable is designed to be deployed using a linux container. The following subsections explain how this container is built and how to use it. The gateway executable is currently built on the [GoLang](https://hub.docker.com/_/golang) image `golang:1.12`, and the gateway image is then based off the [Alpine Linux](https://hub.docker.com/_/alpine) image `alpine:3.9`.
 
-### [Building the Image](#setup-server-build-image)
+### [Building the Image](#building-the-image)
 
 Builds of this container image are automatically triggered by pushes to the GitHub repository.
 
 Builds are tagged based on the version of the API the gateway implements (as defined in an variable in the azure-pipelines.yml file in the root of this repository which should reflect the API version listed in the gateway-service-api.yaml file in this directory). For a complete description of the possible tags see the [gateway container repository](https://hub.docker.com/r/uwthalesians/gateway) on the container registry DockerHub.
 
-#### [Build](#setup-server-build-image)
+#### [Build](#build)
 
 The image can be built locally using the docker build command. This command should be run from this directory (where the Dockerfile is located). See the local start script for an automated build and run.
 
@@ -86,13 +86,13 @@ Commands:
 
   `.` the final period in the command indicates the root directory to send to the docker deamon for the build process, this should be the directory where the Dockerfile is located
 
-### [Custom Image](#setup-server-custom-image)
+### [Custom Image](#custom-image)
 
 The Gateway image will be used during development and production. Information about this custom image can be found in the Thalesians container registry on DockerHub [uwthalesians/gateway](https://hub.docker.com/r/uwthalesians/gateway).
 
 Please refer to the description on the [container registry](https://hub.docker.com/r/uwthalesians/gateway) for specifics on how to configure it. The information below only provides an exmaple setup.
 
-#### [Image Specific Options](#custom-image-specific-options)
+#### [Image Specific Options](#image-specific-options)
 
 This section list any configuration options for the custom image.
 
@@ -128,11 +128,11 @@ Use the following variables to configure the gateway for the given environment.
 
 `REDIS_ADDRESS=<hostname:port>` (REQUIRED) the hostname and port the redis server is listening on
 
-## [Start Server Locally](#start-local)
+## [Start Server Locally](#start-server-locally)
 
 This setup explains how to build and start the server locally.
 
-### [Start with Script](#start-local-script)
+### [Start with Script](#start-with-script)
 
 Building and starting the gateway container locally can be more involed than running one script. The following must be setup:
 
@@ -194,9 +194,9 @@ Run: `.\locaStartExample.ps1 -KeepMsSqlDb -KeepRedisDb`
 
 `-BuildGateway` (switch) will build the gateway using the local source, default is: false. To set true, include the switch
 
-### [Start with Docker Commands](#start-local-docker-commands)
+### [Start with Docker Commands](#start-with-docker-commands)
 
-For directions to start the container locally using a script, see [Start Server Locally](#start-local).
+For directions to start the container locally using a script, see [Start Server Locally](#start-server-locally).
 
 1. pull the image from docker (check [registry](https://hub.docker.com/r/uwthalesians/gateway) for latest images)
 

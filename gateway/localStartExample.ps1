@@ -43,7 +43,7 @@ if ($BuildGateway) {
 
 Set-Variable -Name GATEWAY_TLSCERTPATH -Value "/encrypt/gateway_tlscert.pem"
 Set-Variable -Name GATEWAY_TLSKEYPATH -Value "/encrypt/gateway_tlskey.pem"
-Set-Variable -Name GATEWAY_TLSMOUNTSOURCE -Value "$(Get-Location)\gateway\encrypt\"
+Set-Variable -Name GATEWAY_TLSMOUNTSOURCE -Value "$(Get-Location)/gateway/encrypt"
 
 Set-Variable -Name GATEWAY_SESSION_KEY -Value "fjsfndreifnfsnm5kngfnklef23kdnfskng"
 

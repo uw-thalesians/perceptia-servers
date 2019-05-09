@@ -8,21 +8,21 @@ This directory contains the code used to manage the redis instances used by the 
 
 * [Setup](#setup)
 
-* [Start Server Locally](#start-local)
+* [Start Server Locally](#start-server-locally)
 
-  * [Start with Script](#start-local-script)
+  * [Start with Script](#start-with-script)
 
-  * [PowerShell](#local-script-powershell)
+    * [PowerShell](#powershell)
 
 ## [Getting Started](#getting-started)
 
 ## [Setup](#setup)
 
-## [Start Server Locally](#start-local)
+## [Start Server Locally](#start-server-locally)
 
-### [Start with Script](#start-local-script)
+### [Start with Script](#start-with-script)
 
-#### [PowerShell](#local-script-powershell)
+#### [PowerShell](#powershell)
 
 The PowerShell script, [localStartExample.ps1](./localStartExample.ps1) will run a default redis server container. This script has several command line options which allow you to customize the instance.
 
