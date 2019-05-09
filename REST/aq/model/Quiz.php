@@ -9,6 +9,8 @@ class Quiz
     private $_image;
 
     private $_questions;
+    private $_timestamp;
+    private $_source;
 
     public function __construct($init)
     {
@@ -16,6 +18,8 @@ class Quiz
         $this->_keyword = $init['keyword'];
         $this->_summary = $init['summary'];
         $this->_image = $init['image'];
+        $this->_timestamp = $init['when'];
+        $this->_source = $init['source'];
 
         $this->_questions = array();
     }

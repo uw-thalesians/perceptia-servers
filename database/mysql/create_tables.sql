@@ -1,3 +1,5 @@
+DROP DATABASE IF EXISTS `any_quiz_db`;
+
 CREATE DATABASE `any_quiz_db`;
 
 USE `any_quiz_db`;
@@ -10,7 +12,6 @@ CREATE TABLE `any_quiz_db`.`quiz_questions` (
     `q_type` INT NOT NULL DEFAULT '1',
     /*FOREIGN KEY(quiz_id)
       REFERENCES quizzes(id),*/
-
 	PRIMARY KEY(id)
 );
 
@@ -18,6 +19,9 @@ CREATE TABLE `any_quiz_db`.`quizzes` (
     `keyword` VARCHAR(255) NOT NULL,
     `summary` BLOB NOT NULL,
     `id` INT NOT NULL AUTO_INCREMENT,
-	`image` VARCHAR(256) NOT NULL,
+	`image` VARCHAR(2084),
+    `when` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `source` VARCHAR(64) NOT NULL DEFAULT 'wiki',
+    `total_read_count` INT NOT NULL DEFAULT '1', 
  	PRIMARY KEY(id)
 );
