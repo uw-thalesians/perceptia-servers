@@ -1,1 +1,1 @@
-docker build -t uw-thalesians/aq-mysql .
+docker build -t uw-thalesians/aqmysql .

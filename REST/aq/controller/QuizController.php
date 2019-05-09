@@ -13,35 +13,33 @@ class QuizController{
         }
     }
     
-    public static function startJSON($keyword)
+    public static function startJSON($keyword, $source)
     {
-        $quiz = QuizController::$conn->findQuiz($keyword, false);
+        $quiz = QuizController::$conn->findQuiz($keyword, $source);
 
-        echo json_encode(array("summary"=>$quiz->summary));
+        echo json_encode(array("rest_api_v" => "1.1","source" => $quiz->source, "summary" => $quiz->summary, "image" => $quiz->image, "timestamp" => $quiz->timestamp));
     }
 
-    public static function questionsJSON($keyword)
+    public static function questionsJSON($keyword, $source)
     {
-        $quiz = QuizController::$conn->getQuizQuestions($keyword);
+        $quiz = QuizController::$conn->getQuizQuestions($keyword, $source);
 
         echo json_encode(array("questions"=>$quiz->questions));
     }
 
     public static function gradeJSON($user)
     {
+        
         $conn = new Connection();
-
+        
         $json = file_get_contents('php://input');
-
+        
         $obj = json_decode($json, true);
         $questionID = $obj['questionID'];
-
+        
         $boolResult = $conn->grade($user,
-            //$obj['questionID'],
             $questionID,
             $obj['selectedAnswer']);
-
-        header('Content-type: application/json');
 
         echo json_encode(array("questionID" => $questionID, "result" => $boolResult));
     }

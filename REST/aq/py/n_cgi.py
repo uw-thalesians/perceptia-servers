@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.7
-print "Content-Type: text/html\n\n"
+print "Content-Type: application/json\n\n"
 
 import sys
 import cgi, cgitb, json

@@ -1,1 +1,1 @@
-docker network create aq-net
+docker network create aqnet
