@@ -1,0 +1,5 @@
+<?php
+define("DB_DSN","mysql:host=aq-mysql;port=3306;dbname=any_quiz_db");
+define("DB_USERNAME", "any_quiz");
+define("DB_PASSWORD", "{pass}");
+?>

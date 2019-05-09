@@ -1,0 +1,11 @@
+vendor/
+images/
+quiz/error_log
+tmp/
+error_log
+*.pyc
+user_images/
+py/lib
+py/bin
+py/nltk_data
+.vscode/
