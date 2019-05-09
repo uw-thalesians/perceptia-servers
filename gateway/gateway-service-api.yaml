@@ -1,6 +1,6 @@
 openapi: 3.0.2
 info:
-  version: "0.2.0"
+  version: "0.3.0"
   title: Gateway Service API
   description: This document describes the APIs that are provided directly by the Gateway service of the Perceptia application. All other APIs in the Perceptia application are handled by seperate services which the Gateway passes along.
   contact:
@@ -35,11 +35,57 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Health'
+  /api/v1/gateway/users:
+    post:
+      summary: Creates an account for the provided user and logs them in.
+      description: Creates an account using the provided account information and returns the created user. Additionally, will create a new session, thus loggin in the user, saving the session token as an Authorization header, with the Bearer authorization scheme.
+      operationId: postGatewayUsers
+      tags:
+        - signup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '201':
+          description: Basic user object containing the users UUID in the system.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: User made a bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Username provided already in use
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Media type other than application/json provided in body
+          content:
+            text/plain:
+              schema:
+                type: string
+        '500':
+          description: Unexpected error on server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
     Health:
+      type: object
       required:
         - name
+        - version
+        - status
       properties:
         name:
           type: string
@@ -59,3 +105,86 @@ components:
             "failed"
           ]
           example: "ready"
+    NewUser:
+      type: object
+      required:
+        - username
+        - displayName
+        - password
+      properties:
+        username:
+          type: string
+          description: name to represent the user by in the system
+          example: joeuser
+          maxLength: 255
+          minLength: 3
+        fullName:
+          type: string
+          description: full name of the user
+          example: Joe John User
+          maxLength: 255
+        displayName:
+          type: string
+          description: will be used to refer to the user in most locations on site where a name is needed for the user
+          example: Joe
+          maxLength: 255
+        password:
+          type: string
+          description: the password the user will provide to authenticate with the system
+          maxLength: 500
+          minLength: 8
+          example: really secure password!
+        email:
+          type: string
+          description: an optional email the user would like associated with their account
+          example: joeuser@example.com
+    User:
+      type: object
+      required:
+        - uuid
+        - username
+        - displayName
+        - fullName
+      properties:
+        uuid:
+          type: string
+          description: the unique user id for the given user using rfc4122 uuid v4
+          example: a3865f94-0c83-4e29-b6cc-1d295d062f50
+        username:
+          type: string
+          description: name to represent the user by in the system
+          example: joeuser
+          maxLength: 255
+          minLength: 3
+        fullName:
+          type: string
+          description: full name of the user
+          example: Joe John User
+          maxLength: 255
+        displayName:
+          type: string
+          description: will be used to refer to the user in most locations on site where a name is needed for the user
+          example: Joe
+          maxLength: 255
+    Error:
+      type: object
+      properties:
+        reference:
+          type: string
+          description: reference uuid associated with error to support troubleshooting
+          example: a3865f94-0c83-4e29-b6cc-1d295d062f50
+        clientError:
+          type: boolean
+          description: if true error was caused by issue with clients request
+        serverError:
+          type: boolean
+          description: if true error was caused by unexpecter error on server
+        message:
+          type: string
+          description: human text explaining error
+        context:
+          type: string
+          description: human text explaining context error occured in
+        code:
+          type: integer
+          description: currently unused
