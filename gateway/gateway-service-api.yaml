@@ -41,7 +41,7 @@ paths:
       description: Creates an account using the provided account information and returns the created user. Additionally, will create a new session, thus loggin in the user, saving the session token as an Authorization header, with the Bearer authorization scheme.
       operationId: postGatewayUsers
       tags:
-        - signup
+        - new user
       requestBody:
         content:
           application/json:
@@ -72,6 +72,138 @@ paths:
             text/plain:
               schema:
                 type: string
+        '500':
+          description: Unexpected error on server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/gateway/users/{userUuid}:
+    get:
+      summary: Gets the basic account information for the given user.
+      description: This will return the basic account information for a user of the system. Requires the client to be authenticated. Currently any user can get the basic account information for any other user, this may change in the future.
+      operationId: getGatewayUsers
+      tags:
+        - users
+      parameters:
+        - name: userUuid
+          in: path
+          description: uuid for user being requested
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Basic user object containing the users UUID in the system.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: User made a bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found or unsupported major api version used
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error on server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Updates the user's Display Name and or Full Name.
+      description: Using the provided requestBody, will update the displayName and fullName of the user if the field is provided. A user may only update their own displayName and fullName.
+      operationId: patchGatewayUsers
+      tags:
+        - users
+      parameters:
+        - name: userUuid
+          in: path
+          description: uuid for user being requested
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdates'
+      responses:
+        '200':
+          description: Basic user object containing the users UUID in the system. Updates applied successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: User made a bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User tried to update a user other than themself
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found or unsupported major api version used
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error on server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Deletes the user of the current session.
+      description: This request will delete the users account with no review or waiting period. This method is very risky and should be used only with additional client side checks.
+      operationId: deleteGatewayUsers
+      tags:
+        - users
+      parameters:
+        - name: userUuid
+          in: path
+          description: uuid for user being requested
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User deleted successfully and signed out.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: User made a bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User tried to delete a user other than themself
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found or unsupported major api version used
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Unexpected error on server
           content:
@@ -164,6 +296,19 @@ components:
         displayName:
           type: string
           description: will be used to refer to the user in most locations on site where a name is needed for the user
+          example: Joe
+          maxLength: 255
+    UserUpdates:
+      type: object
+      properties:
+        fullName:
+          type: string
+          description: full name of the user, will only update if provided
+          example: Joe John User
+          maxLength: 255
+        displayName:
+          type: string
+          description: name user should be called, will only update if provided
           example: Joe
           maxLength: 255
     Error:

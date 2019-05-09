@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	uuid "github.com/satori/go.uuid"
+
 	"github.com/uw-thalesians/perceptia-servers/gateway/gateway/session"
 
 	"github.com/uw-thalesians/perceptia-servers/gateway/gateway/user"
@@ -21,12 +23,74 @@ type newUserJson struct {
 	Email       string `json:"email,omitempty"`
 }
 
+type userUpdatesJson struct {
+	FullName    string `json:"fullName,omitempty"`
+	DisplayName string `json:"displayName,omitempty"`
+}
+
+type signInCredentialsJson struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 // UsersDefaultHandler handles the default routes for the users collection.
 //
 // If the major version in the URL is not supported, request will return an error
 func (cx *Context) UsersDefaultHandler(w http.ResponseWriter, r *http.Request) {
 	reqVars := mux.Vars(r)
+	if ver, ok := reqVars[ReqVarMajorVersion]; ok == true && ver != "v1" {
+		cx.handleVersionNotSupported(w, r, "v1", ver)
+		return
+	}
+	switch r.Method {
+	case http.MethodPost:
+		cx.usersHandlerV1Post(w, r)
+		return
+	default:
+		cx.handleMethodNotAllowed(w, r)
+		return
+	}
+}
+
+// UsersDefaultHandler handles the default routes for the users collection.
+//
+// If the major version in the URL is not supported, request will return an error
+func (cx *Context) UsersSpecificHandler(w http.ResponseWriter, r *http.Request) {
+	reqVars := mux.Vars(r)
 	if ver, ok := reqVars[ReqVarMajorVersion]; ok != false && ver != "v1" {
+		cx.handleVersionNotSupported(w, r, "v1", ver)
+		return
+	}
+
+	//Get the authenticated user.
+	userCx, ok := cx.getUserFromContext(w, r)
+	if !ok {
+		// Ends method execution if user was not found in the request context.
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		cx.usersSpecificHandlerV1Get(w, r, userCx)
+		return
+	case http.MethodPatch:
+		cx.usersSpecificHandlerV1Patch(w, r, userCx)
+		return
+	case http.MethodDelete:
+		cx.usersSpecificHandlerV1Delete(w, r, userCx)
+
+	default:
+		cx.handleMethodNotAllowed(w, r)
+		return
+	}
+}
+
+// SessionsDefaultHandler handles the default routes for the sessions collection.
+//
+// If the major version in the URL is not supported, request will return an error
+func (cx *Context) SessionsDefaultHandler(w http.ResponseWriter, r *http.Request) {
+	reqVars := mux.Vars(r)
+	if ver, ok := reqVars[ReqVarMajorVersion]; ok == true && ver != "v1" {
 		cx.handleVersionNotSupported(w, r, "v1", ver)
 		return
 	}
@@ -189,4 +253,282 @@ func (cx *Context) usersHandlerV1Post(w http.ResponseWriter, r *http.Request) {
 	}
 	// Send response
 	_, _ = cx.respondEncode(w, userINS, http.StatusCreated)
+}
+
+// usersSpecificHandlerV1Get is a helper method for UsersSpecificHandler to handle Get requests to the users collection.
+func (cx *Context) usersSpecificHandlerV1Get(w http.ResponseWriter, r *http.Request, userCx *user.User) {
+	reqVars := mux.Vars(r)
+	reqUserUuidString, ok := reqVars[ReqVarUserUuid]
+	if !ok {
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     fmt.Sprintf("uuid not extracted from request"),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, nil, "uuid expected in path, but not found in mux vars", retErr, http.StatusInternalServerError)
+		return
+	}
+
+	reqUserUuid, errUFS := uuid.FromString(reqUserUuidString)
+	if errUFS != nil {
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     fmt.Sprintf("unable to get valid uuid from path"),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, errUFS, "issue converting string to valid uuid", retErr, http.StatusInternalServerError)
+		return
+	}
+
+	userProfile, errGID := cx.userStore.GetByUuid(reqUserUuid)
+	if errGID != nil {
+		if errGID == user.ErrUserNotFound {
+			retErr := &Error{
+				ClientError: true,
+				ServerError: false,
+				Message:     errUserNotFound.Error(),
+				Code:        0,
+			}
+			cx.handleErrorJson(w, r, errGID, fmt.Sprintf("requested user not found in database: uuid=%s", reqUserUuid.String()), retErr, http.StatusNotFound)
+		} else {
+			retErr := &Error{
+				ClientError: false,
+				ServerError: true,
+				Message:     errUnexpected.Error(),
+				Code:        0,
+			}
+			cx.handleErrorJson(w, r, errGID, fmt.Sprintf("issue retrieving user from database: uuid=%s", reqUserUuid.String()), retErr, http.StatusInternalServerError)
+		}
+		return
+	}
+	// Send response
+	_, _ = cx.respondEncode(w, userProfile, http.StatusOK)
+}
+
+// usersSpecificHandlerV1Patch is a helper method for SpecificUserHandler to handle Patch requests to the users collection.
+func (cx *Context) usersSpecificHandlerV1Patch(w http.ResponseWriter, r *http.Request, userCx *user.User) {
+	reqVars := mux.Vars(r)
+	reqUserUuidString, ok := reqVars[ReqVarUserUuid]
+	if !ok {
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     fmt.Sprintf("uuid not extracted from request"),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, nil, "uuid expected in path, but not found in mux vars", retErr, http.StatusInternalServerError)
+		return
+	}
+
+	reqUserUuid, errUFS := uuid.FromString(reqUserUuidString)
+	if errUFS != nil {
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     fmt.Sprintf("unable to get valid uuid from path"),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, errUFS, "issue converting string to valid uuid", retErr, http.StatusInternalServerError)
+		return
+	}
+
+	if !uuid.Equal(reqUserUuid, userCx.Uuid) {
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     errActionNotAuthorized.Error(),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, nil,
+			fmt.Sprintf("logged in user tried to update a different users profile: user=%s userToUpdate=%s",
+				userCx.Uuid.String(), reqUserUuid.String()), retErr, http.StatusForbidden)
+		return
+	}
+
+	// Test if json header is present, if not, return
+	if !cx.ensureJSONHeader(w, r) {
+		return
+	}
+
+	updatesClient := &userUpdatesJson{}
+	if !cx.decodeJSON(w, r, updatesClient, "userUpdatesJson") {
+		// return if unable to decode updates
+		return
+	}
+	updates := &user.Updates{}
+	updates.FullName = updatesClient.FullName
+	updates.DisplayName = updatesClient.DisplayName
+	updates.PrepUpdates()
+	if err := updates.ValidateUpdates(); err != nil {
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     err.Error(),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, err,
+			"provided updates invalid", retErr, http.StatusBadRequest)
+	}
+	var updatedUser *user.User
+	if len(updates.FullName) > 0 {
+		var err error
+		updatedUser, err = cx.userStore.UpdateFullName(userCx.Uuid, updates.FullName)
+		if err != nil {
+			retErr := &Error{
+				ClientError: false,
+				ServerError: true,
+				Message:     err.Error(),
+				Code:        0,
+			}
+			cx.handleErrorJson(w, r, err,
+				"error occurred when updating fullName", retErr, http.StatusInternalServerError)
+			return
+		}
+	}
+	if len(updates.DisplayName) > 0 {
+		var err error
+		updatedUser, err = cx.userStore.UpdateDisplayName(userCx.Uuid, updates.DisplayName)
+		if err != nil {
+			retErr := &Error{
+				ClientError: false,
+				ServerError: true,
+				Message:     err.Error(),
+				Code:        0,
+			}
+			cx.handleErrorJson(w, r, err,
+				"error occurred when updating displayName", retErr, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	sesSt, errGSR := cx.getSessionStateFromRequest(r)
+	if errGSR != nil && sesSt != nil {
+		_ = cx.sessionStore.Save(sesSt.SessionID, SessionState{
+			User:      *updatedUser,
+			SessionID: sesSt.SessionID,
+			StartTime: sesSt.StartTime,
+		})
+	}
+	// Send response to client.
+	_, _ = cx.respondEncode(w, updatedUser, http.StatusOK)
+}
+
+// usersSpecificHandlerV1Delete is a helper method for SpecificUserHandler to handle Delete requests to the users collection.
+func (cx *Context) usersSpecificHandlerV1Delete(w http.ResponseWriter, r *http.Request, userCx *user.User) {
+	reqVars := mux.Vars(r)
+	reqUserUuidString, ok := reqVars[ReqVarUserUuid]
+	if !ok {
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     fmt.Sprintf("uuid not extracted from request"),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, nil, "uuid expected in path, but not found in mux vars", retErr, http.StatusInternalServerError)
+		return
+	}
+
+	reqUserUuid, errUFS := uuid.FromString(reqUserUuidString)
+	if errUFS != nil {
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     fmt.Sprintf("unable to get valid uuid from path"),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, errUFS, "issue converting string to valid uuid", retErr, http.StatusInternalServerError)
+		return
+	}
+
+	if !uuid.Equal(reqUserUuid, userCx.Uuid) {
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     errActionNotAuthorized.Error(),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, nil,
+			fmt.Sprintf("logged in user tried to update a different users profile: user=%s userToUpdate=%s",
+				userCx.Uuid.String(), reqUserUuid.String()), retErr, http.StatusForbidden)
+		return
+	}
+
+	errDU := cx.userStore.Delete(userCx.Uuid)
+	if errDU != nil {
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     errUnexpected.Error(),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, errDU,
+			"error occurred while attempting to delete user account", retErr, http.StatusInternalServerError)
+	}
+	sesSt, errGSR := cx.getSessionStateFromRequest(r)
+	if errGSR != nil && sesSt != nil {
+		_ = cx.sessionStore.Delete(sesSt.SessionID)
+	}
+	// Send response to client.
+	_, _ = cx.respond(w, "your account has been successfully deleted and you have been signed out", http.StatusOK)
+}
+
+// sessionsHandlerV1Post is a helper method for SessionsHandler to handle Post requests to the sessions collection.
+func (cx *Context) sessionsHandlerV1Post(w http.ResponseWriter, r *http.Request) {
+	// Test if json header is present, if not, return
+	if !cx.ensureJSONHeader(w, r) {
+		return
+	}
+	signInCredentials := &signInCredentialsJson{}
+	if !cx.decodeJSON(w, r, signInCredentials, "signInCredentials") {
+		// return if unable to decode credentials
+		return
+	}
+	credentials := &user.SignInCredentials{}
+	credentials.Username = signInCredentials.Username
+	credentials.Password = signInCredentials.Password
+	errVC := credentials.ValidateSignInCredentials()
+	if errVC != nil {
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     errInvalidCredentials.Error(),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, errVC,
+			"provided credentials are not valid", retErr, http.StatusUnauthorized)
+		return
+	}
+	validUserHash, errGEH := cx.userStore.GetEncodedHashByUsername(credentials.Username)
+	// If user does not exist, will attempt to compare provided credentials
+	// against a fictitious valid user.
+	if errGEH != nil {
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     errInvalidCredentials.Error(),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, errVC,
+			"provided credentials are not valid", retErr, http.StatusUnauthorized)
+		return
+	}
+	valid, errAuth := user.Authenticate(credentials.Password, validUserHash)
+	if errAuth != nil {
+		//TODO
+		cx.handleError(w, r, nil, "", errInvalidCredentials,
+			http.StatusUnauthorized)
+		return
+	}
+	// Begin new session
+	sessState := NewSessionState(time.Now(), *userBE)
+	_, errSID := sessions.BeginSession(cx.signingKey, cx.sessionStore, sessState, w)
+	if errSID != nil {
+		cx.handleError(w, r, errSID, "error beginning new session", errUnexpected,
+			http.StatusInternalServerError)
+		return
+	}
+	// Send response
+	cx.respondEncode(w, userBE, http.StatusCreated)
 }
