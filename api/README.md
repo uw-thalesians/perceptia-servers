@@ -106,6 +106,6 @@ A note about API versions below 1, such as 0.1.0. These versions are under devel
 
 [Gateway Service API - Current](./../gateway/gateway-service-api.yaml)
 
-### [AnyQuiz Service API](#anyquzi-service-api)
+### [AnyQuiz Service API](#anyquiz-service-api)
 
 * 0.0.0 - [API Specification](./v1/anyquiz/0.1.0.yaml) | [API Documentation](./v1/anyquiz/0.1.0.html) THIS IS A PLACEHOLDER
