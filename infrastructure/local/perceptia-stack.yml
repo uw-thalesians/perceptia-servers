@@ -46,7 +46,7 @@ services:
     networks:
       - perceptia-stack-net
   aqrest:
-    image: uwthalesians/aqrest:1.1.0-build-201-branch-merge
+    image: uwthalesians/aqrest:1.1.0-build-203-branch-peacock-local-start
     deploy:
       replicas: 1
     depends_on:
