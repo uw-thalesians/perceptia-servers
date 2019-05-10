@@ -84,7 +84,7 @@ jobs:
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/gateway/Dockerfile'
       qualifiedImageName: $(GatewayImageQualified)
-  - template: 'infrastructure/azp/template/step/dockerStandardTagPush.yml'
+  - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
     parameters:
       qualifiedImageName: $(GatewayImageQualified)
       versionLatestBranchTag: $(ImageTagVersionLatestBranch)
@@ -109,7 +109,7 @@ jobs:
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/database/mssql/Dockerfile'
       qualifiedImageName: $(MssqlImageQualified)
-  - template: 'infrastructure/azp/template/step/dockerStandardTagPush.yml'
+  - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
     parameters:
       qualifiedImageName: $(MssqlImageQualified)
       versionLatestBranchTag: $(ImageTagVersionLatestBranch)
