@@ -7,7 +7,7 @@ variables:
   - group: Common
   # Gateway Variables
   - name: GatewayVersion
-    value: '0.2.0'
+    value: '0.3.0'
   - name: GatewayImageQualified
     value: '$(DockerHubOrg)/$(GatewayImageName)'
   # Mssql Variables
@@ -69,7 +69,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-    - template: 'infrastructure/azp/template/step/goSetupDirectory.yml'
+    - template: './infrastructure/azp/template/step/goSetupDirectory.yml'
       parameters:
         GOBIN: $(GOBIN)
         GOROOT: $(GOROOT)
@@ -95,11 +95,11 @@ jobs:
   dependsOn: 'TestGatewayUnitTests'
   condition: succeeded()
   steps:
-  - template: 'infrastructure/azp/template/step/dockerStandardBuild.yml'
+  - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/gateway/Dockerfile'
       qualifiedImageName: $(GatewayImageQualified)
-  - template: 'infrastructure/azp/template/step/dockerStandardTagPush.yml'
+  - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
     parameters:
       qualifiedImageName: $(GatewayImageQualified)
       versionLatestBranchTag: $(ImageTagVersionLatestBranch)
@@ -120,11 +120,11 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-  - template: 'infrastructure/azp/template/step/dockerStandardBuild.yml'
+  - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/database/mssql/Dockerfile'
       qualifiedImageName: $(MssqlImageQualified)
-  - template: 'infrastructure/azp/template/step/dockerStandardTagPush.yml'
+  - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
     parameters:
       qualifiedImageName: $(MssqlImageQualified)
       versionLatestBranchTag: $(ImageTagVersionLatestBranch)

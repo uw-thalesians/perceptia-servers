@@ -21,16 +21,18 @@ type Context struct {
 	sessionStore      session.Store
 	userStore         user.Store
 	logger            kitlog.Logger
+	gatewayVersion    string
 }
 
 // NewContext creates a new Context, initialized using the provided handler context values.
 // Returns a pointer to the created Context.
 func NewContext(sessionStore session.Store, userStore user.Store,
-	sessionSigningKey string, logger kitlog.Logger) *Context {
+	sessionSigningKey, gatewayVersion string, logger kitlog.Logger) *Context {
 	if sessionStore == nil || userStore == nil || len(sessionSigningKey) <= 0 {
 		panic("all parameters must not be nil or empty")
 	}
-	return &Context{sessionSigningKey, sessionStore, userStore, logger}
+	return &Context{sessionSigningKey, sessionStore,
+		userStore, logger, gatewayVersion}
 }
 
 type Error struct {
@@ -46,10 +48,15 @@ type Error struct {
 // Will return true if valid JSON header is present in the request.
 func (cx *Context) ensureJSONHeader(w http.ResponseWriter, r *http.Request) bool {
 	if !strings.HasPrefix(r.Header.Get(HeaderContentType), ContentTypeJSON) {
-		cx.handleError(w, r, nil, "",
-			fmt.Sprintf("error: %s (%s) not supported, request body must have %s of (%s)",
-				HeaderContentType, r.Header.Get(HeaderContentType), HeaderContentType, ContentTypeJSON),
-			http.StatusUnsupportedMediaType)
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     errContentTypeNotJson.Error(),
+			Context:     r.Method + " path:" + r.URL.Path,
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, nil, "request Content-Type header was not application/json",
+			retErr, http.StatusUnsupportedMediaType)
 		return false
 	}
 	return true
@@ -150,7 +157,7 @@ func (cx *Context) handleMethodNotAllowed(w http.ResponseWriter, r *http.Request
 
 func (cx *Context) handleVersionNotSupported(w http.ResponseWriter, r *http.Request, supported, requested string) {
 	cx.handleError(w, r, nil, fmt.Sprintf("major version of API not supported; requested=%s supported=%s", requested, supported),
-		errMethodNotAllowed.Error(), http.StatusNotFound)
+		errMajorVersionNotSupported.Error(), http.StatusNotFound)
 }
 
 func (cx *Context) getUserFromRequest(r *http.Request) (*user.User, error) {

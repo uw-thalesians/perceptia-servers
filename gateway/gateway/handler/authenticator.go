@@ -3,26 +3,20 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
+
+	"github.com/uw-thalesians/perceptia-servers/gateway/gateway/session"
 
 	"github.com/uw-thalesians/perceptia-servers/gateway/gateway/user"
 )
-
-//TODO: Decouple authenticating user/adding user to request and rejecting request.
-// Create new middleware that specifically rejects a request if the user is not authenticated.
-// That way authenticator can be wrapped around all structs,
-// but the ensure authenticated can be wrapped around only the handlers that must only be accessed by authenticated
-// user.
 
 // MIDDLEWARE
 
 // Key type for values added to an http.Request context.
 type contextKey int
 
-// authUserKey Key for the authenticated user stored in the http.Request context.
-// TODO: tobe removed, replaced with session state key. Remove uses first!
-const authUserKey contextKey = 0
-
+// authSessionStateKey is the key used to retrieve the session state once added to request
 const authSessionStateKey contextKey = 1
 
 // authUserAuthenticatedKey Key only added to request context if the user has been authenticated.
@@ -35,24 +29,31 @@ var ErrSessionNotInContext = errors.New("authenticator: SessionState not in cont
 
 // EnsureAuth represents the current handler in the request/response cycle.
 type EnsureAuth struct {
-	handlerFunc http.HandlerFunc
-	cx          *Context
+	handler http.Handler
+	cx      *Context
 }
 
 // NewEnsureAuth constructs a new EnsureAuth struct with the provided handler.
-func (cx *Context) NewEnsureAuth(handlerFunc http.HandlerFunc) *EnsureAuth {
-	return &EnsureAuth{handlerFunc, cx}
+func (cx *Context) NewEnsureAuth(handler http.Handler) http.Handler {
+	return &EnsureAuth{handler, cx}
 }
 
 // ServeHTTP handles confirming the user is authenticated,
 // and passing the authenticated user's profile in a new http.Request object
 func (ea *EnsureAuth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !IsUserAuthenticated(r) {
-		ea.cx.handleError(w, r, nil, "request to access authenticated resource, but user is not authenticated",
-			"access not authorized, please sign-in", http.StatusUnauthorized)
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     errUnauthorized.Error(),
+			Context:     fmt.Sprintf("method=%s path=%s", r.Method, r.URL.Path),
+			Code:        0,
+		}
+		ea.cx.handleErrorJson(w, r, nil, "request to access authenticated resource, but user is not authenticated",
+			retErr, http.StatusUnauthorized)
 		return
 	}
-	ea.handlerFunc.ServeHTTP(w, r)
+	ea.handler.ServeHTTP(w, r)
 }
 
 // Authenticator represents the current handler in the request/response cycle.
@@ -71,7 +72,13 @@ func (cx *Context) NewAuthenticator(handler http.Handler) http.Handler {
 func (au *Authenticator) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	sesSt, errGST := au.cx.getSessionStateFromRequest(r)
 	if errGST != nil {
-		au.handler.ServeHTTP(w, r)
+		if errGST != ErrUserNotInContext && errGST != session.ErrNoSessionID {
+			au.cx.logError(r, errGST, "issue getting session from request", "",
+				http.StatusInternalServerError)
+		}
+		cxWithUserAuthFalse := context.WithValue(r.Context(), authUserAuthenticatedKey, false)
+		rWithUserAuthFalse := r.WithContext(cxWithUserAuthFalse)
+		au.handler.ServeHTTP(w, rWithUserAuthFalse)
 		return
 	}
 
@@ -112,8 +119,10 @@ func GetSessionStateFromContext(r *http.Request) (*SessionState, error) {
 // IsUserAuthenticated will return true if the user is authenticated, and false if the user is not.
 func IsUserAuthenticated(r *http.Request) bool {
 	val := r.Context().Value(authUserAuthenticatedKey)
-	if val == nil {
+	switch val.(type) {
+	case bool:
+		return val.(bool)
+	default:
 		return false
 	}
-	return true
 }
