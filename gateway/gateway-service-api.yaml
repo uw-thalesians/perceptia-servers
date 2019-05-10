@@ -73,11 +73,7 @@ paths:
               schema:
                 type: string
         '500':
-          description: Unexpected error on server
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/UnexpectedError'
   /api/v1/gateway/users/{userUuid}:
     get:
       summary: Gets the basic account information for the given user.
@@ -105,6 +101,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
         '404':
           description: User not found or unsupported major api version used
           content:
@@ -112,11 +110,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '500':
-          description: Unexpected error on server
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/UnexpectedError'
     patch:
       summary: Updates the user's Display Name and or Full Name.
       description: Using the provided requestBody, will update the displayName and fullName of the user if the field is provided. A user may only update their own displayName and fullName.
@@ -148,6 +142,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
         '403':
           description: User tried to update a user other than themself
           content:
@@ -161,11 +157,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '500':
-          description: Unexpected error on server
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/UnexpectedError'
     delete:
       summary: Deletes the user of the current session.
       description: This request will delete the users account with no review or waiting period. This method is very risky and should be used only with additional client side checks.
@@ -192,6 +184,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
         '403':
           description: User tried to delete a user other than themself
           content:
@@ -205,12 +199,113 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '500':
-          description: Unexpected error on server
+          $ref: '#/components/responses/UnexpectedError'
+  /api/v1/gateway/sessions:
+    post:
+      summary: Start an authenticated sesssion for the user.
+      description: Uses the provided credentials to start a new session for the user. This request returns and authentication token which when provided in future requests allows the request to be authorized as that user without having to provide their credentials with each request.
+      operationId: postGatewaySessions
+      tags:
+        - new session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCredentials'
+      responses:
+        '201':
+          description: Session created and added to Authorization header.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          headers:
+            Authorization:
+              $ref: '#/components/headers/Authorization'
+        '400':
+          description: User made a bad request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '409':
+          description: Username provided already in use
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Media type other than application/json provided in body
+          content:
+            text/plain:
+              schema:
+                type: string
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+  /api/v1/gateway/sessions/{sessionIdentifier}}:
+    delete:
+      summary: Deletes the current session.
+      description: This request will delete the current authenticated session. Once deleted the users authorization token will no longer be valid. The user will need to create a new session to access authenticated routes.
+      operationId: deleteGatewaySessions
+      tags:
+        - sessions
+      parameters:
+        - name: sessionIdentifier
+          in: path
+          description: currently, only supported value is "this"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session removed successfully, user signed out.
+          content:
+            text/plain:
+              example: signed out
+        '400':
+          description: User made a bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          description: User not found or unsupported major api version used
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
 components:
+  headers:
+    Authorization:
+      description: The authorization token used to authenticate the user accross requests
+      schema:
+        type: string
+  parameters:
+    apiVersion:
+      name: apiVersion
+      in: query
+      description: notes the minimum major.minor.path version of the given API the request expects
+      required: false
+      schema:
+        type: string
+      example: "0.2.0"
+  responses:
+    Unauthenticated:
+      description: authentication token missing or not valid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnexpectedError:
+      description: Unexpected error occured on server
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   schemas:
     Health:
       type: object
@@ -311,6 +406,24 @@ components:
           description: name user should be called, will only update if provided
           example: Joe
           maxLength: 255
+    UserCredentials:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: name to represent the user by in the system
+          example: joeuser
+          maxLength: 255
+          minLength: 3
+        password:
+          type: string
+          description: the password the user will provide to authenticate with the system
+          maxLength: 500
+          minLength: 8
+          example: really secure password!
     Error:
       type: object
       properties:

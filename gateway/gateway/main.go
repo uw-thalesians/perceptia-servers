@@ -46,7 +46,7 @@ const (
 	colSessions = "sessions"
 )
 
-const GatewayServiceApiVersion = "0.2.0"
+const GatewayServiceApiVersion = "0.3.0"
 
 func main() {
 	// Setup Logger
@@ -202,11 +202,14 @@ func main() {
 
 	gmuxApiVGatewayUsersSpecific.PathPrefix("").HandlerFunc(hcx.UsersSpecificHandler)
 
-	/*	// Sessions Subroutes
-		gmuxApiVGatewaySessions := gmuxApiVGateway.PathPrefix("/"+colSessions+"/").Subrouter()
+	// Sessions Subroutes
+	gmuxApiVGatewaySessions := gmuxApiVGateway.PathPrefix("/" + colSessions + "/").Subrouter()
 
-		// Sessions Specific routes
-		gmuxApiVGatewaySessionsSpecific := gmuxApiVGatewaySessions.PathPrefix()*/
+	// Sessions Specific routes
+	gmuxApiVGatewaySessionsSpecific := gmuxApiVGatewaySessions.PathPrefix(
+		"/{" + handler.ReqVarSession + ":" + handler.SpecificSessionHandlerDeleteUserAlias + "}").Subrouter()
+
+	gmuxApiVGatewaySessionsSpecific.PathPrefix("").HandlerFunc(hcx.SessionsSpecificHandler)
 
 	// Add Middleware to "/api"
 	gmuxApi.Use(handler.NewCors)

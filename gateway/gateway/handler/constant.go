@@ -34,8 +34,7 @@ const (
 )
 
 // URL path values.
-const specificUserHandlerUserAlias = "me"
-const specificSessionHandlerDeleteUserAlias = "mine"
+const SpecificSessionHandlerDeleteUserAlias = "this"
 
 // Handler plain text messages.
 const messageSignedOut = "signed out"
@@ -62,4 +61,5 @@ var (
 const (
 	ReqVarMajorVersion = "majorVersion"
 	ReqVarUserUuid     = "userUuid"
+	ReqVarSession      = "sessionVar"
 )

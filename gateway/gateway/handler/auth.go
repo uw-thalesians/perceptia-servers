@@ -52,7 +52,7 @@ func (cx *Context) UsersDefaultHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// UsersDefaultHandler handles the default routes for the users collection.
+// UsersDefaultHandler handles the authenticated routes for the users collection.
 //
 // If the major version in the URL is not supported, request will return an error
 func (cx *Context) UsersSpecificHandler(w http.ResponseWriter, r *http.Request) {
@@ -96,8 +96,35 @@ func (cx *Context) SessionsDefaultHandler(w http.ResponseWriter, r *http.Request
 	}
 	switch r.Method {
 	case http.MethodPost:
-		cx.usersHandlerV1Post(w, r)
+		cx.sessionsHandlerV1Post(w, r)
 		return
+	default:
+		cx.handleMethodNotAllowed(w, r)
+		return
+	}
+}
+
+// SessionsSpecificHandler handles the authenticated routes for the sessions collection.
+//
+// If the major version in the URL is not supported, request will return an error
+func (cx *Context) SessionsSpecificHandler(w http.ResponseWriter, r *http.Request) {
+	reqVars := mux.Vars(r)
+	if ver, ok := reqVars[ReqVarMajorVersion]; ok != false && ver != "v1" {
+		cx.handleVersionNotSupported(w, r, "v1", ver)
+		return
+	}
+
+	//Get the authenticated user.
+	userCx, ok := cx.getUserFromContext(w, r)
+	if !ok {
+		// Ends method execution if user was not found in the request context.
+		return
+	}
+
+	switch r.Method {
+	case http.MethodDelete:
+		cx.sessionsSpecificHandlerV1Delete(w, r, userCx)
+
 	default:
 		cx.handleMethodNotAllowed(w, r)
 		return
@@ -497,7 +524,7 @@ func (cx *Context) sessionsHandlerV1Post(w http.ResponseWriter, r *http.Request)
 			Code:        0,
 		}
 		cx.handleErrorJson(w, r, errVC,
-			"provided credentials are not valid", retErr, http.StatusUnauthorized)
+			"provided credentials are not valid", retErr, http.StatusBadRequest)
 		return
 	}
 	validUserHash, errGEH := cx.userStore.GetEncodedHashByUsername(credentials.Username)
@@ -566,4 +593,47 @@ func (cx *Context) sessionsHandlerV1Post(w http.ResponseWriter, r *http.Request)
 	}
 	// Send response
 	_, _ = cx.respondEncode(w, userPro, http.StatusCreated)
+}
+
+// sessionsSpecificHandlerV1Delete is a helper method for SpecificSessionHandler to handle Delete requests to the
+// sessions collection.
+func (cx *Context) sessionsSpecificHandlerV1Delete(w http.ResponseWriter, r *http.Request, userCx *user.User) {
+	reqVars := mux.Vars(r)
+	_, ok := reqVars[ReqVarSession]
+	if !ok {
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     fmt.Sprintf("session identifier not extracted from path"),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, nil, "session identifier expected in path, but not found in mux vars", retErr, http.StatusInternalServerError)
+		return
+	}
+
+	sessID, errGSID := session.GetSessionID(r, cx.sessionSigningKey)
+	if errGSID != nil {
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     errUnexpected.Error(),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, errGSID, "unable to extract sessionID from request", retErr, http.StatusInternalServerError)
+		return
+	}
+	errDSID := cx.sessionStore.Delete(sessID)
+	if errDSID != nil {
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     errUnexpected.Error(),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, errDSID, "unable to delete user session", retErr, http.StatusInternalServerError)
+		return
+	}
+
+	// Send response
+	_, _ = cx.respondText(w, messageSignedOut, http.StatusOK)
 }
