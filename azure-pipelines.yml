@@ -182,3 +182,28 @@ jobs:
       versionTag: $(ImageTagVersion)
       versionBuildIdTag: $(ImageTagVersionBuildId)
       tagProduction: or(eq(variables[ 'productionTags'], 'true'), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+- job: 'BuildAqsolrImage'
+  variables:
+  - name: ImageTagVersion
+    value: '$(AqsolrImageQualified):$(AqsolrVersion)'
+  - name: ImageTagVersionBuildId
+    value: '$(ImageTagVersion)-build-$(Build.BuildId)'
+  - name: ImageTagVersionBuildIdBranch
+    value: '$(ImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
+  - name: ImageTagVersionLatestBranch
+    value: '$(ImageTagVersion)-build-latest-branch-$(Build.SourceBranchName)'
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+  - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
+    parameters:
+      dockerFile: '$(system.defaultWorkingDirectory)/content-analysis/Dockerfile'
+      qualifiedImageName: $(AqsolrImageQualified)
+  - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
+    parameters:
+      qualifiedImageName: $(AqsolrImageQualified)
+      versionLatestBranchTag: $(ImageTagVersionLatestBranch)
+      versionBuildIdBranchTag: $(ImageTagVersionBuildIdBranch)
+      versionTag: $(ImageTagVersion)
+      versionBuildIdTag: $(ImageTagVersionBuildId)
+      tagProduction: or(eq(variables[ 'productionTags'], 'true'), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
