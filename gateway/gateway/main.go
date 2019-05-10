@@ -8,7 +8,6 @@ package main
 //noinspection SpellCheckingInspection
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/uw-thalesians/perceptia-servers/gateway/gateway/session"
 
@@ -40,6 +39,14 @@ const sqlDriverName = "sqlserver"
 const (
 	serviceAqRest = "anyquiz"
 )
+
+// gateway provided collections
+const (
+	colUsers    = "users"
+	colSessions = "sessions"
+)
+
+const GatewayServiceApiVersion = "0.3.0"
 
 func main() {
 	// Setup Logger
@@ -158,7 +165,7 @@ func main() {
 	sessionStore := session.NewRedisStore(rc, SessionDuration)
 
 	// Create Handler Context
-	hcx := handler.NewContext(sessionStore, userStore, sessionSigningKey, logger)
+	hcx := handler.NewContext(sessionStore, userStore, sessionSigningKey, GatewayServiceApiVersion, logger)
 
 	// Create new mux router
 	gmux := mux.NewRouter()
@@ -177,38 +184,43 @@ func main() {
 	gmuxApiVGateway := gmuxApiV.PathPrefix("/gateway/").Subrouter()
 
 	// Health check route
-	gmuxApiVGateway.HandleFunc("/health", func(w http.ResponseWriter, request *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		type healthObj struct {
-			Name    string `json:"name"`
-			Version string `json:"version"`
-			Status  string `json:"status"`
-		}
+	gmuxApiVGateway.HandleFunc("/health", hcx.HealthHandler)
 
-		healthStatus := healthObj{
-			Name:    "Perceptia API Health Report",
-			Version: "0.2.0",
-			Status:  "ready",
-		}
-		w.WriteHeader(http.StatusOK)
-		errWJ := json.NewEncoder(w).Encode(healthStatus)
-		if errWJ != nil {
-			log.Printf("%s", "Error writing response")
-		}
-		return
-	})
+	// Users route
+	gmuxApiVGateway.HandleFunc("/"+colUsers, hcx.UsersDefaultHandler)
 
-	// Users routes
-	gmuxApiVGatewayUsers := gmuxApiVGateway.PathPrefix("/users").Subrouter()
+	// Sessions route
 
-	gmuxApiVGatewayUsers.PathPrefix("").HandlerFunc(hcx.UsersDefaultHandler)
+	gmuxApiVGateway.HandleFunc("/"+colSessions, hcx.SessionsDefaultHandler)
+
+	// Users Subroutes
+	gmuxApiVGatewayUsers := gmuxApiVGateway.PathPrefix("/" + colUsers + "/").Subrouter()
+
+	// Users Specific routes
+	gmuxApiVGatewayUsersSpecific := gmuxApiVGatewayUsers.PathPrefix("/{" + handler.ReqVarUserUuid +
+		":[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89aAbB][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}}").Subrouter()
+
+	gmuxApiVGatewayUsersSpecific.PathPrefix("").HandlerFunc(hcx.UsersSpecificHandler)
+
+	// Sessions Subroutes
+	gmuxApiVGatewaySessions := gmuxApiVGateway.PathPrefix("/" + colSessions + "/").Subrouter()
+
+	// Sessions Specific routes
+	gmuxApiVGatewaySessionsSpecific := gmuxApiVGatewaySessions.PathPrefix(
+		"/{" + handler.ReqVarSession + ":" + handler.SpecificSessionHandlerDeleteUserAlias + "}").Subrouter()
+
+	gmuxApiVGatewaySessionsSpecific.PathPrefix("").HandlerFunc(hcx.SessionsSpecificHandler)
 
 	// Add Middleware to "/api"
 	gmuxApi.Use(handler.NewCors)
+	gmuxApi.Use(hcx.NewAuthenticator)
 
 	// Add Middleware to "/api/{majorVersion}"
 
 	// Add Middleware to "/api/{majorVersion}/gateway"
+
+	// Add Middleware to "/api/{majorVersion}/gateway/users/{uuid}"
+	gmuxApiVGatewayUsersSpecific.Use(hcx.NewEnsureAuth)
 
 	// Add Middleware to "/api/{majorVersion}/anyquiz"
 

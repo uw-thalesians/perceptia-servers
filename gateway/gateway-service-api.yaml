@@ -38,10 +38,10 @@ paths:
   /api/v1/gateway/users:
     post:
       summary: Creates an account for the provided user and logs them in.
-      description: Creates an account using the provided account information and returns the created user. Additionally, will create a new session, thus loggin in the user, saving the session token as an Authorization header, with the Bearer authorization scheme.
+      description: Creates an account using the provided account information and returns the created user. Additionally, will create a new session, thus login in the user, saving the session token as an Authorization header, with the Bearer authorization scheme.
       operationId: postGatewayUsers
       tags:
-        - signup
+        - new user
       requestBody:
         content:
           application/json:
@@ -67,18 +67,248 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '415':
-          description: Media type other than application/json provided in body
-          content:
-            text/plain:
-              schema:
-                type: string
+          $ref: '#/components/responses/ContentTypeNotJson'
         '500':
-          description: Unexpected error on server
+          $ref: '#/components/responses/UnexpectedError'
+  /api/v1/gateway/users/{userUuid}:
+    get:
+      summary: Gets the basic account information for the given user.
+      description: This will return the basic account information for a user of the system. Requires the client to be authenticated. Currently any user can get the basic account information for any other user, this may change in the future. (Authorization header required, see '#/components/headers/Authorization')
+      operationId: getGatewayUsers
+      tags:
+        - users
+      parameters:
+        - $ref: '#/components/parameters/UserUuid'
+      x-headers:
+        - $ref: '#/components/headers/Authorization'
+      responses:
+        '200':
+          description: Basic user object containing the users UUID in the system.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: User made a bad request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          description: User not found or unsupported major api version used
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+    patch:
+      summary: Updates the user's Display Name and or Full Name.
+      description: Using the provided requestBody, will update the Display Name and or Full Name of the user if the field is provided. A user may only update their own Display Name and or Full Name. (Authorization header required, see '#/components/headers/Authorization')
+      operationId: patchGatewayUsers
+      tags:
+        - users
+      parameters:
+        - $ref: '#/components/parameters/UserUuid'
+      x-headers:
+        - $ref: '#/components/headers/Authorization'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdates'
+      responses:
+        '200':
+          description: Basic user object containing the users UUID in the system. Updates applied successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: User made a bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          description: User tried to update a user other than themself
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found or unsupported major api version used
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          $ref: '#/components/responses/ContentTypeNotJson'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+    delete:
+      summary: Deletes the user of the current session.
+      description: This request will delete the users account with no review or waiting period. This method is very risky and should be used only with additional client side checks. (Authorization header required, see '#/components/headers/Authorization')
+      operationId: deleteGatewayUsers
+      tags:
+        - users
+      parameters:
+        - $ref: '#/components/parameters/UserUuid'
+      x-headers:
+        - $ref: '#/components/headers/Authorization'
+      responses:
+        '200':
+          description: User deleted successfully and signed out.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: User made a bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          description: User tried to delete a user other than themself
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found or unsupported major api version used
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+  /api/v1/gateway/sessions:
+    post:
+      summary: Start an authenticated sesssion for the user.
+      description: Uses the provided credentials to start a new session for the user. This request returns and authentication token which when provided in future requests allows the request to be authorized as that user without having to provide their credentials with each request.
+      operationId: postGatewaySessions
+      tags:
+        - new session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCredentials'
+      responses:
+        '201':
+          description: Session created and added to Authorization header.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          headers:
+            Authorization:
+              $ref: '#/components/headers/Authorization'
+        '400':
+          description: User made a bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Username provided already in use
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          $ref: '#/components/responses/ContentTypeNotJson'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+  /api/v1/gateway/sessions/{sessionIdentifier}}:
+    delete:
+      summary: Deletes the current session.
+      description: This request will delete the current authenticated session. Once deleted the users authorization token will no longer be valid. The user will need to create a new session to access authenticated routes. (Authorization header required, see '#/components/headers/Authorization')
+      operationId: deleteGatewaySessions
+      tags:
+        - sessions
+      x-headers:
+        - $ref: '#/components/headers/Authorization'
+      parameters:
+        - $ref: '#/components/parameters/SessionIdentifier'
+      responses:
+        '200':
+          description: Session removed successfully, user signed out.
+          content:
+            text/plain:
+              example: signed out
+        '400':
+          description: User made a bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          description: Major api version unsupported
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
 components:
+  headers:
+    Authorization:
+      description: The authorization token used to authenticate the user accross requests
+      schema:
+        type: string
+  parameters:
+    ApiVersion:
+      name: apiVersion
+      in: query
+      description: notes the minimum major.minor.path version of the given API the request expects
+      required: false
+      schema:
+        type: string
+      example: "0.2.0"
+    UserUuid:
+      name: userUuid
+      in: path
+      description: uuid for user being requested
+      required: true
+      schema:
+        type: string
+      example: a3865f94-0c83-4e29-b6cc-1d295d062f50
+    SessionIdentifier:
+      name: sessionIdentifier
+      in: path
+      description: currently, only supported value is "this"
+      required: true
+      schema:
+        type: string
+  responses:
+    Unauthenticated:
+      description: authentication token missing or not valid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnexpectedError:
+      description: Unexpected error occured on server
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ContentTypeNotJson:
+      description: Content-Type header did not contain application/json
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   schemas:
     Health:
       type: object
@@ -166,6 +396,37 @@ components:
           description: will be used to refer to the user in most locations on site where a name is needed for the user
           example: Joe
           maxLength: 255
+    UserUpdates:
+      type: object
+      properties:
+        fullName:
+          type: string
+          description: full name of the user, will only update if provided
+          example: Joe John User
+          maxLength: 255
+        displayName:
+          type: string
+          description: name user should be called, will only update if provided
+          example: Joe
+          maxLength: 255
+    UserCredentials:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: name to represent the user by in the system
+          example: joeuser
+          maxLength: 255
+          minLength: 3
+        password:
+          type: string
+          description: the password the user will provide to authenticate with the system
+          maxLength: 500
+          minLength: 8
+          example: really secure password!
     Error:
       type: object
       properties:
