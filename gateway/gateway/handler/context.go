@@ -48,10 +48,15 @@ type Error struct {
 // Will return true if valid JSON header is present in the request.
 func (cx *Context) ensureJSONHeader(w http.ResponseWriter, r *http.Request) bool {
 	if !strings.HasPrefix(r.Header.Get(HeaderContentType), ContentTypeJSON) {
-		cx.handleError(w, r, nil, "",
-			fmt.Sprintf("error: %s (%s) not supported, request body must have %s of (%s)",
-				HeaderContentType, r.Header.Get(HeaderContentType), HeaderContentType, ContentTypeJSON),
-			http.StatusUnsupportedMediaType)
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     errContentTypeNotJson.Error(),
+			Context:     r.Method + " path:" + r.URL.Path,
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, nil, "request Content-Type header was not application/json",
+			retErr, http.StatusUnsupportedMediaType)
 		return false
 	}
 	return true

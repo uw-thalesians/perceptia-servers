@@ -48,13 +48,13 @@ var (
 
 	errMajorVersionNotSupported = errors.New("major version not supported")
 
-	//errInvalidUserReference       = errors.New("users collection expects 'me' or a user ID number")
 	errUserNotFound = errors.New("user not found")
 	//errInvalidEmail               = errors.New("invalid email")
 	errAccountUserNameUnavailable = errors.New("username unavailable, please select a different user name")
 
 	errActionNotAuthorized = errors.New("action not authorized for the requested resource")
 	errUnauthorized        = errors.New("user not authorized, please start a new session")
+	errContentTypeNotJson  = errors.New("expected content type was json but application/json content type not set")
 )
 
 // request variables
