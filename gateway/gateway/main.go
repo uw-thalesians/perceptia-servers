@@ -40,6 +40,12 @@ const (
 	serviceAqRest = "anyquiz"
 )
 
+// gateway provided collections
+const (
+	colUsers    = "users"
+	colSessions = "sessions"
+)
+
 const GatewayServiceApiVersion = "0.2.0"
 
 func main() {
@@ -181,17 +187,26 @@ func main() {
 	gmuxApiVGateway.HandleFunc("/health", hcx.HealthHandler)
 
 	// Users route
-	gmuxApiVGateway.HandleFunc("/users", hcx.UsersDefaultHandler)
+	gmuxApiVGateway.HandleFunc("/"+colUsers, hcx.UsersDefaultHandler)
+
+	// Sessions route
+
+	gmuxApiVGateway.HandleFunc("/"+colSessions, hcx.SessionsDefaultHandler)
 
 	// Users Subroutes
-	gmuxApiVGatewayUsers := gmuxApiVGateway.PathPrefix("/users/").Subrouter()
+	gmuxApiVGatewayUsers := gmuxApiVGateway.PathPrefix("/" + colUsers + "/").Subrouter()
 
 	// Users Specific routes
 	gmuxApiVGatewayUsersSpecific := gmuxApiVGatewayUsers.PathPrefix("/{" + handler.ReqVarUserUuid +
 		":[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89aAbB][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}}").Subrouter()
-	//gmuxApiVGatewayUsersSpecific := gmuxApiVGatewayUsers.PathPrefix("/{" + handler.ReqVarUserUuid + "}/").Subrouter()
 
 	gmuxApiVGatewayUsersSpecific.PathPrefix("").HandlerFunc(hcx.UsersSpecificHandler)
+
+	/*	// Sessions Subroutes
+		gmuxApiVGatewaySessions := gmuxApiVGateway.PathPrefix("/"+colSessions+"/").Subrouter()
+
+		// Sessions Specific routes
+		gmuxApiVGatewaySessionsSpecific := gmuxApiVGatewaySessions.PathPrefix()*/
 
 	// Add Middleware to "/api"
 	gmuxApi.Use(handler.NewCors)
