@@ -270,13 +270,13 @@ class Connection
 
                 curl_setopt( $curl, CURLOPT_URL, $remotePath);
 
-                $header = curl_exec( $curl );
+                $result = curl_exec( $curl );
 
-                $filesize = 0;
+                //$header = curl_getinfo($curl);
                 
-                if ( array_key_exists("Content-Length", $header) ) {
-                    $filesize = $header["Content-Length"];
-                }
+                $filesize = curl_getinfo($curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+                
+                //print_r($filesize);
 
             } while(($filesize < 10000) && $tries < 10);
 

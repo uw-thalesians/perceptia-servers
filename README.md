@@ -32,6 +32,10 @@ The Perceptia application's backend is developed using a microservices architect
 
 [./api/](./api/) contains the API specifications for the various Perceptia services
 
+[./REST/](./REST/) contains the source files for the aqrest service for the application
+
+[./content-analysis/](./content-analysis/) contains the source files for the aqsolr service for the application
+
 [./azure-pipelines.yml](./azure-pipelines.yml) which defines the continuous integration pipeline for the application, including automated testing and artifact building
 
 [./.gitignore](./gitignore) configures git to ignore certain files and not check them into the repository
