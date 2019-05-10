@@ -11,7 +11,7 @@ RUN sed -e '/<Directory \/var\/www\/>/,/<\/Directory>/s/AllowOverride None/Allow
 RUN cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
 
 # install python 2.7 and pip, includes a few utilities for debugging and reading configs
-RUN apt update && apt install -y default-mysql-client less python2.7 python-pip
+RUN apt update && apt install -y python2.7 python-pip
 
 # install mysql php database object extension to php, handles enabling the extension in php.ini
 RUN docker-php-ext-install pdo_mysql
@@ -37,7 +37,7 @@ RUN python -m nltk.downloader averaged_perceptron_tagger -d /usr/share/nltk_data
 RUN python -m nltk.downloader punkt -d /usr/share/nltk_data
 RUN python -m nltk.downloader wordnet -d /usr/share/nltk_data
 
-RUN python -m spacy download en_vectors_web_lg
+# RUN python -m spacy download en_vectors_web_lg
 
 RUN python -m spacy download en_core_web_md
 
