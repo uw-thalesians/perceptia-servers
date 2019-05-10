@@ -54,7 +54,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-    - template: 'infrastructure/azp/template/step/goSetupDirectory.yml'
+    - template: './infrastructure/azp/template/step/goSetupDirectory.yml'
       parameters:
         GOBIN: $(GOBIN)
         GOROOT: $(GOROOT)
@@ -80,7 +80,7 @@ jobs:
   dependsOn: 'TestGatewayUnitTests'
   condition: succeeded()
   steps:
-  - template: 'infrastructure/azp/template/step/dockerStandardBuild.yml'
+  - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/gateway/Dockerfile'
       qualifiedImageName: $(GatewayImageQualified)
@@ -105,7 +105,7 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
-  - template: 'infrastructure/azp/template/step/dockerStandardBuild.yml'
+  - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/database/mssql/Dockerfile'
       qualifiedImageName: $(MssqlImageQualified)
