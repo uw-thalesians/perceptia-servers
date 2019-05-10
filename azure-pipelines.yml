@@ -145,6 +145,9 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
+  - bash: composer install --no-interaction
+    workingDirectory: './REST/aq'
+    displayName: 'Get dependencies'
   - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/REST/Dockerfile'

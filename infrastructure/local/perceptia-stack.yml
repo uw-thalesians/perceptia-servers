@@ -1,0 +1,82 @@
+version: '3.7'
+services:
+  gateway:
+    image: uwthalesians/gateway:0.3.0-build-latest-branch-develop
+    deploy:
+      replicas: 1
+    ports:
+     - "45443:443"
+    environment:
+      AQREST_HOSTNAME: "aqrest"
+      AQREST_PORT: "80"
+      GATEWAY_SESSION_KEY: "Jw5sLdjkf6woIBE/d8tDetc+VJsql1O9K8Asdm/W9l/FiW+IfzKrsyKYON9s+MF8"
+      GATEWAY_TLSCERTPATH: "/encrypt/fullchain.pem"
+      GATEWAY_TLSKEYPATH: "/encrypt/privkey.pem"
+      MSSQL_DATABASE: "Perceptia"
+      MSSQL_HOST: "mssql"
+      MSSQL_PASSWORD: "SoSecure!"
+      MSSQL_PORT: "1401"
+      MSSQL_SCHEME: "sqlserver"
+      MSSQL_USERNAME: "sa"
+      REDIS_ADDRESS: "redis:6379"
+    networks:
+      - perceptia-stack-net
+    volumes:
+      - type: bind 
+        source: ./encrypt
+        target: /encrypt
+  redis:
+    image: "redis:5.0.4-alpine"
+    deploy:
+      replicas: 1
+    networks:
+      - perceptia-stack-net
+  mssql:
+    image: uwthalesians/mssql:0.7.1-build-198-branch-develop
+    deploy:
+      replicas: 1
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "SoSecure!"
+      SKIP_SETUP_IF_EXISTS: "Y"
+    volumes:
+      - type: volume
+        source: mssql_pc_vol
+        target: /var/opt/mssql
+    networks:
+      - perceptia-stack-net
+  aqrest:
+    image: uwthalesians/aqrest:1.1.0-build-201-branch-merge
+    deploy:
+      replicas: 1
+    depends_on:
+      - aqmysql
+    environment:
+      user_pass: "8aWZjNadxspXQEHu"
+    networks:
+      - perceptia-stack-net
+  aqmysql:
+    image: uwthalesians/aqmysql:1.0.0-build-201-branch-merge
+    deploy:
+      replicas: 1
+    environment:
+      MYSQL_ROOT_PASSWORD: "mrpw"
+      user_pass: "8aWZjNadxspXQEHu"
+    volumes:
+      - type: volume
+        source: aqmysql_pc_vol
+        target: /var/lib/mysql
+    networks:
+      - perceptia-stack-net
+  aqsolr:
+    image: uwthalesians/aqsolr:1.0.0-build-201-branch-merge
+    deploy:
+      replicas: 1
+    command: solr-precreate stream /opt/solr/server/solr/configsets/stream
+    networks:
+      - perceptia-stack-net
+networks:
+  perceptia-stack-net:
+volumes:
+  mssql_pc_vol:
+  aqmysql_pc_vol:
