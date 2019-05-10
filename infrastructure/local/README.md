@@ -24,7 +24,13 @@ The following list describes the purpose of the directories and files in this su
 
 ## Run Local Start Script
 
-The local start script [./localStartExample.ps1](./localStartExample.ps1) wraps the docker stack commands to start and stop the Perceptia backend. See the [docker stack config section below](#docker-stack-config) for how to connect to the backend.
+The local start script [./localStartExample.ps1](./localStartExample.ps1) wraps the docker stack commands to start and stop the Perceptia backend. See the [docker stack config section below](#docker-stack-config) for how to connect to the backend one its running.
+
+Note, you will need to create the Tls certs using the script in the encrypt directory before running the local start script for the first time.
+
+1. Read the [README in ./encrypt/](./encrypt/README.md) and follow the instructions there for running the createTlsCert.sh script to generate the Tls certificate and private key. These files will be used by the backend to accept requests using Tls (secure) connection.
+
+2. Run the localStatExample.ps1 script, see below:
 
 To start the backend run the script with no options:
 
