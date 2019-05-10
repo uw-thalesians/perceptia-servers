@@ -22,12 +22,12 @@ variables:
     value: '$(DockerHubOrg)/$(AqrestImageName)'
   # Aqmysql Variables
   - name: AqmysqlVersion
-    value: '1.1.0'
+    value: '1.0.0'
   - name: AqmysqlImageQualified
     value: '$(DockerHubOrg)/$(AqmysqlImageName)'
   # Aqsolr Variables
-  - name: AqmysqlVersion
-    value: '1.1.0'
+  - name: AqsolrVersion
+    value: '1.0.0'
   - name: AqsolrImageQualified
     value: '$(DockerHubOrg)/$(AqsolrImageName)'
   
@@ -152,6 +152,31 @@ jobs:
   - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
     parameters:
       qualifiedImageName: $(AqrestImageQualified)
+      versionLatestBranchTag: $(ImageTagVersionLatestBranch)
+      versionBuildIdBranchTag: $(ImageTagVersionBuildIdBranch)
+      versionTag: $(ImageTagVersion)
+      versionBuildIdTag: $(ImageTagVersionBuildId)
+      tagProduction: or(eq(variables[ 'productionTags'], 'true'), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+- job: 'BuildAqmysqlImage'
+  variables:
+  - name: ImageTagVersion
+    value: '$(AqmysqlImageQualified):$(AqmysqlVersion)'
+  - name: ImageTagVersionBuildId
+    value: '$(ImageTagVersion)-build-$(Build.BuildId)'
+  - name: ImageTagVersionBuildIdBranch
+    value: '$(ImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
+  - name: ImageTagVersionLatestBranch
+    value: '$(ImageTagVersion)-build-latest-branch-$(Build.SourceBranchName)'
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+  - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
+    parameters:
+      dockerFile: '$(system.defaultWorkingDirectory)/database/mysql/Dockerfile'
+      qualifiedImageName: $(AqmysqlImageQualified)
+  - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
+    parameters:
+      qualifiedImageName: $(AqmysqlImageQualified)
       versionLatestBranchTag: $(ImageTagVersionLatestBranch)
       versionBuildIdBranchTag: $(ImageTagVersionBuildIdBranch)
       versionTag: $(ImageTagVersion)
