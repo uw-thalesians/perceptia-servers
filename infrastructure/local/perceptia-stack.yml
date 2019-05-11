@@ -15,7 +15,7 @@ services:
       MSSQL_DATABASE: "Perceptia"
       MSSQL_HOST: "mssql"
       MSSQL_PASSWORD: "SoSecure!"
-      MSSQL_PORT: "1401"
+      MSSQL_PORT: "1433"
       MSSQL_SCHEME: "sqlserver"
       MSSQL_USERNAME: "sa"
       REDIS_ADDRESS: "redis:6379"
@@ -46,7 +46,7 @@ services:
     networks:
       - perceptia-stack-net
   aqrest:
-    image: uwthalesians/aqrest:1.1.0-build-212-branch-develop
+    image: uwthalesians/aqrest:1.1.0-build-214-branch-288-fix-azp-aqrest
     deploy:
       replicas: 1
     environment:
