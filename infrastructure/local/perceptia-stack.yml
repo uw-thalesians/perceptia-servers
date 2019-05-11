@@ -1,11 +1,11 @@
 version: '3.7'
 services:
   gateway:
-    image: uwthalesians/gateway:0.3.0-build-latest-branch-develop
+    image: uwthalesians/gateway:0.3.0-build-212-branch-develop
     deploy:
       replicas: 1
     ports:
-     - "45443:443"
+     - "4443:443"
     environment:
       AQREST_HOSTNAME: "aqrest"
       AQREST_PORT: "80"
@@ -32,7 +32,7 @@ services:
     networks:
       - perceptia-stack-net
   mssql:
-    image: uwthalesians/mssql:0.7.1-build-198-branch-develop
+    image: uwthalesians/mssql:0.7.1-build-212-branch-develop
     deploy:
       replicas: 1
     environment:
@@ -46,17 +46,15 @@ services:
     networks:
       - perceptia-stack-net
   aqrest:
-    image: uwthalesians/aqrest:1.1.0-build-203-branch-peacock-local-start
+    image: uwthalesians/aqrest:1.1.0-build-212-branch-develop
     deploy:
       replicas: 1
-    depends_on:
-      - aqmysql
     environment:
       user_pass: "8aWZjNadxspXQEHu"
     networks:
       - perceptia-stack-net
   aqmysql:
-    image: uwthalesians/aqmysql:1.0.0-build-201-branch-merge
+    image: uwthalesians/aqmysql:1.0.0-build-212-branch-develop
     deploy:
       replicas: 1
     environment:
@@ -69,7 +67,7 @@ services:
     networks:
       - perceptia-stack-net
   aqsolr:
-    image: uwthalesians/aqsolr:1.0.0-build-201-branch-merge
+    image: uwthalesians/aqsolr:1.0.0-build-212-branch-develop
     deploy:
       replicas: 1
     command: solr-precreate stream /opt/solr/server/solr/configsets/stream
