@@ -241,6 +241,11 @@ class Connection
             $curl = curl_init();
             //var_dump($search);
 
+            #response header
+            curl_setopt( $curl, CURLOPT_HEADER, true);
+            curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt( $curl, CURLOPT_NOBODY, true);
+
             $tries = 0;
 
             do {
@@ -262,7 +267,18 @@ class Connection
                     $remotePath = $imageURL;
                 }
                 $tries++;
-            } while((filesize($remotePath) < 10000) && $tries < 10);
+
+                curl_setopt( $curl, CURLOPT_URL, $remotePath);
+
+                $result = curl_exec( $curl );
+
+                //$header = curl_getinfo($curl);
+                
+                $filesize = curl_getinfo($curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+                
+                //print_r($filesize);
+
+            } while(($filesize < 10000) && $tries < 10);
 
             curl_close($curl);
         }else{
