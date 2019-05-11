@@ -20,7 +20,7 @@ if (!$CleanUp) {
         Write-Host "To test if the gateway is able to process requests, make a GET request to:"
         Write-Host "/api/v1/gateway/health"
         Write-Host "Example request using curl"
-        Write-Host 'curl -X GET "https://localhost:4443/api/v1/gateway/health"'
+        Write-Host 'curl --insecure -X GET "https://localhost:4443/api/v1/gateway/health"'
 
 } else {
         Write-Host "Cleaning up the docker stack: $PERCEPTIA_STACK_NAME"

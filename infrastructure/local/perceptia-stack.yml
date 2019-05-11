@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   gateway:
-    image: uwthalesians/gateway:0.3.0-build-212-branch-develop
+    image: uwthalesians/gateway:0.3.0-build-223-branch-develop
     deploy:
       replicas: 1
     ports:
@@ -32,7 +32,7 @@ services:
     networks:
       - perceptia-stack-net
   mssql:
-    image: uwthalesians/mssql:0.7.1-build-212-branch-develop
+    image: uwthalesians/mssql:0.7.1-build-223-branch-develop
     deploy:
       replicas: 1
     environment:
@@ -46,7 +46,7 @@ services:
     networks:
       - perceptia-stack-net
   aqrest:
-    image: uwthalesians/aqrest:1.1.0-build-214-branch-288-fix-azp-aqrest
+    image: uwthalesians/aqrest:1.1.0-build-223-branch-develop
     deploy:
       replicas: 1
     environment:
@@ -54,7 +54,7 @@ services:
     networks:
       - perceptia-stack-net
   aqmysql:
-    image: uwthalesians/aqmysql:1.0.0-build-212-branch-develop
+    image: uwthalesians/aqmysql:1.0.0-build-223-branch-develop
     deploy:
       replicas: 1
     environment:
@@ -67,7 +67,7 @@ services:
     networks:
       - perceptia-stack-net
   aqsolr:
-    image: uwthalesians/aqsolr:1.0.0-build-212-branch-develop
+    image: uwthalesians/aqsolr:1.0.0-build-223-branch-develop
     deploy:
       replicas: 1
     command: solr-precreate stream /opt/solr/server/solr/configsets/stream
