@@ -30,7 +30,9 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
 1. Read the [README in ./encrypt/](./encrypt/README.md) and follow the instructions there for running the createTlsCert.sh script to generate the Tls certificate and private key. These files will be used by the backend to accept requests using Tls (secure) connection.
 
-2. Run the localStatExample.ps1 script, see below:
+2. Run `docker swarm init` if you haven't already started or attached a swarm master
+
+3. Run the localStatExample.ps1 script, see below:
 
 To start the backend run the script with no options:
 
