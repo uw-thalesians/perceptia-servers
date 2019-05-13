@@ -46,7 +46,7 @@ services:
     networks:
       - perceptia-stack-net
   aqrest:
-    image: uwthalesians/aqrest:1.1.0-build-223-branch-develop
+    image: uwthalesians/aqrest:1.1.0-build-224-branch-py-perms
     deploy:
       replicas: 1
     environment:
