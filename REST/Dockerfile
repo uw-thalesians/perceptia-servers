@@ -51,6 +51,8 @@ RUN chmod +x /usr/local/bin/parse-template.sh
 
 COPY aq/ /var/www/html/
 
+RUN chmod +rx /var/www/html/py/*.py
+
 EXPOSE 80/tcp
 EXPOSE 3306/tcp
 
