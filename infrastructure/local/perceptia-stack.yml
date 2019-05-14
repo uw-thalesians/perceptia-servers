@@ -32,8 +32,6 @@ services:
     image: ${REDIS_IMAGE_AND_TAG}
     deploy:
       replicas: 1
-    expose:
-      - "6379"
     ports: 
       - target: 6379
         published: ${REDIS_PORT_PUBLISH}
@@ -44,8 +42,6 @@ services:
     image: ${MSSQL_IMAGE_AND_TAG}
     deploy:
       replicas: 1
-    expose:
-      - "1433"
     ports:
       - target: 1433
         published: ${MSSQL_PORT_PUBLISH}
@@ -64,8 +60,6 @@ services:
     image: ${AQREST_IMAGE_AND_TAG}
     deploy:
       replicas: 1
-    expose:
-      - "80"
     ports:
       - target: 80
         published: ${AQREST_PORT_PUBLISH}
@@ -78,8 +72,6 @@ services:
     image: ${AQMYSQL_IMAGE_AND_TAG}
     deploy:
       replicas: 1
-    expose:
-      - "3306"
     ports:
       - target: 3306
         published: ${AQMYSQL_PORT_PUBLISH}
@@ -97,8 +89,6 @@ services:
     image: ${AQSOLR_IMAGE_AND_TAG}
     deploy:
       replicas: 1
-    expose: 
-      - "8983"
     ports:
       - target: 8983
         published: ${AQSOLR_PORT_PUBLISH}
