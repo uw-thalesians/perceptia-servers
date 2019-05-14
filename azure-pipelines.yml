@@ -218,7 +218,7 @@ jobs:
   - name: ImageVersionMinor
     value: $(AqsolrVersionMinor)
   - name: ImageVersionPatch
-    value: $(AqsolrlVersionPatch)
+    value: $(AqsolrVersionPatch)
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
