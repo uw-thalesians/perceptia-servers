@@ -24,13 +24,15 @@ The following list describes the purpose of the directories and files in this su
 
 ## Run Local Start Script
 
-The local start script [./localStartExample.ps1](./localStartExample.ps1) wraps the docker stack commands to start and stop the Perceptia backend. See the [docker stack config section below](#docker-stack-config) for how to connect to the backend one its running.
+The local start script [./localStartExample.ps1](./localStartExample.ps1) wraps the docker stack commands to start and stop the Perceptia backend. See the [docker stack config section below](#docker-stack-config) for how to connect to the backend once its running.
 
 Note, you will need to create the Tls certs using the script in the encrypt directory before running the local start script for the first time.
 
-1. Read the [README in ./encrypt/](./encrypt/README.md) and follow the instructions there for running the createTlsCert.sh script to generate the Tls certificate and private key. These files will be used by the backend to accept requests using Tls (secure) connection.
+1. Read the [README in ./encrypt/](./encrypt/README.md) and follow the instructions there for running the createTlsCert.sh script to generate the Tls certificate and private key. These files will be used by the backend to accept requests using a Tls (secure) connection.
 
 2. Run `docker swarm init` if you haven't already started or attached a swarm master
+
+        `docker swarm init`
 
 3. Run the localStatExample.ps1 script, see below:
 
@@ -42,9 +44,11 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
         `./localStartExample.ps1 -Latest`
 
-        Finally, if you want to run the latest build from your current branch, use the -Branch option to specify the name of your branch after the feature part. For example, if your branch is "feature/peacock-local-start"
+        Finally, if you want to run the latest build from your current branch, use the -Branch option to specify the name of your branch after the feature part. For example, if your branch is "feature/peacock-local-start". Note, if you have incremented the version of your service being built in that branch you can use the version options to specify the specific version for that image to pull in conjunction with the -Branch or -CurrentBranch options
 
         `./localStartExample.ps1 -Latest -Branch peacock-local-start`
+
+        `./localStartExample.ps1 -Latest -CurrentBranch`
 
 4. To remove the deployment (stop the containers) use the `-CleanUp` flag
 
