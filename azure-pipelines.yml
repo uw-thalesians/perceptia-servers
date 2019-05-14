@@ -6,28 +6,48 @@ name: $(Build.BuildId)
 variables:
   - group: Common
   # Gateway Variables
-  - name: GatewayVersion
-    value: '0.3.0'
+  - name: GatewayVersionMajor
+    value: '0'
+  - name: GatewayVersionMinor
+    value: '3'
+  - name: GatewayVersionPatch
+    value: '0'
   - name: GatewayImageQualified
     value: '$(DockerHubOrg)/$(GatewayImageName)'
   # Mssql Variables
-  - name: MssqlVersion
-    value: '0.7.1'
+  - name: MssqlVersionMajor
+    value: '0'
+  - name: MssqlVersionMinor
+    value: '7'
+  - name: MssqlVersionPatch
+    value: '1'
   - name: MssqlImageQualified
     value: '$(DockerHubOrg)/$(MssqlImageName)'
   # Aqrest Variables
-  - name: AqrestVersion
-    value: '1.1.0'
+  - name: AqrestVersionMajor
+    value: '1'
+  - name: AqrestVersionMinor
+    value: '1'
+  - name: AqrestVersionPatch
+    value: '0'
   - name: AqrestImageQualified
     value: '$(DockerHubOrg)/$(AqrestImageName)'
   # Aqmysql Variables
-  - name: AqmysqlVersion
-    value: '1.0.0'
+  - name: AqmysqlVersionMajor
+    value: '1'
+  - name: AqmysqlVersionMinor
+    value: '0'
+  - name: AqmysqlVersionPatch
+    value: '0'
   - name: AqmysqlImageQualified
     value: '$(DockerHubOrg)/$(AqmysqlImageName)'
   # Aqsolr Variables
-  - name: AqsolrVersion
-    value: '1.0.0'
+  - name: AqsolrVersionMajor
+    value: '1'
+  - name: AqsolrVersionMinor
+    value: '0'
+  - name: AqsolrVersionPatch
+    value: '0'
   - name: AqsolrImageQualified
     value: '$(DockerHubOrg)/$(AqsolrImageName)'
   
@@ -48,7 +68,7 @@ trigger:
     - infrastructure/*
 
 pr:
-  autoCancel: true
+  autoCancel: "true"
   branches:
     include:
     - master
@@ -82,14 +102,14 @@ jobs:
       displayName: 'Run unit tests'
 - job: 'BuildGatewayImage'
   variables:
-  - name: ImageTagVersion
-    value: '$(GatewayImageQualified):$(GatewayVersion)'
-  - name: ImageTagVersionBuildId
-    value: '$(ImageTagVersion)-build-$(Build.BuildId)'
-  - name: ImageTagVersionBuildIdBranch
-    value: '$(ImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
-  - name: ImageTagVersionLatestBranch
-    value: '$(ImageTagVersion)-build-latest-branch-$(Build.SourceBranchName)'
+  - name: ImageQualified 
+    value: $(GatewayImageQualified)
+  - name: ImageVersionMajor
+    value: $(GatewayVersionMajor)
+  - name: ImageVersionMinor
+    value: $(GatewayVersionMinor)
+  - name: ImageVersionPatch
+    value: $(GatewayVersionPatch)
   pool:
     vmImage: 'Ubuntu-16.04'
   dependsOn: 'TestGatewayUnitTests'
@@ -98,50 +118,52 @@ jobs:
   - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/gateway/Dockerfile'
-      qualifiedImageName: $(GatewayImageQualified)
+      qualifiedImageName: $(ImageQualified)
   - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
     parameters:
-      qualifiedImageName: $(GatewayImageQualified)
-      versionLatestBranchTag: $(ImageTagVersionLatestBranch)
-      versionBuildIdBranchTag: $(ImageTagVersionBuildIdBranch)
-      versionTag: $(ImageTagVersion)
-      versionBuildIdTag: $(ImageTagVersionBuildId)
-      tagProduction: or(eq(variables[ 'productionTags'], 'true'), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+      qualifiedImageName: $(ImageQualified)
+      versionMajor: $(ImageVersionMajor)
+      versionMinor: $(ImageVersionMinor)
+      versionPatch: $(ImageVersionPatch)
+      buildId: $(Build.BuildId)
+      branch: $(Build.SourceBranchName)
+      tagProduction: or(eq(variables[ 'productionTags'], 'true'), startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'))
 - job: 'BuildMssqlImage'
   variables:
-  - name: ImageTagVersion
-    value: '$(MssqlImageQualified):$(MssqlVersion)'
-  - name: ImageTagVersionBuildId
-    value: '$(ImageTagVersion)-build-$(Build.BuildId)'
-  - name: ImageTagVersionBuildIdBranch
-    value: '$(ImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
-  - name: ImageTagVersionLatestBranch
-    value: '$(ImageTagVersion)-build-latest-branch-$(Build.SourceBranchName)'
+  - name: ImageQualified 
+    value: $(MssqlImageQualified)
+  - name: ImageVersionMajor
+    value: $(MssqlVersionMajor)
+  - name: ImageVersionMinor
+    value: $(MssqlVersionMinor)
+  - name: ImageVersionPatch
+    value: $(MssqlVersionPatch)
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
   - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/database/mssql/Dockerfile'
-      qualifiedImageName: $(MssqlImageQualified)
+      qualifiedImageName: $(ImageQualified)
   - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
     parameters:
-      qualifiedImageName: $(MssqlImageQualified)
-      versionLatestBranchTag: $(ImageTagVersionLatestBranch)
-      versionBuildIdBranchTag: $(ImageTagVersionBuildIdBranch)
-      versionTag: $(ImageTagVersion)
-      versionBuildIdTag: $(ImageTagVersionBuildId)
-      tagProduction: or(eq(variables[ 'productionTags'], 'true'), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+      qualifiedImageName: $(ImageQualified)
+      versionMajor: $(ImageVersionMajor)
+      versionMinor: $(ImageVersionMinor)
+      versionPatch: $(ImageVersionPatch)
+      buildId: $(Build.BuildId)
+      branch: $(Build.SourceBranchName)
+      tagProduction: or(eq(variables[ 'productionTags'], 'true'), startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'))
 - job: 'BuildAqrestImage'
   variables:
-  - name: ImageTagVersion
-    value: '$(AqrestImageQualified):$(AqrestVersion)'
-  - name: ImageTagVersionBuildId
-    value: '$(ImageTagVersion)-build-$(Build.BuildId)'
-  - name: ImageTagVersionBuildIdBranch
-    value: '$(ImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
-  - name: ImageTagVersionLatestBranch
-    value: '$(ImageTagVersion)-build-latest-branch-$(Build.SourceBranchName)'
+  - name: ImageQualified 
+    value: $(AqrestImageQualified)
+  - name: ImageVersionMajor
+    value: $(AqrestVersionMajor)
+  - name: ImageVersionMinor
+    value: $(AqrestVersionMinor)
+  - name: ImageVersionPatch
+    value: $(AqrestVersionPatch)
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
@@ -151,62 +173,65 @@ jobs:
   - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/REST/Dockerfile'
-      qualifiedImageName: $(AqrestImageQualified)
+      qualifiedImageName: $(ImageQualified)
   - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
     parameters:
-      qualifiedImageName: $(AqrestImageQualified)
-      versionLatestBranchTag: $(ImageTagVersionLatestBranch)
-      versionBuildIdBranchTag: $(ImageTagVersionBuildIdBranch)
-      versionTag: $(ImageTagVersion)
-      versionBuildIdTag: $(ImageTagVersionBuildId)
-      tagProduction: or(eq(variables[ 'productionTags'], 'true'), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+      qualifiedImageName: $(ImageQualified)
+      versionMajor: $(ImageVersionMajor)
+      versionMinor: $(ImageVersionMinor)
+      versionPatch: $(ImageVersionPatch)
+      buildId: $(Build.BuildId)
+      branch: $(Build.SourceBranchName)
+      tagProduction: or(eq(variables[ 'productionTags'], 'true'), startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'))
 - job: 'BuildAqmysqlImage'
   variables:
-  - name: ImageTagVersion
-    value: '$(AqmysqlImageQualified):$(AqmysqlVersion)'
-  - name: ImageTagVersionBuildId
-    value: '$(ImageTagVersion)-build-$(Build.BuildId)'
-  - name: ImageTagVersionBuildIdBranch
-    value: '$(ImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
-  - name: ImageTagVersionLatestBranch
-    value: '$(ImageTagVersion)-build-latest-branch-$(Build.SourceBranchName)'
+  - name: ImageQualified 
+    value: $(AqmysqlImageQualified)
+  - name: ImageVersionMajor
+    value: $(AqmysqlVersionMajor)
+  - name: ImageVersionMinor
+    value: $(AqmysqlVersionMinor)
+  - name: ImageVersionPatch
+    value: $(AqmysqlVersionPatch)
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
   - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/database/mysql/Dockerfile'
-      qualifiedImageName: $(AqmysqlImageQualified)
+      qualifiedImageName: $(ImageQualified)
   - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
     parameters:
-      qualifiedImageName: $(AqmysqlImageQualified)
-      versionLatestBranchTag: $(ImageTagVersionLatestBranch)
-      versionBuildIdBranchTag: $(ImageTagVersionBuildIdBranch)
-      versionTag: $(ImageTagVersion)
-      versionBuildIdTag: $(ImageTagVersionBuildId)
-      tagProduction: or(eq(variables[ 'productionTags'], 'true'), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+      qualifiedImageName: $(ImageQualified)
+      versionMajor: $(ImageVersionMajor)
+      versionMinor: $(ImageVersionMinor)
+      versionPatch: $(ImageVersionPatch)
+      buildId: $(Build.BuildId)
+      branch: $(Build.SourceBranchName)
+      tagProduction: or(eq(variables[ 'productionTags'], 'true'), startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'))
 - job: 'BuildAqsolrImage'
   variables:
-  - name: ImageTagVersion
-    value: '$(AqsolrImageQualified):$(AqsolrVersion)'
-  - name: ImageTagVersionBuildId
-    value: '$(ImageTagVersion)-build-$(Build.BuildId)'
-  - name: ImageTagVersionBuildIdBranch
-    value: '$(ImageTagVersionBuildId)-branch-$(Build.SourceBranchName)'
-  - name: ImageTagVersionLatestBranch
-    value: '$(ImageTagVersion)-build-latest-branch-$(Build.SourceBranchName)'
+  - name: ImageQualified 
+    value: $(AqsolrImageQualified)
+  - name: ImageVersionMajor
+    value: $(AqsolrVersionMajor)
+  - name: ImageVersionMinor
+    value: $(AqsolrVersionMinor)
+  - name: ImageVersionPatch
+    value: $(AqsolrlVersionPatch)
   pool:
     vmImage: 'Ubuntu-16.04'
   steps:
   - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
     parameters:
       dockerFile: '$(system.defaultWorkingDirectory)/content-analysis/Dockerfile'
-      qualifiedImageName: $(AqsolrImageQualified)
+      qualifiedImageName: $(ImageQualified)
   - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
     parameters:
-      qualifiedImageName: $(AqsolrImageQualified)
-      versionLatestBranchTag: $(ImageTagVersionLatestBranch)
-      versionBuildIdBranchTag: $(ImageTagVersionBuildIdBranch)
-      versionTag: $(ImageTagVersion)
-      versionBuildIdTag: $(ImageTagVersionBuildId)
-      tagProduction: or(eq(variables[ 'productionTags'], 'true'), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+      qualifiedImageName: $(ImageQualified)
+      versionMajor: $(ImageVersionMajor)
+      versionMinor: $(ImageVersionMinor)
+      versionPatch: $(ImageVersionPatch)
+      buildId: $(Build.BuildId)
+      branch: $(Build.SourceBranchName)
+      tagProduction: or(eq(variables[ 'productionTags'], 'true'), startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'))
