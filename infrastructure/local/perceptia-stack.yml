@@ -1,11 +1,11 @@
 version: '3.7'
 services:
   gateway:
-    image: uwthalesians/gateway:0.3.0-build-latest-branch-develop
+    image: 'uwthalesians/gateway:0.3.0-build-${TAG_BUILD}-branch-${TAG_BRANCH}'
     deploy:
       replicas: 1
     ports:
-     - "4443:443"
+     - "${GATEWAY_PORT_PUBLISH}:443"
     environment:
       AQREST_HOSTNAME: "aqrest"
       AQREST_PORT: "80"
@@ -32,9 +32,11 @@ services:
     networks:
       - perceptia-stack-net
   mssql:
-    image: uwthalesians/mssql:0.7.1-build-latest-branch-develop
+    image: 'uwthalesians/mssql:0.7.1-build-${TAG_BUILD}-branch-${TAG_BRANCH}'
     deploy:
       replicas: 1
+    ports:
+     - "${MSSQL_PORT_PUBLISH}:1433"
     environment:
       ACCEPT_EULA: "Y"
       SA_PASSWORD: "SoSecure!"
@@ -46,17 +48,21 @@ services:
     networks:
       - perceptia-stack-net
   aqrest:
-    image: uwthalesians/aqrest:1.1.0-build-latest-branch-develop
+    image: 'uwthalesians/aqrest:1.1.0-build-${TAG_BUILD}-branch-${TAG_BRANCH}'
     deploy:
       replicas: 1
+    ports:
+     - "${AQREST_PORT_PUBLISH}:80"
     environment:
       user_pass: "8aWZjNadxspXQEHu"
     networks:
       - perceptia-stack-net
   aqmysql:
-    image: uwthalesians/aqmysql:1.0.0-build-latest-branch-develop
+    image: 'uwthalesians/aqmysql:1.0.0-build-${TAG_BUILD}-branch-${TAG_BRANCH}'
     deploy:
       replicas: 1
+    ports:
+     - "${AQMYSQL_PORT_PUBLISH}:3306"
     environment:
       MYSQL_ROOT_PASSWORD: "mrpw"
       user_pass: "8aWZjNadxspXQEHu"
@@ -67,9 +73,11 @@ services:
     networks:
       - perceptia-stack-net
   aqsolr:
-    image: uwthalesians/aqsolr:1.0.0-build-latest-branch-develop
+    image: 'uwthalesians/aqsolr:1.0.0-build-${TAG_BUILD}-branch-${TAG_BRANCH}'
     deploy:
       replicas: 1
+    ports:
+      - "${AQSOLR_PORT_PUBLISH}:8983"
     command: solr-precreate stream /opt/solr/server/solr/configsets/stream
     networks:
       - perceptia-stack-net
