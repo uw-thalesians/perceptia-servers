@@ -44,7 +44,7 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
         Finally, if you want to run the latest build from your current branch, use the -Branch option to specify the name of your branch after the feature part. For example, if your branch is "feature/peacock-local-start"
 
-`./localStartExample.ps1 -Latest -Branch peacock-local-start`
+        `./localStartExample.ps1 -Latest -Branch peacock-local-start`
 
 4. To remove the deployment (stop the containers) use the `-CleanUp` flag
 
