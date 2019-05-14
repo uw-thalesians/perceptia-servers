@@ -1,0 +1,104 @@
+version: '3.7'
+services:
+  gateway:
+    image: ${GATEWAY_IMAGE_AND_TAG}
+    deploy:
+      replicas: 1
+    ports:
+      - target: 443
+        published: ${GATEWAY_PORT_PUBLISH}
+        mode: ingress
+    environment:
+      AQREST_HOSTNAME: "aqrest"
+      AQREST_PORT: "80"
+      GATEWAY_SESSION_KEY: "Jw5sLdjkf6woIBE/d8tDetc+VJsql1O9K8Asdm/W9l/FiW+IfzKrsyKYON9s+MF8"
+      GATEWAY_TLSCERTPATH: "/encrypt/fullchain.pem"
+      GATEWAY_TLSKEYPATH: "/encrypt/privkey.pem"
+      MSSQL_DATABASE: "Perceptia"
+      MSSQL_HOST: "mssql"
+      MSSQL_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      MSSQL_PORT: "1433"
+      MSSQL_SCHEME: "sqlserver"
+      MSSQL_USERNAME: "sa"
+      REDIS_ADDRESS: "redis:6379"
+    networks:
+      perceptia-stack-net:
+    volumes:
+      - type: bind 
+        source: ./encrypt
+        target: /encrypt
+        read_only: true
+  redis:
+    image: ${REDIS_IMAGE_AND_TAG}
+    deploy:
+      replicas: 1
+    ports: 
+      - target: 6379
+        published: ${REDIS_PORT_PUBLISH}
+        mode: ingress
+    networks:
+      perceptia-stack-net:
+  mssql:
+    image: ${MSSQL_IMAGE_AND_TAG}
+    deploy:
+      replicas: 1
+    ports:
+      - target: 1433
+        published: ${MSSQL_PORT_PUBLISH}
+        mode: ingress    
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      SKIP_SETUP_IF_EXISTS: "Y"
+    volumes:
+      - type: volume
+        source: mssql_pc_vol
+        target: /var/opt/mssql
+    networks:
+      perceptia-stack-net:
+  aqrest:
+    image: ${AQREST_IMAGE_AND_TAG}
+    deploy:
+      replicas: 1
+    ports:
+      - target: 80
+        published: ${AQREST_PORT_PUBLISH}
+        mode: ingress 
+    environment:
+      user_pass: "${AQMYSQL_USER_PASS}"
+    networks:
+      perceptia-stack-net:
+  aqmysql:
+    image: ${AQMYSQL_IMAGE_AND_TAG}
+    deploy:
+      replicas: 1
+    ports:
+      - target: 3306
+        published: ${AQMYSQL_PORT_PUBLISH}
+        mode: ingress 
+    environment:
+      MYSQL_ROOT_PASSWORD: "mrpw"
+      user_pass: "${AQMYSQL_USER_PASS}"
+    volumes:
+      - type: volume
+        source: aqmysql_pc_vol
+        target: /var/lib/mysql
+    networks:
+      perceptia-stack-net:
+  aqsolr:
+    image: ${AQSOLR_IMAGE_AND_TAG}
+    deploy:
+      replicas: 1
+    ports:
+      - target: 8983
+        published: ${AQSOLR_PORT_PUBLISH}
+        mode: ingress
+    command: solr-precreate stream /opt/solr/server/solr/configsets/stream
+    networks:
+      perceptia-stack-net:
+networks:
+  perceptia-stack-net:
+    driver: overlay
+volumes:
+  mssql_pc_vol:
+  aqmysql_pc_vol:
