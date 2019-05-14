@@ -119,16 +119,17 @@ if (!$CleanUp) {
         Write-Host "Starting up the docker stack: $PERCEPTIA_STACK_NAME"
         Write-Host "Starting stack using tag: $DOCKERHUB_ORG/{imageName}:{version-}$BUILD_AND_BRANCH"
         docker stack deploy -c perceptia-stack.yml $PERCEPTIA_STACK_NAME
+        if (!$?) {
+                Write-Host "Docker stack: $PERCEPTIA_STACK_NAME failed to start, see error above."
+                exit(1)
+        }
         Write-Host "`n"
         foreach ($IMAGE in $ALL_IMAGES) {
                 Write-Host "Image used: $IMAGE"
         }
         Write-Host "`n"
 
-        if (!$?) {
-                Write-Host "Docker stack: $PERCEPTIA_STACK_NAME failed to start, see error above."
-                exit(1)
-        }
+
         Write-Host "Perceptia backend is listening for requests at: https://localhost:$GatewayPortPublish"
         Write-Host "To test if the gateway is able to process requests, make a GET request to:"
         Write-Host "/api/v1/gateway/health"
