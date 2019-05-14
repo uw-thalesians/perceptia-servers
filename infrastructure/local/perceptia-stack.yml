@@ -14,7 +14,7 @@ services:
       GATEWAY_TLSKEYPATH: "/encrypt/privkey.pem"
       MSSQL_DATABASE: "Perceptia"
       MSSQL_HOST: "mssql"
-      MSSQL_PASSWORD: "SoSecure!"
+      MSSQL_PASSWORD: "${MSSQL_SA_PASSWORD}"
       MSSQL_PORT: "1433"
       MSSQL_SCHEME: "sqlserver"
       MSSQL_USERNAME: "sa"
@@ -39,7 +39,7 @@ services:
      - "${MSSQL_PORT_PUBLISH}:1433"
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: "SoSecure!"
+      SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
       SKIP_SETUP_IF_EXISTS: "Y"
     volumes:
       - type: volume
@@ -54,7 +54,7 @@ services:
     ports:
      - "${AQREST_PORT_PUBLISH}:80"
     environment:
-      user_pass: "8aWZjNadxspXQEHu"
+      user_pass: "${AQMYSQL_USER_PASS}"
     networks:
       - perceptia-stack-net
   aqmysql:
@@ -65,7 +65,7 @@ services:
      - "${AQMYSQL_PORT_PUBLISH}:3306"
     environment:
       MYSQL_ROOT_PASSWORD: "mrpw"
-      user_pass: "8aWZjNadxspXQEHu"
+      user_pass: "${AQMYSQL_USER_PASS}"
     volumes:
       - type: volume
         source: aqmysql_pc_vol

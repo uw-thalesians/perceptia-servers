@@ -33,6 +33,9 @@ if (!$CleanUp) {
         Set-Item -Path env:AQREST_PORT_PUBLISH -Value $AqRestPortPublish
         Set-Item -Path env:AQMYSQL_PORT_PUBLISH -Value $AqMySqlPortPublish
         Set-Item -Path env:AQSOLR_PORT_PUBLISH -Value $AqSolrPortPublish
+
+        Set-Item -Path env:MSSQL_SA_PASSWORD -Value "SoSecure!"
+        Set-Item -Path env:AQMYSQL_USER_PASS -Value "8aWZjNadxspXQEHu"
         
         Write-Host "Starting stack using tag: uwthalesians/{imageName}:{version}-$env:TAG_BUILD-$env:TAG_BRANCH"
         docker stack deploy -c perceptia-stack.yml $PERCEPTIA_STACK_NAME
@@ -46,10 +49,15 @@ if (!$CleanUp) {
         Write-Host "To test if the gateway is able to process requests, make a GET request to:"
         Write-Host "/api/v1/gateway/health"
         Write-Host "Example request using curl"
-        Write-Host 'curl --insecure -X GET "' + "https://localhost:${GatewayPortPublish}/api/v1/gateway/health" + '"'
+        Write-Host "curl --insecure -X GET `"https://localhost:${GatewayPortPublish}/api/v1/gateway/health`""
         Write-Host "To test the status of the services in the stack run: docker stack ps $PERCEPTIA_STACK_NAME"
         Write-Host "To see the logs for a particular service run: docker service logs ${PERCEPTIA_STACK_NAME}_nameOfService"
         Write-Host "For example: docker service logs ${PERCEPTIA_STACK_NAME}_gateway"
+
+        Write-Host "Mssql server for the Perceptia databased used by the gateway can be reached at port: $Env:MSSQL_PORT_PUBLISH"
+        Write-Host "Perceptia databased used by the gateway has an 'sa' user account with password: $Env:MSSQL_SA_PASSWORD"
+        Write-Host "Aqmysql server for the any_quiz_db databased used by the aqrest service can be reached at port: $Env:AQMYSQL_PORT_PUBLISH"
+        Write-Host "any_quiz_db databased used by theaqrest service has an 'any_quiz' user account with password: $Env:AQMYSQL_USER_PASS"
 
 } else {
         Write-Host "Cleaning up the docker stack: $PERCEPTIA_STACK_NAME"
