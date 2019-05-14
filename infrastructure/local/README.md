@@ -32,45 +32,55 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
 2. Run `docker swarm init` if you haven't already started or attached a swarm master
 
-3. If the stack is already running (you can run `docker stack ls` to see running deployments), you should run the localStatExample.ps1 script with the -CleanUp flag before running it again. The stack does not handle in place upgrades (rerunning the deployment) well. Once you run the script with the -CleanUp flag, you should give it at least 10 seconds to clean everything up, otherwise the deployment might error out if run too soon. (If it does error out, just wait a few more seconds before running again)
+3. Run the localStatExample.ps1 script, see below:
 
-   `localStartExample.ps1 -CleanUp`
+        To start the backend run the script with no options:
 
-4. Run the localStatExample.ps1 script, see below:
+        `./localStartExample.ps1`
 
-To start the backend run the script with no options:
+        If you want to run the latest tagged image for each service built from the develop branch, then add the -Latest switch
 
-`./localStartExample.ps1`
+        `./localStartExample.ps1 -Latest`
 
-To stop the backend, run the script with the option `-CleanUp`
-
-`./localStartExample.ps1 -CleanUp`
-
-If you want to run the latest tagged image for each service built from the develop branch, then add the -Latest switch
-
-`./localStartExample.ps1 -Latest`
-
-Finally, if you want to run the latest build from your current branch, use the -Branch option to specify the name of your branch after the feature part. For example, if your branch is "feature/peacock-local-start"
+        Finally, if you want to run the latest build from your current branch, use the -Branch option to specify the name of your branch after the feature part. For example, if your branch is "feature/peacock-local-start"
 
 `./localStartExample.ps1 -Latest -Branch peacock-local-start`
 
+4. To remove the deployment (stop the containers) use the `-CleanUp` flag
+
+        To stop the backend, run the script with the option `-CleanUp`
+
+        `./localStartExample.ps1 -CleanUp`
+
 ### Comand Line Options
 
-`-CleanUp` (Switch) when used, stops the services started by docker stack deploy
+`-CleanUp` (Switch) when used, stops the services started by docker stack deploy, default false
 
-`-Latest` (Switch) when used, starts the stack using the latest images for the given version of each image built from the develop branch
+`-Latest` (Switch) when used, starts the stack using the latest images for the given version of each image built from the develop branch, default false
 
 `-Build` (String) specify the build number to use image builds from, default is a known working build for all images used, will be ignored if -Latest is also set
 
 `-Branch` (String) specify the branch to use image builds from, default is "develop"
 
+`-CurrentBranch` (Switch) when set, uses the name of the current branch to specify the images to use, if on branch "feature/peacock-local-start" would use images with the branch tag "peacock-local-start", default false
+
+`-GatewayVersion` (String) sets the version of the gateway image to use, default is a known stable version of the image
+
 `-GatewayPortPublish` (String) sets the port that requests can be made to the gateway on, default is "4443"
+
+`-MsSqlVersion` (String) sets the version of the mssql image to use, default is a known stable version of the image
 
 `-MsSqlPortPublish` (String) sets the port that the mssql service can recieve requests on, default is "47011" which maps to "1433" inside the container (Note, the mssql service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
 
+`-AqRestVersion` (String) sets the version of the aqrest image to use, default is a known stable version of the image
+
 `-AqRestPortPublish` (String) sets the port that the aqrest service can recieve requests on, default is "47020" which maps to "80" inside the contianer (Note, the aqrest service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
 
+`-AqMySqlVersion` (String) sets the version of the aqmysql image to use, default is a known stable version of the image
+
 `-AqMySqlPortPublish` (String) sets the port that the aqmysql service can recieve requests on, default is "47021" which maps to "3306" inside the contianer (Note, the aqmysql service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
+
+`-AqSolrVersion` (String) sets the version of the aqsolr image to use, default is a known stable version of the image
 
 `-AqSolrPortPublish` (String) sets the port that the aqsolr service can recieve requests on, default is "47022" which maps to "8983" inside the contianer (Note, the aqsolr service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
 

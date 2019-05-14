@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   gateway:
-    image: 'uwthalesians/gateway:0.3.0-build-${TAG_BUILD}-branch-${TAG_BRANCH}'
+    image: ${GATEWAY_IMAGE_AND_TAG}
     deploy:
       replicas: 1
     ports:
@@ -25,14 +25,17 @@ services:
       - type: bind 
         source: ./encrypt
         target: /encrypt
+        read_only: true
   redis:
-    image: "redis:5.0.4-alpine"
+    image: ${REDIS_IMAGE_AND_TAG}
     deploy:
       replicas: 1
+    ports: 
+      - "${REDIS_PORT_PUBLISH}:6379"
     networks:
       - perceptia-stack-net
   mssql:
-    image: 'uwthalesians/mssql:0.7.1-build-${TAG_BUILD}-branch-${TAG_BRANCH}'
+    image: ${MSSQL_IMAGE_AND_TAG}
     deploy:
       replicas: 1
     ports:
@@ -48,7 +51,7 @@ services:
     networks:
       - perceptia-stack-net
   aqrest:
-    image: 'uwthalesians/aqrest:1.1.0-build-${TAG_BUILD}-branch-${TAG_BRANCH}'
+    image: ${AQREST_IMAGE_AND_TAG}
     deploy:
       replicas: 1
     ports:
@@ -58,7 +61,7 @@ services:
     networks:
       - perceptia-stack-net
   aqmysql:
-    image: 'uwthalesians/aqmysql:1.0.0-build-${TAG_BUILD}-branch-${TAG_BRANCH}'
+    image: ${AQMYSQL_IMAGE_AND_TAG}
     deploy:
       replicas: 1
     ports:
@@ -73,7 +76,7 @@ services:
     networks:
       - perceptia-stack-net
   aqsolr:
-    image: 'uwthalesians/aqsolr:1.0.0-build-${TAG_BUILD}-branch-${TAG_BRANCH}'
+    image: ${AQSOLR_IMAGE_AND_TAG}
     deploy:
       replicas: 1
     ports:
