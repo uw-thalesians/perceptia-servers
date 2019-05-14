@@ -1,7 +1,7 @@
 Param (
         [Switch]$CleanUp,
         [switch]$Latest,
-        [string]$Build = "227",
+        [string]$Build = "232",
         [String]$Branch = "develop",
         [switch]$CurrentBranch,
         [String]$GatewayVersion = "0.3.0",
@@ -70,13 +70,15 @@ if (!$CleanUp) {
         # Gateway perceptia-stack.yml substitution variables
         Set-Item -Path env:GATEWAY_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${GATEWAY_IMAGE_NAME}:${GatewayVersion}-${BUILD_AND_BRANCH}"
         if (($GatewayVersion).Length -eq 0) {
-                Set-Item -Path env:GATEWAY_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${GATEWAY_IMAGE_NAME}:${BUILD_AND_BRANCH}"
+                Write-Host "Version must be provided, but no version provided for gateway, exiting..."
+                exit(1)
         }
         Set-Item -Path env:GATEWAY_PORT_PUBLISH -Value $GatewayPortPublish
         # Mssql perceptia-stack.yml substitution variables
         Set-Item -Path env:MSSQL_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${MSSQL_IMAGE_NAME}:${MsSqlVersion}-${BUILD_AND_BRANCH}"
         if (($MsSqlVersion).Length -eq 0) {
-                Set-Item -Path env:MSSQL_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${MSSQL_IMAGE_NAME}:${BUILD_AND_BRANCH}"
+                Write-Host "Version must be provided, but no version provided for mssql, exiting..."
+                exit(1)
         }
         Set-Item -Path env:MSSQL_PORT_PUBLISH -Value $MsSqlPortPublish
         # Redis perceptia-stack.yml substituion variables
@@ -85,19 +87,22 @@ if (!$CleanUp) {
         # Aqrest perceptia-stack.yml substitution variables
         Set-Item -Path env:AQREST_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${AQREST_IMAGE_NAME}:${AqRestVersion}-${BUILD_AND_BRANCH}"
         if (($AqRestVersion).Length -eq 0) {
-                Set-Item -Path env:AQREST_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${AQREST_IMAGE_NAME}:${BUILD_AND_BRANCH}"
+                Write-Host "Version must be provided, but no version provided for aqrest, exiting..."
+                exit(1)
         }
         Set-Item -Path env:AQREST_PORT_PUBLISH -Value $AqRestPortPublish
         # Aqmysql perceptia-stack.yml substitution variables
         Set-Item -Path env:AQMYSQL_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${AQMYSQL_IMAGE_NAME}:${AqMySqlVersion}-${BUILD_AND_BRANCH}"
         if (($AqMySqlVersion).Length -eq 0) {
-                Set-Item -Path env:AQMYSQL_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${AQMYSQL_IMAGE_NAME}:${BUILD_AND_BRANCH}"
+                Write-Host "Version must be provided, but no version provided foraqmysql, exiting..."
+                exit(1)
         }
         Set-Item -Path env:AQMYSQL_PORT_PUBLISH -Value $AqMySqlPortPublish
         # Aqsolr perceptia-stack.yml substitution variables
         Set-Item -Path env:AQSOLR_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${AQSOLR_IMAGE_NAME}:${AqSolrVersion}-${BUILD_AND_BRANCH}"
         if (($AqSolrVersion).Length -eq 0) {
-                Set-Item -Path env:AQSOLR_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${AqSolr_IMAGE_NAME}:${BUILD_AND_BRANCH}"
+                Write-Host "Version must be provided, but no version provided for aqsolr, exiting..."
+                exit(1)
         }
         Set-Item -Path env:AQSOLR_PORT_PUBLISH -Value $AqSolrPortPublish
 
