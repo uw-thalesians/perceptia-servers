@@ -26,6 +26,28 @@ def get_all_text():
 
     return summaries
 
+def get_all_keywords():
+
+    try:
+        cnx = mysql.connector.connect(user=mysql_user, password=mysql_pass, host=mysql_host, port=mysql_port, database=mysql_db)
+        curRetrieveKeyword = cnx.cursor(buffered=True)
+
+        query = "select keyword from quizzes"
+
+        curRetrieveKeyword.execute(query)
+
+        keywords = []
+
+        for (curKeyword) in curRetrieveKeyword:
+            keywords.append(curKeyword[0])
+
+    except mysql.connector.Error as e:
+        print(str(e))
+    finally:
+        cnx.close()
+
+    return keywords
+
 def put_text(keyword, summary):
     row_id=None
     source = 'wiki'
@@ -33,7 +55,7 @@ def put_text(keyword, summary):
         cnx = mysql.connector.connect(user=mysql_user, password=mysql_pass, host=mysql_host, port=mysql_port, database=mysql_db)
         cursor = cnx.cursor()
 
-        print("about to insert from python")
+        #print("about to insert from python")
 
         query = "insert into quizzes (keyword, summary, source, total_read_count) VALUES (%s, %s, %s, %s)"
         vals = (keyword, summary)

@@ -63,6 +63,17 @@ $f3->route('GET /api/v1/anyquiz/list', function($f3) {
 
 });
 
+$f3->route('GET /api/v1/anyquiz/umap', function($f3) {
+
+    $root = null;
+
+    if($f3->exists('GET.root')) {
+        $root = $f3->get('GET.root');
+    }
+    
+    GeneralController::umapJSON($root);
+});
+
 $f3->route('GET /api/v1/anyquiz/questions/@keyword', function($f3) {
 
     $quizController = new QuizController();

@@ -29,6 +29,33 @@ class GeneralController
 
         echo json_encode(array("rest_api_v"=> "1.1", "quizzes" => $quiz_list, "sort"=>$results["sort"], "start"=>$results["start"], "end"=>$results["end"]));
     }
+
+    public static function listAllQuizzesJSON($root) {
+        header('Content-type: application/json');
+
+        $ch = curl_init();
+
+        $umap_py = "localhost/py/umap.py?root=" . urlencode($root);
+
+        curl_setopt($ch, CURLOPT_URL, $umap_py);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+        $resp = curl_exec($ch);
+
+        curl_close($ch);
+
+        $topics = array();
+
+        foreach( $resp["topic"] as $topic ) {
+            $topics[] = array(
+                                "keyword"=>$topic->keyword,
+                                "url"=>$topic->url,
+                                "x"=>$topic->x,
+                                "y"=>$topic->y);
+        }
+
+        echo json_encode(array("rest_api_v" => "1.1", "root"=>$root, "topics"=> $topics));
+    }
 }
 
 ?>

@@ -45,6 +45,8 @@ RUN python -m spacy download en_core_web_md
 # With external URL
 #pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.1.0/en_core_web_sm-2.1.0.tar.gz
 
+RUN pip install requests numba scikit-learn umap-learn pyld pandas
+
 #add first run script to fill out template files with mysql app user password provided from environment variable
 COPY parse-template.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/parse-template.sh
