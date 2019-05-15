@@ -2,6 +2,12 @@ version: '3.7'
 services:
   gateway:
     image: ${GATEWAY_IMAGE_AND_TAG}
+    labels:
+      app.perceptia.info/name: gateway
+      app.perceptia.info/instance: gateway-1
+      app.perceptia.info/managed-by: docker
+      app.perceptia.info/component: server
+      app.perceptia.info/part-of: ${PERCEPTIA_STACK_NAME}
     deploy:
       replicas: 1
     ports:
@@ -30,16 +36,34 @@ services:
         read_only: true
   redis:
     image: ${REDIS_IMAGE_AND_TAG}
+    labels:
+      app.perceptia.info/name: redis
+      app.perceptia.info/instance: redis-1
+      app.perceptia.info/managed-by: docker
+      app.perceptia.info/component: database
+      app.perceptia.info/part-of: ${PERCEPTIA_STACK_NAME}
+      app.perceptia.info/sub-part-of: gateway
     deploy:
       replicas: 1
     ports: 
       - target: 6379
         published: ${REDIS_PORT_PUBLISH}
         mode: ingress
+    volumes:
+      - type: volume
+        source: redis_pc_vol
+        target: /data
     networks:
       perceptia-stack-net:
   mssql:
     image: ${MSSQL_IMAGE_AND_TAG}
+    labels:
+      app.perceptia.info/name: mssql
+      app.perceptia.info/instance: mssql-1
+      app.perceptia.info/managed-by: docker
+      app.perceptia.info/component: database
+      app.perceptia.info/part-of: ${PERCEPTIA_STACK_NAME}
+      app.perceptia.info/sub-part-of: gateway
     deploy:
       replicas: 1
     ports:
@@ -58,6 +82,12 @@ services:
       perceptia-stack-net:
   aqrest:
     image: ${AQREST_IMAGE_AND_TAG}
+    labels:
+      app.perceptia.info/name: aqrest
+      app.perceptia.info/instance: aqrest-1
+      app.perceptia.info/managed-by: docker
+      app.perceptia.info/component: server
+      app.perceptia.info/part-of: ${PERCEPTIA_STACK_NAME}
     deploy:
       replicas: 1
     ports:
@@ -70,6 +100,13 @@ services:
       perceptia-stack-net:
   aqmysql:
     image: ${AQMYSQL_IMAGE_AND_TAG}
+    labels:
+      app.perceptia.info/name: aqmysql
+      app.perceptia.info/instance: aqmysql-1
+      app.perceptia.info/managed-by: docker
+      app.perceptia.info/component: database
+      app.perceptia.info/part-of: ${PERCEPTIA_STACK_NAME}
+      app.perceptia.info/sub-part-of: aqrest
     deploy:
       replicas: 1
     ports:
@@ -87,6 +124,13 @@ services:
       perceptia-stack-net:
   aqsolr:
     image: ${AQSOLR_IMAGE_AND_TAG}
+    labels:
+      app.perceptia.info/name: aqsolr
+      app.perceptia.info/instance: aqsolr-1
+      app.perceptia.info/managed-by: docker
+      app.perceptia.info/component: server
+      app.perceptia.info/part-of: ${PERCEPTIA_STACK_NAME}
+      app.perceptia.info/sub-part-of: aqrest
     deploy:
       replicas: 1
     ports:
@@ -100,5 +144,6 @@ networks:
   perceptia-stack-net:
     driver: overlay
 volumes:
+  redis_pc_vol:
   mssql_pc_vol:
   aqmysql_pc_vol:
