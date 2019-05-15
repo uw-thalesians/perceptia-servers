@@ -41,6 +41,8 @@ RUN python -m nltk.downloader wordnet -d /usr/share/nltk_data
 
 RUN python -m spacy download en_core_web_md
 
+RUN pip install numba scikit-learn umap-learn
+
 # download spacy en model alternative method
 # With external URL
 #pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.1.0/en_core_web_sm-2.1.0.tar.gz

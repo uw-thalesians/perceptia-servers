@@ -27,6 +27,13 @@ class QuizController{
         echo json_encode(array("questions"=>$quiz->questions));
     }
 
+    public static function studyJSON($keyword, $source)
+    {
+        $quiz = QuizController::$conn->getStudyQuestions($keyword, $source);
+
+        echo json_encode(array("questions"=>$quiz->questions, "paragraphs" => $quiz->paras));
+    }
+
     public static function gradeJSON($user)
     {
         

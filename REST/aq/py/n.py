@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-import sys, os, random, math
+import sys, os, random, math, json
 
 #path = os.path.dirname(__file__)+"/user-site-packages"
 
@@ -17,7 +17,8 @@ try:
     #this by itself throws a sentencizer/parser error? sentence boundaries? is this to be used with one of the others?
     #nlp = spacy.load("en_vectors_web_lg")
 except Exception as e:
-    print(str(e))
+    print json.dumps({"error":str(e)})
+    sys.exit(2)
 
 nltk.data.path.append("./nltk_data")
 
@@ -25,7 +26,7 @@ try:
     #import summarize#, w2v
     pass
 except Exception as e:
-    print(str(e))
+    print json.dumps({"error":str(e)})
 
 def find_alternative_responses(sentence, correct_answer, num_resp=1, keyword=None):
     responses = []
@@ -216,7 +217,7 @@ def get_all_nouns(sentence, keyword):
         question = [token.text for token in doc]#"and now for something completely different")
         #question = 
     except Exception as e:
-        print("exception:", str(e))
+        print json.dumps({"error":str(e)})
     
     #answer = [[i, word[0]] for i, word in enumerate(question) if 'NN' in word[1]]
     return question, answer
@@ -239,18 +240,21 @@ def create_quiz(keyword):
     
     summary, quiz_id = mysql_quiz.get_text(keyword)
     
-    usum = summary.decode("UTF-8")
-    
-    sentences = get_sentences(usum)
+    for p_id, paras in summary.items():
+        #for para in paras:
+            #print "para_id", p_id, "all_paras", paras
+            usum = paras.decode("UTF-8")
 
-    for sentence in sentences:
+            sentences = get_sentences(usum)
 
-        question, answer, q_type = create_question(sentence, keyword)
+            for sentence in sentences:
+                question, answer, q_type = create_question(sentence, keyword)
 
-        if question == u"" or answer == u"":
-            continue
+                if question == u"" or answer == u"":
+                    continue
 
-        mysql_quiz.add_question( question, answer, quiz_id, q_type )
+                mysql_quiz.add_question( question, answer, quiz_id, q_type, p_id )
+
 
 def create_graph_quiz(title):
     (nodes, graph_quiz_id) = mysql_quiz.get_graph_quiz(title)
