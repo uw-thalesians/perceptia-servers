@@ -56,7 +56,7 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
         `./localStartExample.ps1 -CleanUp`
 
-        To stop the backend and remove database volumes run the script with the options `-CleanUp` and `-ResetAllDbVolumes`
+        To stop the backend and remove all database volumes run the script with the options `-CleanUp` and `-ResetAllDbVolumes`
 
         `./localStartExample.ps1 -CleanUp -RemoveAllDbVolumes`
 
@@ -78,13 +78,13 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
 `-RedisPortPublish` (String) sets the port that the redis service can recieve requests on, default is "47012" which maps to "6379" inside the container (Note, the redis service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
 
-`-RedisResetDb` (switch) when set, will remove the volume the database was created in, forcing it to be rebuilt, default false, meaning the database will not reset if it already exists, but if it doesn't it will be created
+`-RedisRemoveDbVolume` (switch) when set, will remove the volume the database was created in, forcing it to be rebuilt, default false, meaning the database will not reset if it already exists, but if it doesn't it will be created
 
 `-MsSqlVersion` (String) sets the version of the mssql image to use, default is a known stable version of the image
 
 `-MsSqlPortPublish` (String) sets the port that the mssql service can recieve requests on, default is "47011" which maps to "1433" inside the container (Note, the mssql service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
 
-`-MsSqlResetDb` (switch) when set, will remove the volume the database was created in, forcing it to be rebuilt, default false, meaning the database will not reset if it already exists, but if it doesn't it will be created
+`-MsSqlRemoveDbVolume` (switch) when set, will remove the volume the database was created in, forcing it to be rebuilt, default false, meaning the database will not reset if it already exists, but if it doesn't it will be created
 
 `-AqRestVersion` (String) sets the version of the aqrest image to use, default is a known stable version of the image
 
@@ -94,7 +94,7 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
 `-AqMySqlPortPublish` (String) sets the port that the aqmysql service can recieve requests on, default is "47021" which maps to "3306" inside the contianer (Note, the aqmysql service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
 
-`-AqMySqlResetDb` (switch) when set, will remove the volume the database was created in, forcing it to be rebuilt, default false, meaning the database will not reset if it already exists, but if it doesn't it will be created
+`-AqMySqlRemoveDbVolume` (switch) when set, will remove the volume the database was created in, forcing it to be rebuilt, default false, meaning the database will not reset if it already exists, but if it doesn't it will be created
 
 `-AqSolrVersion` (String) sets the version of the aqsolr image to use, default is a known stable version of the image
 

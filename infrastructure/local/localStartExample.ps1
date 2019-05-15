@@ -8,14 +8,14 @@ Param (
         [string]$GatewayPortPublish = "4443",
         [String]$MsSqlVersion = "0.7.1",
         [String]$MsSqlPortPublish = "47011",
-        [switch]$MsSqlResetDb,
+        [switch]$MsSqlRemoveDbVolume,
         [String]$RedisPortPublish = "47012",
-        [switch]$RedisResetDb,
+        [switch]$RedisRemoveDbVolume,
         [String]$AqRestVersion = "1.1.0",
         [String]$AqRestPortPublish = "47020",
         [String]$AqMySqlVersion = "1.0.0",
         [String]$AqMySqlPortPublish = "47021",
-        [switch]$AqMySqlResetDb,
+        [switch]$AqMySqlRemoveDbVolume,
         [String]$AqSolrVersion = "1.0.0",
         [String]$AqSolrPortPublish = "47022",
         [switch]$RemoveAllDbVolumes,
@@ -121,19 +121,26 @@ if (!$CleanUp) {
                 Start-Sleep -Seconds "10"
         }
 
-        if ($MsSqlResetDb -or $RemoveAllDbVolumes) {
-                Write-Host "-MsSqlResetDb or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$MSSQL_VOLUME_NAME"
+        if ($MsSqlRemoveDbVolume -or $RedisRemoveDbVolume -or $AqMySqlRemoveDbVolume -or $RemoveAllDbVolumes) {
+                Write-Host "Database volume reset requested, waiting 10 seconds to finish removing services..."
+                Start-Sleep -Seconds 10
+        }
+        if ($MsSqlRemoveDbVolume -or $RemoveAllDbVolumes) {
+                Write-Host "-MsSqlRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$MSSQL_VOLUME_NAME"
                 docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=mssql")
+                Start-Sleep -Seconds 2
                 docker volume rm ${PERCEPTIA_STACK_NAME}_$MSSQL_VOLUME_NAME
         }
-        if ($RedisResetDb -or $RemoveAllDbVolumes) {
-                Write-Host "-RedisResetDb or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$REDIS_VOLUME_NAME"
+        if ($RedisRemoveDbVolume -or $RemoveAllDbVolumes) {
+                Write-Host "-RedisRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$REDIS_VOLUME_NAME"
                 docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=redis")
+                Start-Sleep -Seconds 2
                 docker volume rm ${PERCEPTIA_STACK_NAME}_$REDIS_VOLUME_NAME
         }
-        if ($AqMySqlResetDb -or $RemoveAllDbVolumes) {
-                Write-Host "-AqMySqlResetDb or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$AQMYSQL_VOLUME_NAME"
+        if ($AqMySqlRemoveDbVolume -or $RemoveAllDbVolumes) {
+                Write-Host "-AqMySqlRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$AQMYSQL_VOLUME_NAME"
                 docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=aqmysql")
+                Start-Sleep -Seconds 2
                 docker volume rm ${PERCEPTIA_STACK_NAME}_$AQMYSQL_VOLUME_NAME
         }
         if ($RemoveAllContainers) {
@@ -186,23 +193,26 @@ if (!$CleanUp) {
 } else {
         Write-Host "Cleaning up the docker stack: $PERCEPTIA_STACK_NAME"
         docker stack rm $PERCEPTIA_STACK_NAME
-        if ($MsSqlResetDb -or $RedisResetDb -or $AqMySqlResetDb -or $RemoveAllDbVolumes) {
+        if ($MsSqlRemoveDbVolume -or $RedisRemoveDbVolume -or $AqMySqlRemoveDbVolume -or $RemoveAllDbVolumes) {
                 Write-Host "Database volume reset requested, waiting 10 seconds to finish removing services..."
                 Start-Sleep -Seconds 10
         }
-        if ($MsSqlResetDb -or $RemoveAllDbVolumes) {
-                Write-Host "-MsSqlResetDb or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$MSSQL_VOLUME_NAME"
+        if ($MsSqlRemoveDbVolume -or $RemoveAllDbVolumes) {
+                Write-Host "-MsSqlRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$MSSQL_VOLUME_NAME"
                 docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=mssql")
+                Start-Sleep -Seconds 2
                 docker volume rm ${PERCEPTIA_STACK_NAME}_$MSSQL_VOLUME_NAME
         }
-        if ($RedisResetDb -or $RemoveAllDbVolumes) {
-                Write-Host "-RedisResetDb or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$REDIS_VOLUME_NAME"
+        if ($RedisRemoveDbVolume -or $RemoveAllDbVolumes) {
+                Write-Host "-RedisRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$REDIS_VOLUME_NAME"
                 docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=redis")
+                Start-Sleep -Seconds 2
                 docker volume rm ${PERCEPTIA_STACK_NAME}_$REDIS_VOLUME_NAME
         }
-        if ($AqMySqlResetDb -or $RemoveAllDbVolumes) {
-                Write-Host "-AqMySqlResetDb or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$AQMYSQL_VOLUME_NAME"
+        if ($AqMySqlRemoveDbVolume -or $RemoveAllDbVolumes) {
+                Write-Host "-AqMySqlRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$AQMYSQL_VOLUME_NAME"
                 docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=aqmysql")
+                Start-Sleep -Seconds 2
                 docker volume rm ${PERCEPTIA_STACK_NAME}_$AQMYSQL_VOLUME_NAME
         }
         if ($RemoveAllContainers) {
