@@ -46,7 +46,7 @@ The Perceptia application's backend is developed using a microservices architect
 
 ## [Setup](#setup)
 
-The Perceptia backend is deployed to Azure, for which the Azure Pipelines file defines the basic build process for the services. Local development will be supported once the major services have been added to this repository. Until then, the [local start script in the gateway directory](./gateway/localStartExample.ps1) allows one to run the API gateway for the Perceptia backend locally. Best to read the [gateway README](./gateway/README.md) before starting the script.
+The Perceptia backend is deployed to Azure, for which the Azure Pipelines file defines the basic build process for the services. These services will be deployed to an Azure Kubernetes Cluster for development and production. Additionally, for local development the local start script found in the [./infrastructure/local](./infrastructure/local) directory can be used to start the backend locally, allowing requests to the perceptia-api to be handled locally. The [readme](./infrastructure/local/README.md) in the local directory will explain how to use the script.
 
 ## [Azure Boards Integration](#azure-boards-integration)
 
