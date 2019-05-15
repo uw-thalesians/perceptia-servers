@@ -8,21 +8,29 @@ Param (
         [string]$GatewayPortPublish = "4443",
         [String]$MsSqlVersion = "0.7.1",
         [String]$MsSqlPortPublish = "47011",
+        [switch]$MsSqlRemoveDbVolume,
         [String]$RedisPortPublish = "47012",
+        [switch]$RedisRemoveDbVolume,
         [String]$AqRestVersion = "1.1.0",
         [String]$AqRestPortPublish = "47020",
         [String]$AqMySqlVersion = "1.0.0",
         [String]$AqMySqlPortPublish = "47021",
+        [switch]$AqMySqlRemoveDbVolume,
         [String]$AqSolrVersion = "1.0.0",
-        [String]$AqSolrPortPublish = "47022"
+        [String]$AqSolrPortPublish = "47022",
+        [switch]$RemoveAllDbVolumes,
+        [switch]$RemoveAllContainers
 )
 
 Set-Variable -Name DOCKERHUB_ORG -Value "uwthalesians"
 Set-Variable -Name PERCEPTIA_STACK_NAME -Value perceptia-api
 Set-Variable -Name GATEWAY_IMAGE_NAME -Value "gateway"
+Set-Variable -Name REDIS_VOLUME_NAME -Value "redis_pc_vol"
 Set-Variable -Name MSSQL_IMAGE_NAME -Value "mssql"
+Set-Variable -Name MSSQL_VOLUME_NAME -Value "mssql_pc_vol"
 Set-Variable -Name AQREST_IMAGE_NAME -Value "aqrest"
 Set-Variable -Name AQMYSQL_IMAGE_NAME -Value "aqmysql"
+Set-Variable -Name AQMYSQL_VOLUME_NAME -Value "aqmysql_pc_vol"
 Set-Variable -Name AQSOLR_IMAGE_NAME -Value "aqsolr"
 
 
@@ -34,14 +42,6 @@ if (!$CleanUp) {
         Write-Host "Remember, you must create the Tls cert and key files in the ./encrypt/ directory"
 
         Write-Host "`n"
-        
-        if ((docker stack ls --format "{{.Name}}") -contains "$PERCEPTIA_STACK_NAME") {
-                Write-Host "Note, due to issue with bind points (see https://github.com/docker/for-win/issues/1521), must clean up stack before redeployment"
-                Write-Host "Cleaning up the docker stack: $PERCEPTIA_STACK_NAME"
-                docker stack rm $PERCEPTIA_STACK_NAME
-                Write-Host "Waiting 10 seconds to allow docker to clean up"
-                Start-Sleep -Seconds "10"
-        }
 
         # Define Image Tags to use
         Set-Variable -Name TAG_BRANCH -Value $Branch
@@ -59,11 +59,13 @@ if (!$CleanUp) {
         if ($Latest) {
                 Write-Host "Latest switch provided, using latest build from branch: $TAG_BRANCH"
                 Set-Variable -Name TAG_BUILD -Value "latest"              
-        } 
-        if (($TAG_BUILD).Length -eq 0) {
-                Write-Host "Build must be set, but no build set, exiting"
-                exit(1)
         }
+        if (($TAG_BUILD).Length -eq 0) {
+                Write-Host "Build must be provided, but no build provided, exiting..."
+                exit(1)
+        } 
+
+        
 
         Set-Variable -Name BUILD_AND_BRANCH -Value "build-${TAG_BUILD}-branch-${TAG_BRANCH}"
 
@@ -80,7 +82,6 @@ if (!$CleanUp) {
                 Write-Host "Version must be provided, but no version provided for mssql, exiting..."
                 exit(1)
         }
-        Set-Item -Path env:MSSQL_PORT_PUBLISH -Value $MsSqlPortPublish
         # Redis perceptia-stack.yml substituion variables
         Set-Item -Path env:REDIS_IMAGE_AND_TAG -Value "redis:5.0.4-alpine"
         Set-Item -Path env:REDIS_PORT_PUBLISH -Value $RedisPortPublish
@@ -108,6 +109,43 @@ if (!$CleanUp) {
 
         Set-Item -Path env:MSSQL_SA_PASSWORD -Value "SoSecure!"
         Set-Item -Path env:AQMYSQL_USER_PASS -Value "8aWZjNadxspXQEHu"
+
+        Set-Item -Path env:PERCEPTIA_STACK_NAME -Value $PERCEPTIA_STACK_NAME
+
+                
+        if ((docker stack ls --format "{{.Name}}") -contains $PERCEPTIA_STACK_NAME) {
+                Write-Host "Note, due to issue with bind points (see https://github.com/docker/for-win/issues/1521), must clean up stack before redeployment"
+                Write-Host "Cleaning up the docker stack: $PERCEPTIA_STACK_NAME"
+                docker stack rm $PERCEPTIA_STACK_NAME
+                Write-Host "Waiting 10 seconds to allow docker to clean up"
+                Start-Sleep -Seconds "10"
+        }
+
+        if ($MsSqlRemoveDbVolume -or $RedisRemoveDbVolume -or $AqMySqlRemoveDbVolume -or $RemoveAllDbVolumes) {
+                Write-Host "Database volume reset requested, waiting 10 seconds to finish removing services..."
+                Start-Sleep -Seconds 10
+        }
+        if ($MsSqlRemoveDbVolume -or $RemoveAllDbVolumes) {
+                Write-Host "-MsSqlRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$MSSQL_VOLUME_NAME"
+                docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=mssql")
+                Start-Sleep -Seconds 2
+                docker volume rm ${PERCEPTIA_STACK_NAME}_$MSSQL_VOLUME_NAME
+        }
+        if ($RedisRemoveDbVolume -or $RemoveAllDbVolumes) {
+                Write-Host "-RedisRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$REDIS_VOLUME_NAME"
+                docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=redis")
+                Start-Sleep -Seconds 2
+                docker volume rm ${PERCEPTIA_STACK_NAME}_$REDIS_VOLUME_NAME
+        }
+        if ($AqMySqlRemoveDbVolume -or $RemoveAllDbVolumes) {
+                Write-Host "-AqMySqlRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$AQMYSQL_VOLUME_NAME"
+                docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=aqmysql")
+                Start-Sleep -Seconds 2
+                docker volume rm ${PERCEPTIA_STACK_NAME}_$AQMYSQL_VOLUME_NAME
+        }
+        if ($RemoveAllContainers) {
+                docker rm --force (docker ps -aq --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
+        }
 
         # Ensure images exist
         $ALL_IMAGES = @($env:GATEWAY_IMAGE_AND_TAG, $env:MSSQL_IMAGE_AND_TAG, $env:REDIS_IMAGE_AND_TAG, $env:AQREST_IMAGE_AND_TAG, $env:AQMYSQL_IMAGE_AND_TAG, $env:AQSOLR_IMAGE_AND_TAG)
@@ -155,5 +193,30 @@ if (!$CleanUp) {
 } else {
         Write-Host "Cleaning up the docker stack: $PERCEPTIA_STACK_NAME"
         docker stack rm $PERCEPTIA_STACK_NAME
+        if ($MsSqlRemoveDbVolume -or $RedisRemoveDbVolume -or $AqMySqlRemoveDbVolume -or $RemoveAllDbVolumes) {
+                Write-Host "Database volume reset requested, waiting 10 seconds to finish removing services..."
+                Start-Sleep -Seconds 10
+        }
+        if ($MsSqlRemoveDbVolume -or $RemoveAllDbVolumes) {
+                Write-Host "-MsSqlRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$MSSQL_VOLUME_NAME"
+                docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=mssql")
+                Start-Sleep -Seconds 2
+                docker volume rm ${PERCEPTIA_STACK_NAME}_$MSSQL_VOLUME_NAME
+        }
+        if ($RedisRemoveDbVolume -or $RemoveAllDbVolumes) {
+                Write-Host "-RedisRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$REDIS_VOLUME_NAME"
+                docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=redis")
+                Start-Sleep -Seconds 2
+                docker volume rm ${PERCEPTIA_STACK_NAME}_$REDIS_VOLUME_NAME
+        }
+        if ($AqMySqlRemoveDbVolume -or $RemoveAllDbVolumes) {
+                Write-Host "-AqMySqlRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$AQMYSQL_VOLUME_NAME"
+                docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=aqmysql")
+                Start-Sleep -Seconds 2
+                docker volume rm ${PERCEPTIA_STACK_NAME}_$AQMYSQL_VOLUME_NAME
+        }
+        if ($RemoveAllContainers) {
+                docker rm --force (docker ps -aq --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
+        }
 }
 
