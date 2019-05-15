@@ -91,22 +91,22 @@ metadata:
 spec:
   ports:
   - protocol: TCP
-    port: 1433
-    targetPort: mssql
-    name: mssql
+    port: 6379
+    targetPort: redis
+    name: redis
   clusterIP: None
   selector:
-    app: mssql
+    app: redis
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mssql
+  name: redis
   labels:
-    app: mssql
-    app.kubernetes.io/name: mssql
-    app.kubernetes.io/instance: mssql-1
-    app.kubernetes.io/version: "0.7.1"
+    app: redis
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: redis-1
+    app.kubernetes.io/version: "5.0.4"
     app.kubernetes.io/managed-by: kubectl
     app.kubernetes.io/component: database
     app.kubernetes.io/part-of: perceptia
@@ -114,36 +114,26 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: mssql
-  serviceName: "mssql"
+      app: redis
+  serviceName: "redis"
   replicas: 1
   template:
     metadata:
       labels:
-        app: mssql
+        app: redis
     spec:
       terminationGracePeriodSeconds: 10
       containers:
-      - name: mssql
-        image: uwthalesians/mssql:0.7.1-build-232-branch-develop
+      - name: redis
+        image: redis:5.0.4-alpine
         ports:
-        - containerPort: 1433
-          name: mssql
-        env:
-          - name: ACCEPT_EULA
-            value: "Y"
-          - name: SKIP_SETUP_IF_EXISTS
-            value: "Y"
-          - name: SA_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: mssql
-                key: sa_password
+        - containerPort: 6379
+          name: redis
         volumeMounts:
-        - name: mssql_vol
-          mountPath: /var/opt/mssql
+        - name: redis_vol
+          mountPath: /data
   volumes:
-    - name: mssql_vol
+    - name: redis_vol
       emptyDir: {}
 ---
 apiVersion: v1
