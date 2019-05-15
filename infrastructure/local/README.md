@@ -76,6 +76,8 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
 `-MsSqlPortPublish` (String) sets the port that the mssql service can recieve requests on, default is "47011" which maps to "1433" inside the container (Note, the mssql service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
 
+`-MsSqlResetDb` (switch) when set, will force the database to be reset if it already exists, default false, meaning the database will not reset if it already exists, but if it doesn't it will be created
+
 `-AqRestVersion` (String) sets the version of the aqrest image to use, default is a known stable version of the image
 
 `-AqRestPortPublish` (String) sets the port that the aqrest service can recieve requests on, default is "47020" which maps to "80" inside the contianer (Note, the aqrest service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)

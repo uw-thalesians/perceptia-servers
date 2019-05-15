@@ -8,6 +8,7 @@ Param (
         [string]$GatewayPortPublish = "4443",
         [String]$MsSqlVersion = "0.7.1",
         [String]$MsSqlPortPublish = "47011",
+        [switch]$MsSqlResetDb,
         [String]$RedisPortPublish = "47012",
         [String]$AqRestVersion = "1.1.0",
         [String]$AqRestPortPublish = "47020",
@@ -35,7 +36,7 @@ if (!$CleanUp) {
 
         Write-Host "`n"
         
-        if ((docker stack ls --format "{{.Name}}") -contains "$PERCEPTIA_STACK_NAME") {
+        if ((docker stack ls --format "{{.Name}}") -contains $PERCEPTIA_STACK_NAME) {
                 Write-Host "Note, due to issue with bind points (see https://github.com/docker/for-win/issues/1521), must clean up stack before redeployment"
                 Write-Host "Cleaning up the docker stack: $PERCEPTIA_STACK_NAME"
                 docker stack rm $PERCEPTIA_STACK_NAME
@@ -80,7 +81,10 @@ if (!$CleanUp) {
                 Write-Host "Version must be provided, but no version provided for mssql, exiting..."
                 exit(1)
         }
-        Set-Item -Path env:MSSQL_PORT_PUBLISH -Value $MsSqlPortPublish
+        Set-Item -Path env:MSSQL_SKIP_SETUP_IF_EXIST -Value "Y"
+        if ($MsSqlResetDb) {
+                Set-Item -Path env:MSSQL_SKIP_SETUP_IF_EXIST -Value "N"
+        }
         # Redis perceptia-stack.yml substituion variables
         Set-Item -Path env:REDIS_IMAGE_AND_TAG -Value "redis:5.0.4-alpine"
         Set-Item -Path env:REDIS_PORT_PUBLISH -Value $RedisPortPublish

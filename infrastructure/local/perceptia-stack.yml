@@ -36,6 +36,10 @@ services:
       - target: 6379
         published: ${REDIS_PORT_PUBLISH}
         mode: ingress
+    volumes:
+      - type: volume
+        source: redis_pc_vol
+        target: /data
     networks:
       perceptia-stack-net:
   mssql:
@@ -49,7 +53,7 @@ services:
     environment:
       ACCEPT_EULA: "Y"
       SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
-      SKIP_SETUP_IF_EXISTS: "Y"
+      SKIP_SETUP_IF_EXISTS: "${MSSQL_SKIP_SETUP_IF_EXIST}"
     volumes:
       - type: volume
         source: mssql_pc_vol
@@ -102,3 +106,4 @@ networks:
 volumes:
   mssql_pc_vol:
   aqmysql_pc_vol:
+  redis_pc_vol:
