@@ -56,6 +56,10 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
         `./localStartExample.ps1 -CleanUp`
 
+        To stop the backend and remove database volumes run the script with the options `-CleanUp` and `-ResetAllDbVolumes`
+
+        `./localStartExample.ps1 -CleanUp -RemoveAllDbVolumes`
+
 ### Comand Line Options
 
 `-CleanUp` (Switch) when used, stops the services started by docker stack deploy, default false
@@ -72,11 +76,15 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
 `-GatewayPortPublish` (String) sets the port that requests can be made to the gateway on, default is "4443"
 
+`-RedisPortPublish` (String) sets the port that the redis service can recieve requests on, default is "47012" which maps to "6379" inside the container (Note, the redis service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
+
+`-RedisResetDb` (switch) when set, will remove the volume the database was created in, forcing it to be rebuilt, default false, meaning the database will not reset if it already exists, but if it doesn't it will be created
+
 `-MsSqlVersion` (String) sets the version of the mssql image to use, default is a known stable version of the image
 
 `-MsSqlPortPublish` (String) sets the port that the mssql service can recieve requests on, default is "47011" which maps to "1433" inside the container (Note, the mssql service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
 
-`-MsSqlResetDb` (switch) when set, will force the database to be reset if it already exists, default false, meaning the database will not reset if it already exists, but if it doesn't it will be created
+`-MsSqlResetDb` (switch) when set, will remove the volume the database was created in, forcing it to be rebuilt, default false, meaning the database will not reset if it already exists, but if it doesn't it will be created
 
 `-AqRestVersion` (String) sets the version of the aqrest image to use, default is a known stable version of the image
 
@@ -86,9 +94,15 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
 `-AqMySqlPortPublish` (String) sets the port that the aqmysql service can recieve requests on, default is "47021" which maps to "3306" inside the contianer (Note, the aqmysql service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
 
+`-AqMySqlResetDb` (switch) when set, will remove the volume the database was created in, forcing it to be rebuilt, default false, meaning the database will not reset if it already exists, but if it doesn't it will be created
+
 `-AqSolrVersion` (String) sets the version of the aqsolr image to use, default is a known stable version of the image
 
 `-AqSolrPortPublish` (String) sets the port that the aqsolr service can recieve requests on, default is "47022" which maps to "8983" inside the contianer (Note, the aqsolr service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
+
+`-RemoveAllDbVolumes` (switch) will cause all volumes used by services labeled as "app.perceptia.info/component=database" to be deleted, will remove the containers that mounted the volumes before removing the volumes, default is false, meaning if volumes exist they will not be removed
+
+`-RemoveAllContainers` (switch) will cause all containers used by the stack labeled as "app.perceptia.info/part-of=perceptia-api" to be deleted
 
 ### Docker Stack Config
 
