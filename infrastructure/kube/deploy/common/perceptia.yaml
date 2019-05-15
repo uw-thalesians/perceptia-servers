@@ -5,7 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/name: gateway
     app.kubernetes.io/instance: gateway-1
-    app.kubernetes.io/version: "0.1.1"
+    app.kubernetes.io/version: "0.3.0"
     app.kubernetes.io/managed-by: kubectl
     app.kubernetes.io/component: server
     app.kubernetes.io/part-of: perceptia
@@ -20,14 +20,14 @@ spec:
         app: gateway
         app.kubernetes.io/name: gateway
         app.kubernetes.io/instance: gateway-1
-        app.kubernetes.io/version: "0.1.1"
+        app.kubernetes.io/version: "0.3.0"
         app.kubernetes.io/managed-by: kubectl
         app.kubernetes.io/component: server
         app.kubernetes.io/part-of: perceptia
     spec:
       containers:
       - name: gateway
-        image: uwthalesians/gateway:0.1.1-build-89-branch-develop
+        image: uwthalesians/gateway:0.3.0-build-232-branch-develop
         ports:
         - containerPort: 443
           name: "https"
@@ -36,6 +36,32 @@ spec:
             value: "/encrypt/tls.crt"
           - name: GATEWAY_TLSKEYPATH
             value: "/encrypt/tls.key"
+          - name: AQREST_HOSTNAME
+            value: "aqrest"
+          - name: AQREST_PORT
+            value: "80"
+          - name: GATEWAY_SESSION_KEY
+            valueFrom:
+              secretKeyRef:
+                name: gateway
+                key: session-key
+          - name: MSSQL_DATABASE
+            value: "Perceptia"
+          - name: MSSQL_HOST
+            value: "mssql"
+          - name: MSSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mssql
+                key: sa_password
+          - name: MSSQL_PORT
+            value: "1433"
+          - name: MSSQL_SCHEME
+            value: "sqlserver"
+          - name: MSSQL_USERNAME
+            value: "sa"
+          - name: REDIS_ADDRESS
+            value: "redis:6379"
         volumeMounts:
           - name: "encrypt"
             mountPath: "/encrypt"
@@ -47,4 +73,136 @@ spec:
       volumes:
         - name: "encrypt"
           secret:
-            secretName: api-tls
+            secretName: api-tls  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql
+  labels:
+    app: mssql
+    app.kubernetes.io/name: mssql
+    app.kubernetes.io/instance: mssql-1
+    app.kubernetes.io/version: "0.7.1"
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: perceptia
+    app.perceptia.info/sub-of: gateway
+spec:
+  ports:
+  - protocol: TCP
+    port: 1433
+    targetPort: mssql
+    name: mssql
+  clusterIP: None
+  selector:
+    app: mssql
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mssql
+  labels:
+    app: mssql
+    app.kubernetes.io/name: mssql
+    app.kubernetes.io/instance: mssql-1
+    app.kubernetes.io/version: "0.7.1"
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: perceptia
+    app.perceptia.info/sub-of: gateway
+spec:
+  selector:
+    matchLabels:
+      app: mssql
+  serviceName: "mssql"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mssql
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mssql
+        image: uwthalesians/mssql:0.7.1-build-232-branch-develop
+        ports:
+        - containerPort: 1433
+          name: mssql
+        env:
+          - name: ACCEPT_EULA
+            value: "Y"
+          - name: SKIP_SETUP_IF_EXISTS
+            value: "Y"
+          - name: SA_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mssql
+                key: sa_password
+        volumeMounts:
+        - name: mssql_vol
+          mountPath: /var/opt/mssql
+  volumes:
+    - name: mssql_vol
+      emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  labels:
+    app: redis
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: redis-1
+    app.kubernetes.io/version: "0.7.1"
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: perceptia
+    app.perceptia.info/sub-of: gateway
+spec:
+  ports:
+  - protocol: TCP
+    port: 1433
+    targetPort: mssql
+    name: mssql
+  clusterIP: None
+  selector:
+    app: mssql
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mssql
+  labels:
+    app: mssql
+    app.kubernetes.io/name: mssql
+    app.kubernetes.io/instance: mssql-1
+    app.kubernetes.io/version: "0.7.1"
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: perceptia
+    app.perceptia.info/sub-of: gateway
+spec:
+  selector:
+    matchLabels:
+      app: mssql
+  serviceName: "mssql"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mssql
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mssql
+        image: uwthalesians/mssql:0.7.1-build-232-branch-develop
+        ports:
+        - containerPort: 1433
+          name: mssql
+        volumeMounts:
+        - name: mssql_vol
+          mountPath: /var/opt/mssql
+  volumes:
+    - name: mssql_vol
+      emptyDir: {}
