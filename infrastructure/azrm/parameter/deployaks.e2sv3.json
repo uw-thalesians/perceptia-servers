@@ -6,7 +6,7 @@
             "value": "perceptiaCluster"
         },
         "location": {
-            "value": "eastus"
+            "value": "westus2"
         },
         "dnsPrefix": {
             "value": "perceptiaCluster-dns"

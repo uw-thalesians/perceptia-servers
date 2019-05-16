@@ -11,6 +11,7 @@
         },
         "location": {
             "type": "string",
+            "defaultValue": "westus2",
             "metadata": {
                 "description": "The location of AKS resource."
             }
@@ -32,7 +33,7 @@
         },
         "agentCount": {
             "type": "int",
-            "defaultValue": 3,
+            "defaultValue": 1,
             "metadata": {
                 "description": "The number of agent nodes for the cluster."
             },
@@ -41,7 +42,7 @@
         },
         "agentVMSize": {
             "type": "string",
-            "defaultValue": "Standard_D2_v2",
+            "defaultValue": "Standard_E2s_v3",
             "metadata": {
                 "description": "The size of the Virtual Machine."
             }
@@ -50,7 +51,7 @@
             "metadata": {
                 "description": "Client ID (used by cloudprovider)."
             },
-            "type": "securestring"
+            "type": "string"
         },
         "servicePrincipalClientSecret": {
             "metadata": {
@@ -70,7 +71,7 @@
         },
         "kubernetesVersion": {
             "type": "string",
-            "defaultValue": "1.7.7",
+            "defaultValue": "1.13.5",
             "metadata": {
                 "description": "The version of Kubernetes."
             }
@@ -115,7 +116,7 @@
         },
         "enableHttpApplicationRouting": {
             "type": "bool",
-            "defaultValue": true,
+            "defaultValue": false,
             "metadata": {
                 "description": "Boolean flag to turn on and off of http application routing."
             }
@@ -183,7 +184,8 @@
                         "count": "[parameters('agentCount')]",
                         "vmSize": "[parameters('agentVMSize')]",
                         "osType": "[parameters('osType')]",
-                        "storageProfile": "ManagedDisks"
+                        "storageProfile": "ManagedDisks",
+                        "maxCount": 2
                     }
                 ],
                 "servicePrincipalProfile": {

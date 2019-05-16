@@ -12,16 +12,16 @@
     The resource group where the template will be deployed. Can be the name of an existing or a new resource group.
 
  .PARAMETER resourceGroupLocation
-    Optional, a resource group location. If specified, will try to create a new resource group in this location. If not specified, assumes resource group is existing.
+    A resource group location. If specified, will try to create a new resource group in this location. If not specified, assumes resource group is existing.
 
  .PARAMETER deploymentName
     The deployment name.
 
  .PARAMETER templateFilePath
-    Optional, path to the template file. Defaults to template.json.
+    Path to the template file. Defaults to template.json.
 
  .PARAMETER parametersFilePath
-    Optional, path to the parameters file. Defaults to parameters.json. If file is not found, will prompt for parameter values based on template.
+    Path to the parameters file. Defaults to parameters.json. If file is not found, will prompt for parameter values based on template.
 #>
 
 param(
@@ -51,7 +51,7 @@ param(
 
  [Parameter(Mandatory=$True)]
  [string]
- $servicePrincipalClientSecret
+ $servicePrincipalClientSecretFile
 )
 
 <#
@@ -105,10 +105,12 @@ else{
     Write-Host "Using existing resource group '$resourceGroupName'";
 }
 
+$SECRET = (Get-Content -Path $servicePrincipalClientSecretFile)
+
 # Start the deployment
 Write-Host "Starting deployment...";
 if(Test-Path $parametersFilePath) {
-    New-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGroupName -Name $deploymentName -TemplateFile $templateFilePath -TemplateParameterFile $parametersFilePath;
+    New-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGroupName -Name $deploymentName -TemplateFile $templateFilePath -TemplateParameterFile $parametersFilePath -servicePrincipalClientSecret $SECRET;
 } else {
-    New-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGroupName -Name $deploymentName -TemplateFile $templateFilePath -servicePrincipalClientSecret ;
+    New-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGroupName -Name $deploymentName -TemplateFile $templateFilePath -servicePrincipalClientSecret $SECRET;
 }
