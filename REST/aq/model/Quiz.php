@@ -26,7 +26,7 @@ class Quiz
         if(isset($this->_paras)) {
             $summary = "";
 
-            print_r(gettype($this->_paras));
+            //print_r(gettype($this->_paras));
 
             foreach($this->_paras as $para) {
                 $summary .= $para["text"];

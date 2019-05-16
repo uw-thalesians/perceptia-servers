@@ -137,8 +137,24 @@ class Connection
                 $response = json_decode($response, true)["response"];
                 // print_r($response);
 
-                $summary = $response["docs"][0]["attr_body"][0];
-                // print_r($summary);
+                #print_r($response["docs"][0]["attr_body"][0]);
+//https://github.com/commonsense/conceptnet5/wiki/API
+                switch($response["docs"][0]["attr_stream_content_type"])
+                {
+                    case "text/html; charset=utf-8":
+                        //check if it's possible to keep original html and use something like beautiful soup
+                        //to extract p tags
+                        $summary = explode("\n \n postPage", $response["docs"][0]["attr_body"][0]);
+                        break;
+                    case "application/pdf":
+                        $summary = explode("\n \n page", $response["docs"][0]["attr_body"][0]);
+                        break;
+
+                    default:
+                        $summary = explode("\n \n ", $response["docs"][0]["attr_body"][0]);
+                }
+                
+                #print_r($summary);
 
                 break;
 
