@@ -82,6 +82,7 @@ if (!$CleanUp) {
                 Write-Host "Version must be provided, but no version provided for mssql, exiting..."
                 exit(1)
         }
+        Set-Item -Path env:MSSQL_PORT_PUBLISH -Value $MsSqlPortPublish
         # Redis perceptia-stack.yml substituion variables
         Set-Item -Path env:REDIS_IMAGE_AND_TAG -Value "redis:5.0.4-alpine"
         Set-Item -Path env:REDIS_PORT_PUBLISH -Value $RedisPortPublish
