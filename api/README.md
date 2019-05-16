@@ -12,6 +12,8 @@ The Perceptia API is a REST based api. The purpose of this document is to define
 
 * [API Specifications](#api-specifications)
 
+* [Internal API Specifications](#internal-api-specifications)
+
 ## [Overview](#overview)
 
 The Perceptia API (API) is designed to service the Perceptia Application, which is currently being developed as a Web Application. This service, and the APIs it exposes are not intended for use by thrid-parties.
@@ -68,6 +70,12 @@ Parameter: `apiVersion={major.minor.patch}:` where major.minor.patch denotes the
 
 Example: `/api/v1/anyquiz/read/apple?apiVersion=1.0.0`
 
+#### [Params Auth Token](#params-auth-token)
+
+Parameter: `access_token={access token}:` where access token is the access token the client wants to authenticate with. Note, the client should only use this if they are unable to use the Authroization header
+
+Example: `/api/v1/anyquiz/read/apple?access_token=`
+
 ## [Making a Request](#making-a-request)
 
 The Perceptia API is available on the public internet. There is currently no access restrictions, although this may change in the future. This section will provide example requests to demonstrate how to make requests to the API.
@@ -109,3 +117,11 @@ A note about API versions below 1, such as 0.1.0. These versions are under devel
 ### [AnyQuiz Service API](#anyquiz-service-api)
 
 * 0.0.0 - [API Specification](./v1/anyquiz/0.1.0.yaml) | [API Documentation](./v1/anyquiz/0.1.0.html) THIS IS A PLACEHOLDER
+
+## [Internal API Specifications](#internal-api-specifications)
+
+The purpose of this section is to define how the api processes requests internally and how internal services communicate.
+
+### [Authentication](#authentication)
+
+The gateway service handles all authentication for the Perceptia API. For informaiton on how an API client authenticates, see the API spec for the gateway, version 0.3.0 or greater. Once the client has authenticated with the system, an authentication token is generated and returned to the client in an Authroization header. This token should then be supplied in an Authorization header on each subsequent request to authenticate the user without the user having to provide their credentials again.

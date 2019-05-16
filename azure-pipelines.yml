@@ -66,6 +66,7 @@ trigger:
     exclude:
     - README.md
     - infrastructure/*
+    - api/*
 
 pr:
   autoCancel: "true"
