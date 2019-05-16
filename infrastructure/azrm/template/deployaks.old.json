@@ -1,7 +1,6 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "apiProfile": "2018-06-01-profile",
-    "contentVersion": "2.0.0.0",
+    "contentVersion": "1.0.0.0",
     "parameters": {
         "resourceName": {
             "type": "string",
@@ -56,7 +55,7 @@
             "metadata": {
                 "description": "The Service Principal Client Secret."
             },
-            "type": "string"
+            "type": "securestring"
         },
         "osType": {
             "type": "string",
@@ -167,7 +166,7 @@
     },
     "resources": [
         {
-            "apiVersion": "2019-04-01",
+            "apiVersion": "2018-03-31",
             "dependsOn": [],
             "type": "Microsoft.ContainerService/managedClusters",
             "location": "[parameters('location')]",
@@ -187,8 +186,8 @@
                     }
                 ],
                 "servicePrincipalProfile": {
-                    "ClientId": "[parameters('servicePrincipalClientId')]",
-                    "Secret": "[parameters('servicePrincipalClientSecret')]"
+                    "clientId": "[parameters('servicePrincipalClientId')]",
+                    "secret": "[parameters('servicePrincipalClientSecret')]"
                 },
                 "networkProfile": {
                     "networkPlugin": "[parameters('networkPlugin')]"
@@ -206,13 +205,12 @@
                 }
             },
             "tags": {
-                "use": "capstone",
-                "part-of": "common"
+                "use": "capstone"
             }
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "SolutionDeployment-20190515165815",
+            "name": "SolutionDeployment-20190426113126",
             "apiVersion": "2017-05-10",
             "resourceGroup": "[split(parameters('omsWorkspaceId'),'/')[4]]",
             "subscriptionId": "[split(parameters('omsWorkspaceId'),'/')[2]]",
@@ -246,9 +244,9 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "ClusterMonitoringMetricPulisherRoleAssignmentDepl-20190515165815",
+            "name": "ClusterMonitoringMetricPulisherRoleAssignmentDepl-20190426113126",
             "apiVersion": "2017-05-10",
-            "resourceGroup": "perceptiaAks",
+            "resourceGroup": "perceptiaAksCluster",
             "subscriptionId": "845419c0-8828-43de-b0cf-793e05e113aa",
             "properties": {
                 "mode": "Incremental",
@@ -261,18 +259,18 @@
                         {
                             "type": "Microsoft.ContainerService/managedClusters/providers/roleAssignments",
                             "apiVersion": "2018-01-01-preview",
-                            "name": "perceptiaCluster/Microsoft.Authorization/6151c25b-a1fc-461a-bc8c-a2c82c9fb416",
+                            "name": "perceptiaCluster/Microsoft.Authorization/44af50a7-d047-462a-8719-97f6d8ab5156",
                             "properties": {
                                 "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '3913510d-42f4-4e42-8a64-420c390055eb')]",
                                 "principalId": "[parameters('principalId')]",
-                                "scope": "/subscriptions/845419c0-8828-43de-b0cf-793e05e113aa/resourceGroups/perceptiaAks/providers/Microsoft.ContainerService/managedClusters/perceptiaCluster"
+                                "scope": "/subscriptions/845419c0-8828-43de-b0cf-793e05e113aa/resourceGroups/perceptiaAksCluster/providers/Microsoft.ContainerService/managedClusters/perceptiaCluster"
                             }
                         }
                     ]
                 }
             },
             "dependsOn": [
-                "/subscriptions/845419c0-8828-43de-b0cf-793e05e113aa/resourceGroups/perceptiaAks/providers/Microsoft.ContainerService/managedClusters/perceptiaCluster"
+                "/subscriptions/845419c0-8828-43de-b0cf-793e05e113aa/resourceGroups/perceptiaAksCluster/providers/Microsoft.ContainerService/managedClusters/perceptiaCluster"
             ]
         }
     ],

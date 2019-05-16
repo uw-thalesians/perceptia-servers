@@ -1,7 +1,5 @@
-# deployrg.ps1
+# deploy-rg.ps1
 # Deploys resource groups used by perceptia backend
-Write-Host "Running script: $(Split-Path $MyInvocation.PSCommandPath -Leaf)"
-Write-Host $MyInvocation.ScriptName
 Write-Host "Deploying resource group: perceptiaAks"
 New-AzDeployment `
 -Name PerceptiaAksRgDeployment `

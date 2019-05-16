@@ -1,21 +1,18 @@
 {
         "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
-        "contentVersion": "1.0.0.0",
+        "contentVersion": "1.1.0.0",
         "parameters": {
-            "location": {
-                "value": "westus2"
-            },
             "publicIpAddressName": {
-                "value": "api-ip"
-            },
-            "publicIpAddressNameDev": {
-                "value": "api-ip-dev"
+                "value": "api"
             },
             "publicIpAddressType": {
                 "value": "Static"
             },
             "publicIpAddressSku": {
                 "value": "Basic"
+            },
+            "partOf": {
+                "value": "api"
             }
         }
-    }
+}

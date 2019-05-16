@@ -9,6 +9,8 @@ metadata:
     app.kubernetes.io/managed-by: kubectl
     app.kubernetes.io/component: server
     app.kubernetes.io/part-of: perceptia
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-resource-group: perceptiaApi
 spec:
   selector:
     app: gateway

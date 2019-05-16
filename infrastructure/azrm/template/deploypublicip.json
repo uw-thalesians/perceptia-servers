@@ -1,14 +1,13 @@
 {
         "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+        "apiProfile": "2018-06-01-profile",
         "contentVersion": "1.0.0.0",
         "parameters": {
             "location": {
-                "type": "string"
+                "type": "string",
+                "defaultValue": "westus2"
             },
             "publicIpAddressName": {
-                "type": "string"
-            },
-            "publicIpAddressNameDev": {
                 "type": "string"
             },
             "publicIpAddressType": {
@@ -16,13 +15,28 @@
             },
             "publicIpAddressSku": {
                 "type": "string"
-            }
+            },
+            "partOf": {
+                    "type": "string",
+                    "metadata": {
+                        "description": "Tag noting the part of the application the resource group is for."
+                    }
+            },
+            "environment": {
+                "type": "string",
+                "metadata": {
+                    "description": "Tag noting the part of the application the resource group is for."
+                },
+                "allowedValues": [
+                    "development",
+                    "production"
+                  ]
+        }
         },
         "resources": [
             {
                 "name": "[parameters('publicIpAddressName')]",
                 "type": "Microsoft.Network/publicIpAddresses",
-                "apiVersion": "2018-08-01",
                 "location": "[parameters('location')]",
                 "properties": {
                     "publicIpAllocationMethod": "[parameters('publicIpAddressType')]"
@@ -31,22 +45,9 @@
                     "name": "[parameters('publicIpAddressSku')]"
                 },
                 "tags": {
-                    "use": "capstone"
-                }
-            },
-            {
-                "name": "[parameters('publicIpAddressNameDev')]",
-                "type": "Microsoft.Network/publicIpAddresses",
-                "apiVersion": "2018-08-01",
-                "location": "[parameters('location')]",
-                "properties": {
-                    "publicIpAllocationMethod": "[parameters('publicIpAddressType')]"
-                },
-                "sku": {
-                    "name": "[parameters('publicIpAddressSku')]"
-                },
-                "tags": {
-                    "use": "capstone"
+                    "use": "capstone",
+                    "part-of": "[parameters('partOf')]",
+                    "environment": "[parameters('environment')]"
                 }
             }
         ],
@@ -54,10 +55,6 @@
             "publicIpAddressName": {
                 "type": "string",
                 "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIpAddressName'))).IpAddress]"
-            },
-            "publicIpAddressNameDev": {
-                "type": "string",
-                "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIpAddressNameDev'))).IpAddress]"
             }
         }
     }
