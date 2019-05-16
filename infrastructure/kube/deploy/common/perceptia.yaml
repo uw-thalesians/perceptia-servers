@@ -3,12 +3,13 @@ kind: Deployment
 metadata:
   name: gateway-deployment
   labels:
-    app.kubernetes.io/name: gateway
-    app.kubernetes.io/instance: gateway-1
-    app.kubernetes.io/version: "0.3.0"
-    app.kubernetes.io/managed-by: kubectl
-    app.kubernetes.io/component: server
-    app.kubernetes.io/part-of: perceptia
+    label.perceptia.info/name: gateway
+    label.perceptia.info/instance: gateway-1
+    label.perceptia.info/version: "0.3.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: server
+    label.perceptia.info/type: frontend
+    label.perceptia.info/part-of: perceptia-api
 spec:
   replicas: 1
   selector:
@@ -18,12 +19,13 @@ spec:
     metadata:
       labels:
         app: gateway
-        app.kubernetes.io/name: gateway
-        app.kubernetes.io/instance: gateway-1
-        app.kubernetes.io/version: "0.3.0"
-        app.kubernetes.io/managed-by: kubectl
-        app.kubernetes.io/component: server
-        app.kubernetes.io/part-of: perceptia
+        label.perceptia.info/name: gateway
+        label.perceptia.info/instance: gateway-1
+        label.perceptia.info/version: "0.3.0"
+        label.perceptia.info/managed-by: kubectl
+        label.perceptia.info/component: server
+        label.perceptia.info/type: frontend
+        label.perceptia.info/part-of: perceptia-api
     spec:
       containers:
       - name: gateway
@@ -80,13 +82,14 @@ kind: Service
 metadata:
   name: redis
   labels:
-    app.kubernetes.io/name: redis
-    app.kubernetes.io/instance: redis-1
-    app.kubernetes.io/version: "5.0.4"
-    app.kubernetes.io/managed-by: kubectl
-    app.kubernetes.io/component: database
-    app.kubernetes.io/part-of: perceptia
-    app.perceptia.info/sub-of: gateway
+    label.perceptia.info/name: redis
+    label.perceptia.info/instance: redis-1
+    label.perceptia.info/version: "5.0.4"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/type: backend
+    label.perceptia.info/sub-of: gateway
 spec:
   ports:
   - protocol: TCP
@@ -103,13 +106,14 @@ metadata:
   name: redis
   labels:
     app: redis
-    app.kubernetes.io/name: redis
-    app.kubernetes.io/instance: redis-1
-    app.kubernetes.io/version: "5.0.4"
-    app.kubernetes.io/managed-by: kubectl
-    app.kubernetes.io/component: database
-    app.kubernetes.io/part-of: perceptia
-    app.perceptia.info/sub-of: gateway
+    label.perceptia.info/name: redis
+    label.perceptia.info/instance: redis-1
+    label.perceptia.info/version: "5.0.4"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: gateway
 spec:
   selector:
     matchLabels:
@@ -131,10 +135,6 @@ spec:
         volumeMounts:
         - name: redis-vol
           mountPath: /data
-        resources:
-          limits:
-            cpu: 100m
-            memory: 512Mi
       volumes:
         - name: redis-vol
           emptyDir: {}
@@ -144,13 +144,14 @@ kind: Service
 metadata:
   name: mssql
   labels:
-    app.kubernetes.io/name: mssql
-    app.kubernetes.io/instance: mssql-1
-    app.kubernetes.io/version: "0.7.1"
-    app.kubernetes.io/managed-by: kubectl
-    app.kubernetes.io/component: database
-    app.kubernetes.io/part-of: perceptia
-    app.perceptia.info/sub-of: gateway
+    label.perceptia.info/name: mssql
+    label.perceptia.info/instance: mssql-1
+    label.perceptia.info/version: "0.7.1"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: gateway
 spec:
   ports:
   - protocol: TCP
@@ -167,13 +168,14 @@ metadata:
   name: mssql
   labels:
     app: mssql
-    app.kubernetes.io/name: mssql
-    app.kubernetes.io/instance: mssql-1
-    app.kubernetes.io/version: "0.7.1"
-    app.kubernetes.io/managed-by: kubectl
-    app.kubernetes.io/component: database
-    app.kubernetes.io/part-of: perceptia
-    app.perceptia.info/sub-of: gateway
+    label.perceptia.info/name: mssql
+    label.perceptia.info/instance: mssql-1
+    label.perceptia.info/version: "0.7.1"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: gateway
 spec:
   selector:
     matchLabels:
@@ -208,7 +210,7 @@ spec:
         resources:
           limits:
             cpu: 300m
-            memory: 2.5Gi
+            memory: 3Gi
       volumes:
         - name: mssql-vol
           emptyDir: {}
@@ -218,12 +220,13 @@ apiVersion: v1
 metadata:
   name: aqrest
   labels:
-    app.kubernetes.io/name: aqrest
-    app.kubernetes.io/instance: gateway-1
-    app.kubernetes.io/version: "1.1.0"
-    app.kubernetes.io/managed-by: kubectl
-    app.kubernetes.io/component: server
-    app.kubernetes.io/part-of: perceptia
+    label.perceptia.info/name: aqrest
+    label.perceptia.info/instance: gateway-1
+    label.perceptia.info/version: "1.1.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: server
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
 spec:
   selector:
     app: aqrest
@@ -239,12 +242,13 @@ kind: Deployment
 metadata:
   name: aqrest-deployment
   labels:
-    app.kubernetes.io/name: aqrest
-    app.kubernetes.io/instance: aqrest-1
-    app.kubernetes.io/version: "1.1.0"
-    app.kubernetes.io/managed-by: kubectl
-    app.kubernetes.io/component: server
-    app.kubernetes.io/part-of: perceptia
+    label.perceptia.info/name: aqrest
+    label.perceptia.info/instance: aqrest-1
+    label.perceptia.info/version: "1.1.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: server
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
 spec:
   replicas: 1
   selector:
@@ -254,12 +258,13 @@ spec:
     metadata:
       labels:
         app: aqrest
-        app.kubernetes.io/name: aqrest
-        app.kubernetes.io/instance: aqrest-1
-        app.kubernetes.io/version: "1.1.0"
-        app.kubernetes.io/managed-by: kubectl
-        app.kubernetes.io/component: server
-        app.kubernetes.io/part-of: perceptia
+        label.perceptia.info/name: aqrest
+        label.perceptia.info/instance: aqrest-1
+        label.perceptia.info/version: "1.1.0"
+        label.perceptia.info/managed-by: kubectl
+        label.perceptia.info/component: server
+        label.perceptia.info/type: backend
+        label.perceptia.info/part-of: perceptia-api
     spec:
       containers:
       - name: aqrest
@@ -275,7 +280,6 @@ spec:
                 key: user_password
         resources:
           limits:
-            cpu: 300m
             memory: 2.5Gi 
 ---
 apiVersion: v1
@@ -283,13 +287,14 @@ kind: Service
 metadata:
   name: aqmysql
   labels:
-    app.kubernetes.io/name: aqmysql
-    app.kubernetes.io/instance: aqmysql-1
-    app.kubernetes.io/version: "1.0.0"
-    app.kubernetes.io/managed-by: kubectl
-    app.kubernetes.io/component: database
-    app.kubernetes.io/part-of: perceptia
-    app.perceptia.info/sub-of: aqrest
+    label.perceptia.info/name: aqmysql
+    label.perceptia.info/instance: aqmysql-1
+    label.perceptia.info/version: "1.0.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: aqrest
 spec:
   ports:
   - protocol: TCP
@@ -306,13 +311,14 @@ metadata:
   name: aqmysql
   labels:
     app: aqmysql
-    app.kubernetes.io/name: aqmysql
-    app.kubernetes.io/instance: aqmysql-1
-    app.kubernetes.io/version: "1.0.0"
-    app.kubernetes.io/managed-by: kubectl
-    app.kubernetes.io/component: database
-    app.kubernetes.io/part-of: perceptia
-    app.perceptia.info/sub-of: aqrest
+    label.perceptia.info/name: aqmysql
+    label.perceptia.info/instance: aqmysql-1
+    label.perceptia.info/version: "1.0.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: aqrest
 spec:
   selector:
     matchLabels:
@@ -347,8 +353,7 @@ spec:
           mountPath: /var/opt/mssql
         resources:
           limits:
-            cpu: 100m
-            memory: 1Gi
+            memory: 2Gi
       volumes:
         - name: aqmysql-vol
           emptyDir: {}
@@ -358,13 +363,14 @@ kind: Service
 metadata:
   name: aqsolr
   labels:
-    app.kubernetes.io/name: aqsolr
-    app.kubernetes.io/instance: aqsolr-1
-    app.kubernetes.io/version: "1.0.0"
-    app.kubernetes.io/managed-by: kubectl
-    app.kubernetes.io/component: database
-    app.kubernetes.io/part-of: perceptia
-    app.perceptia.info/sub-of: aqrest
+    label.perceptia.info/name: aqsolr
+    label.perceptia.info/instance: aqsolr-1
+    label.perceptia.info/version: "1.0.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: aqrest
 spec:
   ports:
   - protocol: TCP
@@ -380,13 +386,14 @@ kind: Deployment
 metadata:
   name: aqsolr-deployment
   labels:
-    app.kubernetes.io/name: aqsolr
-    app.kubernetes.io/instance: aqsolr-1
-    app.kubernetes.io/version: "1.0.0"
-    app.kubernetes.io/managed-by: kubectl
-    app.kubernetes.io/component: database
-    app.kubernetes.io/part-of: perceptia
-    app.perceptia.info/sub-of: aqrest
+    label.perceptia.info/name: aqsolr
+    label.perceptia.info/instance: aqsolr-1
+    label.perceptia.info/version: "1.0.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: aqrest
 spec:
   replicas: 1
   selector:
@@ -396,13 +403,14 @@ spec:
     metadata:
       labels:
         app: aqsolr
-        app.kubernetes.io/name: aqsolr
-        app.kubernetes.io/instance: aqsolr-1
-        app.kubernetes.io/version: "1.0.0"
-        app.kubernetes.io/managed-by: kubectl
-        app.kubernetes.io/component: database
-        app.kubernetes.io/part-of: perceptia
-        app.perceptia.info/sub-of: aqrest
+        label.perceptia.info/name: aqsolr
+        label.perceptia.info/instance: aqsolr-1
+        label.perceptia.info/version: "1.0.0"
+        label.perceptia.info/managed-by: kubectl
+        label.perceptia.info/component: database
+        label.perceptia.info/type: backend
+        label.perceptia.info/part-of: perceptia-api
+        label.perceptia.info/sub-of: aqrest
     spec:
       containers:
       - name: aqsolr

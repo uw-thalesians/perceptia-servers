@@ -22,36 +22,32 @@
 
  .PARAMETER parametersFilePath
     Path to the parameters file. Defaults to parameters.json. If file is not found, will prompt for parameter values based on template.
+
+ .PARAMETER servicePrincipalClientSecretFile
+    Path to the file containing the sp secret file. Defaults to parameters.json. If file is not found, will prompt for parameter values based on template.
 #>
 
 param(
- [Parameter(Mandatory=$True)]
  [string]
  $subscriptionId = "845419c0-8828-43de-b0cf-793e05e113aa",
 
- [Parameter(Mandatory=$True)]
  [string]
  $resourceGroupName = "perceptiaAks",
 
- [Parameter(Mandatory=$True)]
  [string]
  $resourceGroupLocation = "westus2",
 
- [Parameter(Mandatory=$True)]
  [string]
  $deploymentName = "PerceptiaClusterDeployment",
 
- [Parameter(Mandatory=$True)]
  [string]
  $templateFilePath = ".\..\template\deployaks.json",
 
- [Parameter(Mandatory=$True)]
  [string]
  $parametersFilePath = ".\..\parameter\deployask.e2v3.json",
 
- [Parameter(Mandatory=$True)]
  [string]
- $servicePrincipalClientSecretFile
+ $servicePrincipalClientSecretFile = "$env:SECRET_PERCEPTIA_SERVERS\aks\sp\Secret.txt"
 )
 
 <#

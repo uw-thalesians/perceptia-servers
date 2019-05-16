@@ -185,7 +185,8 @@
                         "vmSize": "[parameters('agentVMSize')]",
                         "osType": "[parameters('osType')]",
                         "storageProfile": "ManagedDisks",
-                        "maxCount": 2
+                        "maxCount": 2,
+                        "maxPods": "[parameters('maxPods')]"
                     }
                 ],
                 "servicePrincipalProfile": {
