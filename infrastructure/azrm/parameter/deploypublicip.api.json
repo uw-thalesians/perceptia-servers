@@ -13,6 +13,9 @@
             },
             "partOf": {
                 "value": "api"
+            },
+            "environment": {
+                "value": "production"
             }
         }
 }

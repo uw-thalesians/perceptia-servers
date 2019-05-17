@@ -71,7 +71,7 @@ spec:
         resources:
           limits:
             cpu: 200m
-            memory: 128Mi
+            memory: 1Gi
       volumes:
         - name: "encrypt"
           secret:
@@ -207,10 +207,6 @@ spec:
         volumeMounts:
         - name: mssql-vol
           mountPath: /var/opt/mssql
-        resources:
-          limits:
-            cpu: 300m
-            memory: 3Gi
       volumes:
         - name: mssql-vol
           emptyDir: {}
@@ -233,8 +229,8 @@ spec:
   ports:
   - protocol: TCP
     port: 80
-    targetPort: https
-    name: https
+    targetPort: http
+    name: http
   clusterIP: None
 ---
 apiVersion: apps/v1
@@ -278,9 +274,6 @@ spec:
               secretKeyRef:
                 name: aqmysql
                 key: user_password
-        resources:
-          limits:
-            memory: 2.5Gi 
 ---
 apiVersion: v1
 kind: Service
@@ -423,7 +416,3 @@ spec:
         ports:
         - containerPort: 8983
           name: aqsolr
-        resources:
-          limits:
-            cpu: 200m
-            memory: 4.5Gi

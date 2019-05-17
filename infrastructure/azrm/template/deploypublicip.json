@@ -36,6 +36,7 @@
     "resources": [
         {
             "name": "[parameters('publicIpAddressName')]",
+            "apiVersion": "2018-08-01",
             "type": "Microsoft.Network/publicIpAddresses",
             "location": "[parameters('location')]",
             "properties": {
