@@ -150,17 +150,21 @@ For testing the gateway locally, the [localStartExample.ps1](./localStartExample
 
 The PowerShell script, [localStartExample.ps1](./localStartExample.ps1) will run the gateway image as a container inside a docker network and expose it to localhost. This script has several command line options which allow you to customize the instance. By default this script will also start the gateway dependencies (redis and mssql servers).
 
-##### Comand Line Options
+##### Command Line Options
 
 The script accepts several comand line options which can be set when running the script in a PowerShell terminal. No positional options.
 
 Unless you need to run your own mssql container or build the gateway container locally, you should not have to provide any options to the local start script.
 
-Run: `.\locaStartExample.ps1`
+    Run: `.\locaStartExample.ps1`
 
-However, **if you want to retian redis and mssql databases between runs of the containers**, you need to include the -KeepMsSqlDb and -KeepMsSqlDb switch parameters.
+However, **if you want to remove redis and mssql databases between runs of the containers**, you need to include the -RedisRemoveDbVolume and -MsSqlRemoveDbVolume switch parameters or the -RemoveAllDbVolumes parameter.
 
-Run: `.\locaStartExample.ps1 -KeepMsSqlDb -KeepRedisDb`
+    Run: `.\locaStartExample.ps1 -RedisRemoveDbVolume -MsSqlRemoveDbVolume`
+
+To clean up (take down the containers started by running this script):
+
+    Run: `.\locaStartExample.ps1 -CleanUp -RemoveAllDbVolumes`
 
 `-MsSqlDatabase` (string) which is used to pass in the name of the database to use for connections to the server, default value is: "Perceptia"
 
@@ -178,7 +182,7 @@ Run: `.\locaStartExample.ps1 -KeepMsSqlDb -KeepRedisDb`
 
 `-PerceptiaDockerNet` (string) which is the name of the docker network the container should be attached to when run, default value is "perceptia-net"
 
-`-GatewayPort` which is the port the gateway service should be exposed on the host machine, default value is "4443"
+`-GatewayPortPublish` which is the port the gateway service should be exposed on the host machine, default value is "4443"
 
 `-RedisPort` which is the port the gateway should reach the redis container at, default is: "6379
 
@@ -188,11 +192,15 @@ Run: `.\locaStartExample.ps1 -KeepMsSqlDb -KeepRedisDb`
 
 `-SkipMsSql` (switch) will skip starting the mssql dependency, default is: false. If you are starting your own mssql instance, set option by including the switch
 
-`-KeepMsSqlDb` (switch) will start the mssql dependency with an existing database if it already exists, default is: false. If you want to retain a previously created database, set the option by including the switch
+`-MsSqlRemoveDbVolume` (switch) will remove any existing named volume used by the mssql service, default is false
 
-`-KeepRedisDb` (switch) will start the redis dependency with an existing database if it already exists, default is: false. If you want to retain a previously created database, set the option by including the switch
+`-RedisRemoveDbVolume` (switch) will remove any existing named volume used by the redis service, default is false
 
 `-BuildGateway` (switch) will build the gateway using the local source, default is: false. To set true, include the switch
+
+`-RemoveAllDbVolumes` (switch) will remove any existing named volume used by the redis or mssql service, default is false
+
+`-CleanUp` (switch) will remove any existing container started by this script
 
 ### [Start with Docker Commands](#start-with-docker-commands)
 
