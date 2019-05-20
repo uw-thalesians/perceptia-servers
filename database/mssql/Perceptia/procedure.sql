@@ -154,12 +154,15 @@ GO
 --	@UserUuid:	UNIQUEIDENTIFIER the uuid for the user who's information should be returned.
 --				Must be a valid v4 UUID.
 -- Outputs
---	Query row containing 5 columns (should be exactly one row).
+--	Query row containing 8 columns (should be exactly one row).
 --		UserUuid: UNIQUEIDENTIFIER the uuid of the user who's info was requested.
 --		Username: NVARCHAR(255) the username of the user who's info was requested.
 --		DisplayName: NVARCHAR(255) the DisplayName of the user who's info was requested.
 --		Bio: NVARCHAR(1000) a user provided description of self.
---		GravitarUrl: NVARCHAR(1000) avitar image for user.
+--		GravitarUrl: NVARCHAR(1000) gravitar image for user.
+--		ShareDisplayName: NCHAR(1) if field should be shared, Y if yes, N if no.
+--		ShareBio: NCHAR(1) if field should be shared, Y if yes, N if no.
+--		ShareGravitarUrl: NCHAR(1) if field should be shared, Y if yes, N if no.
 -- Errors
 --	50101: The provided UserUuid was null.
 --	50301: No user found with the provided UserUuid.
@@ -201,11 +204,11 @@ GO
 --	@Username:	NVARCHAR(255) the username for the user who's uuid should be returned.
 --				Must be a valid username in the system.
 -- Outputs
---	Query row containing 3 columns (should be exactly one row)
+--	Query row containing 1 columns (should be exactly one row).
 --		Uuid: UNIQUEIDENTIFIER the uuid of the user who's info was requested.
 -- Errors
---	50101: The provided Username was null
---	50301: No user found with the provided Username
+--	50101: The provided Username was null.
+--	50301: No user found with the provided Username.
 CREATE PROCEDURE [USP_ReadUserUuidByUsername]
 	@Username NVARCHAR(255)
 AS
@@ -230,7 +233,7 @@ GO
 -- ReadUserDisplayNameByUuid --
 -----------------------------------------------------------
 
--- USP_ReadUserProfileByUuid gets the displayname for the given user.
+-- USP_ReadUserDisplayNameByUuid gets the displayname for the given user.
 -- Parameters
 --	@UserUuid:	UNIQUEIDENTIFIER the uuid for the user who's information should be returned.
 --				Must be a valid v4 UUID.
@@ -371,45 +374,6 @@ END
 ;
 GO
 
------------------------------------------------------------
--- ReadUserEmailsByUsername --
------------------------------------------------------------
-
--- USP_ReadUserEmailsByUsername returns a list of the emails associated with the given user.
--- Parameters
---	@Username:	the username for the user who's information should be returned.
---				Must be a valid username in the system.
--- Outputs
---	Query row containing 3 columns (may return 0 or more rows).
---		Uuid: UNIQUEIDENTIFIER of Email.
---		Email: NVARCHAR(255) a single email.
---		Created: DATETIME the date when the email was added.
--- Errors
---	50101: The provided Username was null.
---	50301: No user found with the provided Username.
-CREATE PROCEDURE [USP_ReadUserEmailsByUsername]
-	@Username NVARCHAR(255)
-AS
-SET NOCOUNT ON
-;
-BEGIN
-	IF @Username IS NULL
-		THROW 50101, N'username must not be null', 1
-	;
-	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Username] = @Username)
-		THROW 50301, N'user does not exist', 1
-	;
-	SELECT [E].[Uuid], [E].[Email], [E].[Created] 
-		FROM [User] AS [U]
-		INNER JOIN [UserEmail] AS [UE]
-			ON [U].[Uuid] = [UE].[User_UUID]
-		INNER JOIN [Email] AS [E]
-			ON [UE].[Email_Uuid] = [E].[Uuid]
-		WHERE [U].[Username] = @Username
-	;
-END
-;
-GO
 
 -----------------------------------------------------------
 -- ReadUserUsernamesByEmail --
@@ -417,8 +381,8 @@ GO
 
 -- USP_ReadUserUsernamesByEmail returns a list of the usernames associated with the given email.
 -- Parameters
---	@Email:	the username for the user who's information should be returned.
---				Must be a valid username in the system.
+--	@Email:	the email for the user who's information should be returned.
+--				Must be a valid email in the system.
 -- Outputs
 --	Query row containing 3 columns (may return 0 or more rows).
 --		Uuid: UNIQUEIDENTIFIER of a user.
@@ -437,7 +401,7 @@ BEGIN
 		THROW 50101, N'email must not be null', 1
 	;
 	IF NOT EXISTS (SELECT [Email] FROM [Email] WHERE [Email] = @Email)
-		THROW 50301, N'user does not exist', 1
+		THROW 50301, N'email does not exist', 1
 	;
 	SELECT [U].[Uuid], [U].[Username], [U].[Created] 
 		FROM [User] AS [U]
@@ -455,13 +419,13 @@ GO
 -- ReadUserEncodedHashByUsername --
 -----------------------------------------------------------
 
--- USP_ReadUserEncodedHashByUsername returns the encoded has stored for the given user.
+-- USP_ReadUserEncodedHashByUsername returns the encoded hash stored for the given user.
 -- Parameters
 --	@Username:	the username for the user who's encoded hash should be returned.
 --				Must be a valid username in the system.
 -- Outputs
 --	Query row containing 1 column (should return exactly one row).
---		EncodedHash: NVARCHAR(500) is the encoded has for the user.
+--		EncodedHash: NVARCHAR(500) is the encoded hash for the user.
 -- Errors
 --	50101: The provided Username was null.
 --	50301: No user found with the provided Username.
@@ -475,7 +439,7 @@ BEGIN
 		THROW 50101, N'username must not be null', 1
 	;
 	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Username] = @Username)
-		THROW 50301, N'user does not exist', 1
+		THROW 50301, N'username does not exist', 1
 	;
 	SELECT [EncodedHash]
 		FROM [dbo].[Credential] AS [C]
@@ -543,7 +507,6 @@ GO
 --	Query row containing 4 columns (may return 0 or more rows).
 --		Uuid: UNIQUEIDENTIFIER of session.
 --		SessionId: NVARCHAR(255) session id portion of access token.
---		Status: NVARCHAR(255) is session active, one of {Active, Expired}.
 --		Created: DATETIME the date when the session was added.
 -- Errors
 --	50101: The provided UserUuid was null.
@@ -560,7 +523,7 @@ BEGIN
 	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @UserUuid)
 		THROW 50301, N'user does not exist', 1
 	;
-	SELECT [S].[Uuid], [S].[SessionId], [S].[Status], [S].[Created]
+	SELECT [S].[Uuid], [S].[SessionId], [S].[Created]
 		FROM [dbo].[Session] AS [S]
 		INNER JOIN [dbo].[UserSession] AS [US]
 			ON [S].Uuid=[US].[Session_Uuid]
@@ -588,15 +551,16 @@ GO
 --				Must be a valid username in the system.
 --	@FullName:	NVARCHAR(255) (required) the FullName for the user who's should be added to the database.
 --	@DisplayName:	NVARCHAR(255) (required) the DisplayName for the user who's should be added to the database.
---	@EncodedHash:	NVARCHAR(255) (required) the EncodedHash of the users password.
+--	@EncodedHash:	NVARCHAR(500) (required) the EncodedHash of the users password.
 -- Outputs
---	Query row containing 4 columns (may return 0 or more rows).
+--	Query row containing 4 columns (should return exactly one row).
 --		Uuid: UNIQUEIDENTIFIER uuid of user added.
 --		Username: NVARCHAR(255) username of user added.
 --		FullName: NVARCHAR(255) full name of user added.
 --		DisplayName: NVARCHAR(255) the display name of the user added.
 -- Errors
 --	50401: User with provided uuid already exists.
+--	50402: User with provided username already exists.
 CREATE PROCEDURE [USP_CreateUser]
 	@UserUuid UNIQUEIDENTIFIER = NULL
 	,@Username NVARCHAR(255)
@@ -612,6 +576,9 @@ BEGIN TRY
 	;
 	IF EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @UserUuid)
 		THROW 50401, N'user with provided uuid already exists', 1
+	;
+	IF EXISTS (SELECT [Uuid] FROM [User] WHERE [Username] = @Username)
+		THROW 50402, N'user with provided username already exists', 1
 	;
 	DECLARE @CredentialUuid UNIQUEIDENTIFIER;
 	DECLARE @ProfileUuid UNIQUEIDENTIFIER;
@@ -686,7 +653,7 @@ GO
 -- CreateUserEmail --
 -----------------------------------------------------------
 
--- USP_CreateUserEmail adds the provided email to the specified users list of emails.
+-- USP_CreateUserEmail adds the provided email to the specified user's list of emails.
 -- Parameters
 --	@UserUuid:	UNIQUEIDENTIFIER the UserUuid for the user who's information should be inserted.
 --				Must be a valid v4 UUID.
@@ -748,7 +715,7 @@ BEGIN CATCH
 	END
 	;
 	THROW
-END CATCH;
+END CATCH
 ;
 GO
 
@@ -782,7 +749,7 @@ BEGIN TRY
 		THROW 50101, N'uuid must not be null', 1
 		;
 	IF @EncodedHash IS NULL
-		THROW 50101, N'encoded hash must not be null', 1
+		THROW 50102, N'encoded hash must not be null', 1
 		;
 	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @UserUuid)
 		THROW 50301, N'user does not exist', 1
@@ -825,7 +792,7 @@ BEGIN CATCH
 	END
 	;
 	THROW
-END CATCH;
+END CATCH
 ;
 GO
 
@@ -876,7 +843,7 @@ BEGIN CATCH
 	END
 	;
 	THROW
-END CATCH;
+END CATCH
 ;
 GO
 
@@ -935,7 +902,7 @@ BEGIN CATCH
 	END
 	;
 	THROW
-END CATCH;
+END CATCH
 ;
 GO
 
@@ -986,7 +953,7 @@ BEGIN CATCH
 	END
 	;
 	THROW
-END CATCH;
+END CATCH
 ;
 GO
 
@@ -1019,11 +986,9 @@ BEGIN TRY
 		;
 	DECLARE @ProfileUuid UNIQUEIDENTIFIER
 	SET @ProfileUuid = (
-			SELECT [P].[Uuid] FROM [User] AS [U]
+			SELECT [UP].[Profile_Uuid] FROM [User] AS [U]
 				INNER JOIN [UserProfile] AS [UP]
 					ON [U].[Uuid] = [UP].[User_Uuid]
-				INNER JOIN [Profile] AS [P]
-					ON [UP].[Profile_Uuid] = [P].[Uuid]
 				WHERE [U].[Uuid] = @UserUuid
 		)
 	BEGIN TRANSACTION [T1]
@@ -1042,7 +1007,7 @@ BEGIN CATCH
 	END
 	;
 	THROW
-END CATCH;
+END CATCH
 ;
 GO
 
@@ -1075,11 +1040,9 @@ BEGIN TRY
 		;
 	DECLARE @ProfileUuid UNIQUEIDENTIFIER
 	SET @ProfileUuid = (
-			SELECT [P].[Uuid] FROM [User] AS [U]
+			SELECT [UP].[Profile_Uuid] FROM [User] AS [U]
 				INNER JOIN [UserProfile] AS [UP]
 					ON [U].[Uuid] = [UP].[User_Uuid]
-				INNER JOIN [Profile] AS [P]
-					ON [UP].[Profile_Uuid] = [P].[Uuid]
 				WHERE [U].[Uuid] = @UserUuid
 		)
 	BEGIN TRANSACTION [T1]
@@ -1098,7 +1061,7 @@ BEGIN CATCH
 	END
 	;
 	THROW
-END CATCH;
+END CATCH
 ;
 GO
 
@@ -1132,18 +1095,16 @@ BEGIN TRY
 		THROW 50102, N'share must not be null', 1
 		;
 	IF @Share != N'Y' OR @Share != N'N'
-		THROW 50102, N'share can only be Y or N', 1
+		THROW 50201, N'share can only be Y or N', 1
 		;
 	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @UserUuid)
 		THROW 50301, N'user does not exist', 1
 		;
 	DECLARE @ProfileSharingUuid UNIQUEIDENTIFIER
 	SET @ProfileSharingUuid = (
-			SELECT [PS].[Uuid] FROM [User] AS [U]
+			SELECT [UPS].[ProfileSharing_Uuid] FROM [User] AS [U]
 				INNER JOIN [UserProfileSharing] AS [UPS]
 					ON [U].[Uuid] = [UPS].[User_Uuid]
-				INNER JOIN [ProfileSharing] AS [PS]
-					ON [UPS].[ProfileSharing_Uuid] = [PS].[Uuid]
 				WHERE [U].[Uuid] = @UserUuid
 		)
 	BEGIN TRANSACTION [T1]
@@ -1162,7 +1123,7 @@ BEGIN CATCH
 	END
 	;
 	THROW
-END CATCH;
+END CATCH
 ;
 GO
 
@@ -1196,18 +1157,16 @@ BEGIN TRY
 		THROW 50102, N'share must not be null', 1
 		;
 	IF @Share != N'Y' OR @Share != N'N'
-		THROW 50102, N'share can only be Y or N', 1
+		THROW 50201, N'share can only be Y or N', 1
 		;
 	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @UserUuid)
 		THROW 50301, N'user does not exist', 1
 		;
 	DECLARE @ProfileSharingUuid UNIQUEIDENTIFIER
 	SET @ProfileSharingUuid = (
-			SELECT [PS].[Uuid] FROM [User] AS [U]
+			SELECT [UPS].[ProfileSharing_Uuid] FROM [User] AS [U]
 				INNER JOIN [UserProfileSharing] AS [UPS]
 					ON [U].[Uuid] = [UPS].[User_Uuid]
-				INNER JOIN [ProfileSharing] AS [PS]
-					ON [UPS].[ProfileSharing_Uuid] = [PS].[Uuid]
 				WHERE [U].[Uuid] = @UserUuid
 		)
 	BEGIN TRANSACTION [T1]
@@ -1226,7 +1185,7 @@ BEGIN CATCH
 	END
 	;
 	THROW
-END CATCH;
+END CATCH
 ;
 GO
 
@@ -1260,18 +1219,16 @@ BEGIN TRY
 		THROW 50102, N'share must not be null', 1
 		;
 	IF @Share != N'Y' OR @Share != N'N'
-		THROW 50102, N'share can only be Y or N', 1
+		THROW 50201, N'share can only be Y or N', 1
 		;
 	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @UserUuid)
 		THROW 50301, N'user does not exist', 1
 		;
 	DECLARE @ProfileSharingUuid UNIQUEIDENTIFIER
 	SET @ProfileSharingUuid = (
-			SELECT [PS].[Uuid] FROM [User] AS [U]
+			SELECT [UPS].[ProfileSharing_Uuid] FROM [User] AS [U]
 				INNER JOIN [UserProfileSharing] AS [UPS]
 					ON [U].[Uuid] = [UPS].[User_Uuid]
-				INNER JOIN [ProfileSharing] AS [PS]
-					ON [UPS].[ProfileSharing_Uuid] = [PS].[Uuid]
 				WHERE [U].[Uuid] = @UserUuid
 		)
 	BEGIN TRANSACTION [T1]
@@ -1290,7 +1247,7 @@ BEGIN CATCH
 	END
 	;
 	THROW
-END CATCH;
+END CATCH
 ;
 GO
 
@@ -1396,10 +1353,6 @@ BEGIN TRY
 					ON [UE].[Email_Uuid] = [E].[Uuid]
 				WHERE [U].[Uuid] = @UserUuid AND [E].[Email] = @Email
 		)
-	;
-	IF @EmailUuid IS NULL
-		THROW 50202, N'user email does not exist', 1
-		;
 	;
 	BEGIN TRANSACTION [T1]
 		DELETE FROM [Email]
