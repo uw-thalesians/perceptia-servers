@@ -11,11 +11,17 @@
         "dnsPrefix": {
             "value": "perceptiaCluster-dns"
         },
+        "osDiskSizeGB": {
+            "value": 64
+        },
         "agentCount": {
             "value": 1
         },
         "agentVMSize": {
-            "value": "Standard_A2m_v2"
+            "value": "Standard_E2s_v3"
+        },
+        "servicePrincipalClientId": {
+            "value": "c7fca245-ee6b-486c-9437-bb1b60907bcd"
         },
         "kubernetesVersion": {
             "value": "1.13.5"
@@ -39,7 +45,7 @@
             "value": "eastus"
         },
         "principalId": {
-            "value": "5f6e8a67-b296-40d1-b224-71a4c29941be"
+            "value": "fa39d507-02f2-4018-b719-2c2c2cd154b7"
         }
     }
 }

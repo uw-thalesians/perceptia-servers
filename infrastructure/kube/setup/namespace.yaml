@@ -3,13 +3,13 @@ kind: "Namespace"
 metadata:
   name: "development"
   labels:
-    name: "development"
-    environment: "development"
+    label.perceptia.info/name: development
+    label.perceptia.info/environment: development
 ---
 apiVersion: "v1"
 kind: "Namespace"
 metadata:
   name: "production"
   labels:
-    name: "production"
-    environment: "production"
+    label.perceptia.info/name: "production"
+    label.perceptia.info/environment: "production"

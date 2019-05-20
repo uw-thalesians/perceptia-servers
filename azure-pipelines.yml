@@ -5,6 +5,8 @@ name: $(Build.BuildId)
 
 variables:
   - group: Common
+  - group: Api
+  - group: ApiDevelopment
   # Gateway Variables
   - name: GatewayVersionMajor
     value: '0'
@@ -66,6 +68,7 @@ trigger:
     exclude:
     - README.md
     - infrastructure/*
+    - api/*
 
 pr:
   autoCancel: "true"

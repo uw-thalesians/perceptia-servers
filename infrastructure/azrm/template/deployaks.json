@@ -1,6 +1,7 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
+    "apiProfile": "2018-06-01-profile",
+    "contentVersion": "2.0.0.0",
     "parameters": {
         "resourceName": {
             "type": "string",
@@ -10,6 +11,7 @@
         },
         "location": {
             "type": "string",
+            "defaultValue": "westus2",
             "metadata": {
                 "description": "The location of AKS resource."
             }
@@ -31,7 +33,7 @@
         },
         "agentCount": {
             "type": "int",
-            "defaultValue": 3,
+            "defaultValue": 1,
             "metadata": {
                 "description": "The number of agent nodes for the cluster."
             },
@@ -40,7 +42,7 @@
         },
         "agentVMSize": {
             "type": "string",
-            "defaultValue": "Standard_D2_v2",
+            "defaultValue": "Standard_E2s_v3",
             "metadata": {
                 "description": "The size of the Virtual Machine."
             }
@@ -49,13 +51,13 @@
             "metadata": {
                 "description": "Client ID (used by cloudprovider)."
             },
-            "type": "securestring"
+            "type": "string"
         },
         "servicePrincipalClientSecret": {
             "metadata": {
                 "description": "The Service Principal Client Secret."
             },
-            "type": "securestring"
+            "type": "string"
         },
         "osType": {
             "type": "string",
@@ -69,7 +71,7 @@
         },
         "kubernetesVersion": {
             "type": "string",
-            "defaultValue": "1.7.7",
+            "defaultValue": "1.13.5",
             "metadata": {
                 "description": "The version of Kubernetes."
             }
@@ -105,16 +107,9 @@
                 "description": "Boolean flag to turn on and off of VM scale sets"
             }
         },
-        "windowsProfile": {
-            "type": "bool",
-            "defaultValue": false,
-            "metadata": {
-                "description": "Boolean flag to turn on and off of VM scale sets"
-            }
-        },
         "enableHttpApplicationRouting": {
             "type": "bool",
-            "defaultValue": true,
+            "defaultValue": false,
             "metadata": {
                 "description": "Boolean flag to turn on and off of http application routing."
             }
@@ -166,7 +161,7 @@
     },
     "resources": [
         {
-            "apiVersion": "2018-03-31",
+            "apiVersion": "2019-04-01",
             "dependsOn": [],
             "type": "Microsoft.ContainerService/managedClusters",
             "location": "[parameters('location')]",
@@ -182,12 +177,13 @@
                         "count": "[parameters('agentCount')]",
                         "vmSize": "[parameters('agentVMSize')]",
                         "osType": "[parameters('osType')]",
-                        "storageProfile": "ManagedDisks"
+                        "storageProfile": "ManagedDisks",
+                        "maxPods": "[parameters('maxPods')]"
                     }
                 ],
                 "servicePrincipalProfile": {
-                    "clientId": "[parameters('servicePrincipalClientId')]",
-                    "secret": "[parameters('servicePrincipalClientSecret')]"
+                    "ClientId": "[parameters('servicePrincipalClientId')]",
+                    "Secret": "[parameters('servicePrincipalClientSecret')]"
                 },
                 "networkProfile": {
                     "networkPlugin": "[parameters('networkPlugin')]"
@@ -205,12 +201,13 @@
                 }
             },
             "tags": {
-                "use": "capstone"
+                "use": "capstone",
+                "part-of": "common"
             }
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "SolutionDeployment-20190426113126",
+            "name": "SolutionDeployment-20190515165815",
             "apiVersion": "2017-05-10",
             "resourceGroup": "[split(parameters('omsWorkspaceId'),'/')[4]]",
             "subscriptionId": "[split(parameters('omsWorkspaceId'),'/')[2]]",
@@ -244,9 +241,9 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "ClusterMonitoringMetricPulisherRoleAssignmentDepl-20190426113126",
+            "name": "ClusterMonitoringMetricPulisherRoleAssignmentDepl-20190515165815",
             "apiVersion": "2017-05-10",
-            "resourceGroup": "perceptiaAksCluster",
+            "resourceGroup": "perceptiaAks",
             "subscriptionId": "845419c0-8828-43de-b0cf-793e05e113aa",
             "properties": {
                 "mode": "Incremental",
@@ -259,18 +256,18 @@
                         {
                             "type": "Microsoft.ContainerService/managedClusters/providers/roleAssignments",
                             "apiVersion": "2018-01-01-preview",
-                            "name": "perceptiaCluster/Microsoft.Authorization/44af50a7-d047-462a-8719-97f6d8ab5156",
+                            "name": "perceptiaCluster/Microsoft.Authorization/6151c25b-a1fc-461a-bc8c-a2c82c9fb416",
                             "properties": {
                                 "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '3913510d-42f4-4e42-8a64-420c390055eb')]",
                                 "principalId": "[parameters('principalId')]",
-                                "scope": "/subscriptions/845419c0-8828-43de-b0cf-793e05e113aa/resourceGroups/perceptiaAksCluster/providers/Microsoft.ContainerService/managedClusters/perceptiaCluster"
+                                "scope": "/subscriptions/845419c0-8828-43de-b0cf-793e05e113aa/resourceGroups/perceptiaAks/providers/Microsoft.ContainerService/managedClusters/perceptiaCluster"
                             }
                         }
                     ]
                 }
             },
             "dependsOn": [
-                "/subscriptions/845419c0-8828-43de-b0cf-793e05e113aa/resourceGroups/perceptiaAksCluster/providers/Microsoft.ContainerService/managedClusters/perceptiaCluster"
+                "/subscriptions/845419c0-8828-43de-b0cf-793e05e113aa/resourceGroups/perceptiaAks/providers/Microsoft.ContainerService/managedClusters/perceptiaCluster"
             ]
         }
     ],
