@@ -17,11 +17,12 @@ Param (
 # File: localStartExample.ps1
 
 Set-Variable -Name LATEST_COMMIT -Value "$(git rev-parse --short HEAD)"
-Set-Variable -Name MSSQL_SERVICE_NAME -Value "mssql"
-Set-Variable -Name MSSQL_IMAGE_NAME -Value "${MSSQL_SERVICE_NAME}"
+Set-Variable -Name MSSQL_CONTAINER_NAME -Value "mssql"
+Set-Variable -Name MSSQL_SL_SERVICE_NAME -Value "mssql-sl-svc"
+Set-Variable -Name MSSQL_IMAGE_NAME -Value "${MSSQL_CONTAINER_NAME}"
 Set-Variable -Name MSSQL_IMAGE_TAG -Value "${LATEST_COMMIT}"
 Set-Variable -Name MSSQL_IMAGE_AND_TAG -Value "${MSSQL_IMAGE_NAME}:${MSSQL_IMAGE_TAG}"
-Set-Variable -Name MSSQL_VOLUME_NAME -Value "mssql-svc_mssql_vol"
+Set-Variable -Name MSSQL_VOLUME_NAME -Value "${MSSQL_SL_SERVICE_NAME}_mssql_vol"
 
 if (!$CleanUp) {
     if ($BuildMsSql) {
@@ -31,8 +32,8 @@ if (!$CleanUp) {
     }
     
 
-    docker rm --force (docker ps -aq --filter "label=label.perceptia.info/part-of=mssql-svc")
-    docker rm --force $MSSQL_SERVICE_NAME
+    docker rm --force (docker ps -aq --filter "label=label.perceptia.info/part-of=${MSSQL_SL_SERVICE_NAME}")
+    docker rm --force $MSSQL_CONTAINER_NAME
     if ($MsSqlRemoveDbVolume) {
         Write-Host "MsSqlRemoveDbVolume option true, removing previous database"
         docker volume rm $MSSQL_VOLUME_NAME
@@ -49,21 +50,21 @@ if (!$CleanUp) {
     --env "SA_PASSWORD=$MsSqlSaPassword" `
     --env "SKIP_SETUP_IF_EXISTS=$MsSqlSkipSetupIfExist" `
     --env "SKIP_SETUP=$MsSqlSkipSetup" `
-    --label "label.perceptia.info/name=mssql" `
-    --label "label.perceptia.info/instance=mssql-1" `
+    --label "label.perceptia.info/name=${MSSQL_CONTAINER_NAME}" `
+    --label "label.perceptia.info/instance=${MSSQL_CONTAINER_NAME}-1" `
     --label "label.perceptia.info/managed-by=docker" `
     --label "label.perceptia.info/component=database" `
-    --label "label.perceptia.info/part-of=mssql-svc" `
+    --label "label.perceptia.info/part-of=${MSSQL_SL_SERVICE_NAME}" `
     --mount type=volume,source=${MSSQL_VOLUME_NAME},destination=/var/opt/mssql `
-    --name=${MSSQL_SERVICE_NAME} `
+    --name=${MSSQL_CONTAINER_NAME} `
     --network $PerceptiaDockerNet `
     --publish "${MsSqlPortPublish}:1433" `
     ${MSSQL_IMAGE_AND_TAG}
 
-    Write-Host "MsSql Server is listening inside docker network: ${PerceptiaDockerNet} at: ${MSSQL_SERVICE_NAME}:1433"
+    Write-Host "MsSql Server is listening inside docker network: ${PerceptiaDockerNet} at: ${MSSQL_CONTAINER_NAME}:1433"
     Write-Host "MsSql Server is listening on the host at: localhost:${MsSqlPortPublish}"
 } else {
-    docker rm --force (docker ps -aq --filter "label=label.perceptia.info/part-of=mssql-svc")
+    docker rm --force (docker ps -aq --filter "label=label.perceptia.info/part-of=${MSSQL_SL_SERVICE_NAME}")
     if ($MsSqlRemoveDbVolume) {
         Write-Host "MsSqlRemoveDbVolume option true, removing previous database"
         docker volume rm $MSSQL_VOLUME_NAME
