@@ -28,16 +28,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// SessionDuration is the time a session is valid. If it has been longer than time.Duration since
-// the session was started the session should be treated as no longer valid.
-const SessionDuration = time.Duration(time.Hour * 48)
+// sessionDuration is the time a session is valid.
+const sessionDuration = time.Duration(time.Hour * 48)
 
 // sqlDriverName is the name of the SQL driver to register with the go sql lib
 const sqlDriverName = "sqlserver"
 
-// services and the name of the collection to proxy on
+// Regex for services to match on
 const (
-	serviceAqRest = "anyquiz"
+	serviceAqRestRegex  = "anyquiz"
+	serviceGatewayRegex = "(?:gateway|account|auth)"
 )
 
 // gateway provided collections
@@ -46,15 +46,26 @@ const (
 	colSessions = "sessions"
 )
 
-const GatewayServiceApiVersion = "0.3.0"
+const uuidV4Regex = "[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89aAbB][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}"
+
+//
+const gatewayServiceApiVersion = "0.3.0"
+
+var gatewayServiceApiVersionsSupported = []string{gatewayServiceApiVersion}
+
+const mssqlRequiredVersion = "0.8.1"
 
 func main() {
+
+	// Get environment setting
+	gwEnv, _ := utility.DefaultEnv("GATEWAY_ENVIRONMENT", "development")
+
 	// Setup Logger
 	logger := kitlog.NewLogfmtLogger(kitlog.NewSyncWriter(os.Stdout))
-	logger = kitlog.With(logger, "ts", kitlog.DefaultTimestampUTC, "caller", kitlog.DefaultCaller)
+	logger = kitlog.With(logger, "ts", kitlog.DefaultTimestampUTC, "caller", kitlog.DefaultCaller, "env", gwEnv)
 
 	// Get address for server to listen for requests on
-	listenAddr := utility.DefaultEnv("GATEWAY_LISTEN_ADDR", ":443")
+	listenAddr, _ := utility.DefaultEnv("GATEWAY_LISTEN_ADDR", ":443")
 
 	// Get the directory path to the TLS key and cert
 	tlsCertPath, errTLSCertPath := utility.RequireEnv("GATEWAY_TLSCERTPATH")
@@ -150,7 +161,7 @@ func main() {
 
 	// Periodically check status of mssql database connection
 	pingDbCtx := context.TODO()
-	go utility.PingDatabase(pingDbCtx, perceptiaDb, time.Second*10, time.Minute)
+	go utility.PingDatabase(pingDbCtx, perceptiaDb, time.Second*10, time.Minute, mssqlRequiredVersion, logger)
 
 	//Create a new Redis client.
 	rc := redis.NewClient(&redis.Options{Addr: redisAddress, Password: "", DB: 0})
@@ -162,10 +173,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	sessionStore := session.NewRedisStore(rc, SessionDuration)
+	sessionStore := session.NewRedisStore(rc, sessionDuration)
 
 	// Create Handler Context
-	hcx := handler.NewContext(sessionStore, userStore, sessionSigningKey, GatewayServiceApiVersion, logger)
+	hcx := handler.NewContext(sessionStore, userStore, sessionSigningKey, gatewayServiceApiVersion, gatewayServiceApiVersionsSupported, logger)
 
 	// Create new mux router
 	gmux := mux.NewRouter()
@@ -178,7 +189,7 @@ func main() {
 	//// Service Routes
 
 	// "/api/vX/anyquiz/"
-	gmuxApiV.PathPrefix("/" + serviceAqRest + "/").Handler(hcx.NewServiceProxy(aqRestHostname, aqRestPort))
+	gmuxApiV.PathPrefix("/" + serviceAqRestRegex + "/").Handler(hcx.NewServiceProxy(aqRestHostname, aqRestPort))
 
 	//// Gateway routes
 	gmuxApiVGateway := gmuxApiV.PathPrefix("/gateway/").Subrouter()
@@ -198,7 +209,7 @@ func main() {
 
 	// Users Specific routes
 	gmuxApiVGatewayUsersSpecific := gmuxApiVGatewayUsers.PathPrefix("/{" + handler.ReqVarUserUuid +
-		":[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89aAbB][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}}").Subrouter()
+		":" + uuidV4Regex + "}").Subrouter()
 
 	gmuxApiVGatewayUsersSpecific.PathPrefix("").HandlerFunc(hcx.UsersSpecificHandler)
 
@@ -206,8 +217,10 @@ func main() {
 	gmuxApiVGatewaySessions := gmuxApiVGateway.PathPrefix("/" + colSessions + "/").Subrouter()
 
 	// Sessions Specific routes
+
+	// Matches for: /api/v1/gateway/sessions/{sessionIdentifier} which is either "this" or session uuid
 	gmuxApiVGatewaySessionsSpecific := gmuxApiVGatewaySessions.PathPrefix(
-		"/{" + handler.ReqVarSession + ":" + handler.SpecificSessionHandlerDeleteUserAlias + "}").Subrouter()
+		"/{" + handler.ReqVarSession + ":(?:" + handler.SpecificSessionHandlerDeleteUserAlias + "|(?:" + uuidV4Regex + "))}").Subrouter()
 
 	gmuxApiVGatewaySessionsSpecific.PathPrefix("").HandlerFunc(hcx.SessionsSpecificHandler)
 

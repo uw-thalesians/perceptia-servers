@@ -170,7 +170,7 @@ To clean up (take down the containers started by running this script):
 
 `-MsSqlHost` (string) which is used to pass in the hostname of the mssql database server, default value is: "mssql"
 
-`-MsSqlPassword` (string) which is used to pass in either the password to use to secure the mssql server, the default value is: "SecureNow!"
+`-MsSqlSaPassword` (string) which is used to pass in the password to use to secure the mssql server, the default value is: "SecureNow!"
 
 `-MsSqlPort` (string) which is the port the docker container should listen for requests on and send to the mssql server, default value is: "1433",
 
@@ -179,6 +179,10 @@ To clean up (take down the containers started by running this script):
 `-MsSqlScheme` (string) which is the URL type scheme used to connect to the mssql database server, default value is: "sqlserver"
 
 `-MsSqlUsername` (string) which is the username used to connect to the mssql database server, default value is: "sa"
+
+`-MsSqlGatewaySpUsername` (string) which is the username the gateway will use to connect to the Perceptia database as
+
+`-MsSqlGatewaySpPassword` (string) which is the password for the user the gateway will connect to the Perceptia database as
 
 `-PerceptiaDockerNet` (string) which is the name of the docker network the container should be attached to when run, default value is "perceptia-net"
 

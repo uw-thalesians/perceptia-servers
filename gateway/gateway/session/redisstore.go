@@ -37,7 +37,7 @@ func (rs *RedisStore) Save(sid SessionID, sessionState interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error marshaling sessionState into json:\n%s", err.Error())
 	}
-	err = rs.Client.Set(sid.getRedisKey(), sesJson, rs.SessionDuration).Err()
+	err = rs.Client.Set(getRedisKey(sid), sesJson, rs.SessionDuration).Err()
 	if err != nil {
 		return fmt.Errorf("error setting session state:\n%s", err.Error())
 	}
@@ -47,8 +47,8 @@ func (rs *RedisStore) Save(sid SessionID, sessionState interface{}) error {
 // Get populates `sessionState` with the data previously saved for the given SessionID.
 func (rs *RedisStore) Get(sid SessionID, sessionState interface{}) error {
 	pipe := rs.Client.Pipeline()
-	res := pipe.Get(sid.getRedisKey())
-	expErr := pipe.Expire(string(sid), rs.SessionDuration).Err()
+	res := pipe.Get(getRedisKey(sid))
+	expErr := pipe.Expire(getRedisKey(sid), rs.SessionDuration).Err()
 	_, pipeErr := pipe.Exec()
 	if res.Err() != nil {
 		return ErrStateNotFound
@@ -68,7 +68,7 @@ func (rs *RedisStore) Get(sid SessionID, sessionState interface{}) error {
 
 // Delete deletes all state data associated with the SessionID from the store.
 func (rs *RedisStore) Delete(sid SessionID) error {
-	err := rs.Client.Del(sid.getRedisKey()).Err()
+	err := rs.Client.Del(getRedisKey(sid)).Err()
 	if err != nil {
 		return fmt.Errorf("error deleting the session <%s>:\n%s", sid, err.Error())
 	}
@@ -76,7 +76,7 @@ func (rs *RedisStore) Delete(sid SessionID) error {
 }
 
 // getRedisKey() returns the redis key to use for the SessionID.
-func (sid SessionID) getRedisKey() string {
+func getRedisKey(sid SessionID) string {
 	// convert the SessionID to a string and add the prefix "sid:" to keep
 	// SessionID keys separate from other keys that might end up in this
 	// redis instance.

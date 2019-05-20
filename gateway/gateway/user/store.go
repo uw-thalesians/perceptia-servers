@@ -3,6 +3,8 @@ package user
 import (
 	"errors"
 
+	"github.com/uw-thalesians/perceptia-servers/gateway/gateway/session"
+
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -22,6 +24,9 @@ type Store interface {
 
 	// GetEncodedHashByUsername returns the Encoded Hash for the given user.
 	GetEncodedHashByUsername(username string) (string, error)
+
+	// GetSessionsByUuid returns the list of sessions the user has started.
+	GetActiveSessionsByUuid(uuid uuid.UUID) (*session.Sessions, error)
 
 	// Insert inserts the user into the database, and returns the newly-inserted User.
 	Insert(newUser *NewUser) (*User, error)
@@ -43,4 +48,7 @@ type Store interface {
 
 	// DeleteEmail deletes the email from the given user's account
 	DeleteEmail(uuid uuid.UUID, email string) error
+
+	// DeleteSession deletes the session entry
+	DeleteSession(uuid uuid.UUID, session uuid.UUID) error
 }

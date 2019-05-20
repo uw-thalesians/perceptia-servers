@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"errors"
 
+	"cloud.google.com/go/civil"
+	"github.com/uw-thalesians/perceptia-servers/gateway/gateway/session"
+
 	mssql "github.com/denisenkom/go-mssqldb"
 
 	uuid "github.com/satori/go.uuid"
@@ -29,6 +32,12 @@ type userInfo struct {
 	Username    string
 	FullName    string
 	DisplayName string
+}
+
+type sessionInfo struct {
+	Uuid      uuid.UUID
+	SessionId session.SessionID
+	Created   civil.DateTime
 }
 
 func (ms *MsSqlStore) GetByUuid(uuid uuid.UUID) (*User, error) {
@@ -62,6 +71,39 @@ func (ms *MsSqlStore) GetByUuid(uuid uuid.UUID) (*User, error) {
 	user.FullName = userInfo.FullName
 	user.Username = userInfo.Username
 	return &user, nil
+}
+
+func (ms *MsSqlStore) GetActiveSessionsByUuid(uuid uuid.UUID) (*session.Sessions, error) {
+	var sessions session.Sessions
+	sqlUuid := mssql.UniqueIdentifier{}
+	errUI := sqlUuid.Scan(uuid.String())
+	if errUI != nil {
+		return &sessions, errUI
+	}
+
+	stmt, errPS := ms.database.Prepare("USP_GetUserSessionsByUuid")
+	if errPS != nil {
+		return &sessions, errPS
+	}
+	defer stmt.Close()
+	// TODO:
+	//errQ := stmt.QueryRow(sql.Named("Uuid", sqlUuid)).Scan(
+	//	&userInfo.Uuid, &userInfo.Username, &userInfo.FullName, &userInfo.DisplayName)
+	//if errQ != nil {
+	//	if errQ == sql.ErrNoRows {
+	//		return &user, ErrUserNotFound
+	//	} else {
+	//		return &user, errQ
+	//	}
+	//}
+	//errUQ := user.Uuid.Scan(userInfo.Uuid.String())
+	//if errUQ != nil {
+	//	return &user, errUQ
+	//}
+	//user.DisplayName = userInfo.DisplayName
+	//user.FullName = userInfo.FullName
+	//user.Username = userInfo.Username
+	return &sessions, nil
 }
 
 func (ms *MsSqlStore) GetByUsername(username string) (*User, error) {
@@ -324,6 +366,41 @@ func (ms *MsSqlStore) DeleteEmail(uuid uuid.UUID, email string) error {
 				return ErrUserNotFound
 			} else if mssqlerr.Number == 50202 {
 				return errors.New("provided email is not associated with users account")
+			}
+		} else {
+			return errQ
+		}
+	}
+	if ra, errRA := rs.RowsAffected(); errRA != nil && ra < 1 {
+		return errors.New("unexpected error: no rows deleted")
+	}
+	return nil
+}
+
+func (ms *MsSqlStore) DeleteSession(uuid uuid.UUID, session uuid.UUID) error {
+	sqlUuid := mssql.UniqueIdentifier{}
+	errSUID := sqlUuid.Scan(uuid.String())
+	if errSUID != nil {
+		return errSUID
+	}
+	sqlSessionUuid := mssql.UniqueIdentifier{}
+	errSSID := sqlUuid.Scan(session.String())
+	if errSSID != nil {
+		return errSSID
+	}
+
+	stmt, errPS := ms.database.Prepare("USP_DeleteUserSession")
+	if errPS != nil {
+		return errPS
+	}
+	defer stmt.Close()
+	rs, errQ := stmt.Exec(sql.Named("Uuid", sqlUuid), sql.Named("SessionUuid", sqlSessionUuid))
+	if errQ != nil {
+		if mssqlerr, ok := errQ.(mssql.Error); ok {
+			if mssqlerr.Number == 50201 {
+				return ErrUserNotFound
+			} else if mssqlerr.Number == 50202 {
+				return errors.New("provided session uuid is not associated with user's account")
 			}
 		} else {
 			return errQ

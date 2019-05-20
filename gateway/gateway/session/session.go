@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"cloud.google.com/go/civil"
+	uuid "github.com/satori/go.uuid"
 )
 
 const HeaderAuthorization = "Authorization"
@@ -17,6 +20,14 @@ var ErrNoSessionID = errors.New("session: no session ID found in " + HeaderAutho
 
 // ErrInvalidScheme is used when the authorization scheme is not supported.
 var ErrInvalidScheme = errors.New("session: authorization scheme not supported")
+
+type SessionInfo struct {
+	Uuid      uuid.UUID
+	SessionId SessionID
+	Created   civil.DateTime
+}
+
+type Sessions map[SessionID]*SessionInfo
 
 // BeginSession creates a new SessionID, saves the `sessionState` to the store, adds an
 // Authorization header to the response with the SessionID, and returns the new SessionID.

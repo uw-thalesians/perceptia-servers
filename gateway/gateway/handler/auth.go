@@ -261,8 +261,10 @@ func (cx *Context) usersHandlerV1Post(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	sessionUuid := uuid.NewV4()
 
-	sessState := NewSessionState(time.Now(), *userINS)
+	sessState := NewSessionState(time.Now(), *userINS, sessionUuid)
+	sessState.Authenticated = true
 	// This adds the authorization header to the response as well
 	_, errSID := session.BeginSession(cx.sessionSigningKey, cx.sessionStore, sessState, w)
 	if errSID != nil {
@@ -578,7 +580,9 @@ func (cx *Context) sessionsHandlerV1Post(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	// Begin new session
-	sessState := NewSessionState(time.Now(), *userPro)
+	sessUuid := uuid.NewV4()
+	sessState := NewSessionState(time.Now(), *userPro, sessUuid)
+	sessState.Authenticated = true
 	_, errSID := session.BeginSession(cx.sessionSigningKey, cx.sessionStore, sessState, w)
 	if errSID != nil {
 		retErr := &Error{
@@ -599,7 +603,7 @@ func (cx *Context) sessionsHandlerV1Post(w http.ResponseWriter, r *http.Request)
 // sessions collection.
 func (cx *Context) sessionsSpecificHandlerV1Delete(w http.ResponseWriter, r *http.Request, userCx *user.User) {
 	reqVars := mux.Vars(r)
-	_, ok := reqVars[ReqVarSession]
+	sesVar, ok := reqVars[ReqVarSession]
 	if !ok {
 		retErr := &Error{
 			ClientError: false,
@@ -608,6 +612,17 @@ func (cx *Context) sessionsSpecificHandlerV1Delete(w http.ResponseWriter, r *htt
 			Code:        0,
 		}
 		cx.handleErrorJson(w, r, nil, "session identifier expected in path, but not found in mux vars", retErr, http.StatusInternalServerError)
+		return
+	}
+
+	if sesVar != SpecificSessionHandlerDeleteUserAlias {
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     fmt.Sprintf("session identifier provided not valid"),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, nil, "session identifier provided but not a valid identifier", retErr, http.StatusBadRequest)
 		return
 	}
 

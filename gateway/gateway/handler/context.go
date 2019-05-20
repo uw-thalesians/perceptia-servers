@@ -17,22 +17,23 @@ import (
 
 // Context represents the shared resources amongst all http.Handler functions that receive this struct.
 type Context struct {
-	sessionSigningKey string
-	sessionStore      session.Store
-	userStore         user.Store
-	logger            kitlog.Logger
-	gatewayVersion    string
+	sessionSigningKey        string
+	sessionStore             session.Store
+	userStore                user.Store
+	logger                   kitlog.Logger
+	gatewayVersion           string
+	gatewayVersionsSupported []string
 }
 
 // NewContext creates a new Context, initialized using the provided handler context values.
 // Returns a pointer to the created Context.
 func NewContext(sessionStore session.Store, userStore user.Store,
-	sessionSigningKey, gatewayVersion string, logger kitlog.Logger) *Context {
+	sessionSigningKey, gatewayVersion string, gatewayVersionsSupported []string, logger kitlog.Logger) *Context {
 	if sessionStore == nil || userStore == nil || len(sessionSigningKey) <= 0 {
 		panic("all parameters must not be nil or empty")
 	}
 	return &Context{sessionSigningKey, sessionStore,
-		userStore, logger, gatewayVersion}
+		userStore, logger, gatewayVersion, gatewayVersionsSupported}
 }
 
 type Error struct {
