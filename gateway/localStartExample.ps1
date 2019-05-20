@@ -1,11 +1,13 @@
 Param (
     [String]$MsSqlDatabase = "Perceptia",
     [String]$MsSqlHost = "mssql",
-    [String]$MsSqlPassword = "SecureNow!",
+    [String]$MsSqlSaPassword = "SecureNow!",
     [String]$MsSqlPort = "1433",
     [String]$MsSqlPortPublish = "1401",
     [String]$MsSqlScheme = "sqlserver",
     [String]$MsSqlUsername = "sa",
+    [String]$MsSqlGatewaySpUsername = "gateway_sp",
+    [String]$MsSqlGatewaySpPassword = "ThisIsReal!",
     [String]$PerceptiaDockerNet = "perceptia-net",
     [String]$GatewayPortPublish = "4443",
     [String]$RedisPort = "6379",
@@ -41,10 +43,10 @@ Set-Variable -Name REDIS_VOLUME_NAME -Value redis_vol
 
 Set-Variable -Name MSSQL_DATABASE -Value $MsSqlDatabase
 Set-Variable -Name MSSQL_HOST -Value $MsSqlHost
-Set-Variable -Name MSSQL_PASSWORD -Value $MsSqlPassword
+Set-Variable -Name MSSQL_PASSWORD -Value $MsSqlGatewaySpPassword
 Set-Variable -Name MSSQL_PORT -Value $MsSqlPort
 Set-Variable -Name MSSQL_SCHEME -Value $MsSqlScheme
-Set-Variable -Name MSSQL_USERNAME -Value $MsSqlUsername
+Set-Variable -Name MSSQL_USERNAME -Value $MsSqlGatewaySpUsername
 
 Set-Variable -Name MSSQL_SERVICE_NAME -Value "mssql"
 Set-Variable -Name MSSQL_IMAGE_AND_TAG -Value uwthalesians/mssql:0.7.1-build-232-branch-develop
@@ -108,7 +110,10 @@ if (!$CleanUp) {
         docker run `
         --detach `
         --env 'ACCEPT_EULA=Y' `
-        --env "SA_PASSWORD=$MsSqlPassword" `
+        --env "GATEWAY_SP_USERNAME=${MsSqlGatewaySpUsername}" `
+        --env "GATEWAY_SP_PASSWORD=${MsSqlGatewaySpPassword}" `
+        --env "MSSQL_ENVIRONMENT=development" `
+        --env "SA_PASSWORD=$MsSqlSaPassword" `
         --env "SKIP_SETUP_IF_EXISTS=Y" `
         --label "label.perceptia.info/name=mssql" `
         --label "label.perceptia.info/instance=mssql-1" `
@@ -132,6 +137,7 @@ if (!$CleanUp) {
     --detach `
     --env AQREST_HOSTNAME="$AqRestHost" `
     --env AQREST_PORT="$AqRestPort" `
+    --env GATEWAY_ENVIRONMENT=development `
     --env GATEWAY_SESSION_KEY="$GATEWAY_SESSION_KEY" `
     --env GATEWAY_TLSCERTPATH="$GATEWAY_TLSCERTPATH" `
     --env GATEWAY_TLSKEYPATH="$GATEWAY_TLSKEYPATH" `
