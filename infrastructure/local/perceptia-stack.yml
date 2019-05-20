@@ -17,15 +17,16 @@ services:
     environment:
       AQREST_HOSTNAME: "aqrest"
       AQREST_PORT: "80"
+      GATEWAY_ENVIRONMENT: "development"
       GATEWAY_SESSION_KEY: "Jw5sLdjkf6woIBE/d8tDetc+VJsql1O9K8Asdm/W9l/FiW+IfzKrsyKYON9s+MF8"
       GATEWAY_TLSCERTPATH: "/encrypt/fullchain.pem"
       GATEWAY_TLSKEYPATH: "/encrypt/privkey.pem"
       MSSQL_DATABASE: "Perceptia"
       MSSQL_HOST: "mssql"
-      MSSQL_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      MSSQL_PASSWORD: "${MSSQL_GATEWAY_SP_PASSWORD}"
       MSSQL_PORT: "1433"
       MSSQL_SCHEME: "sqlserver"
-      MSSQL_USERNAME: "sa"
+      MSSQL_USERNAME: "${MSSQL_GATEWAY_SP_USERNAME}"
       REDIS_ADDRESS: "redis:6379"
     networks:
       perceptia-stack-net:
@@ -74,6 +75,7 @@ services:
       ACCEPT_EULA: "Y"
       SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
       SKIP_SETUP_IF_EXISTS: "Y"
+      MSSQL_ENVIRONMENT: "development"
     volumes:
       - type: volume
         source: mssql_pc_vol

@@ -7,11 +7,15 @@ Param (
         [String]$GatewayVersion = "0.3.0",
         [string]$GatewayPortPublish = "4443",
         [String]$MsSqlVersion = "0.7.1",
+        [String]$MsSqlSaPassword = "SecureNow!",
         [String]$MsSqlPortPublish = "47011",
+        [String]$MsSqlGatewaySpUsername = "gateway_sp",
+        [String]$MsSqlGatewaySpPassword = "ThisIsReal!",
         [switch]$MsSqlRemoveDbVolume,
         [String]$RedisPortPublish = "47012",
         [switch]$RedisRemoveDbVolume,
         [String]$AqRestVersion = "1.1.0",
+        [String]$AqMySqlUserPassword = "8aWZjNadxspXQEHu",
         [String]$AqRestPortPublish = "47020",
         [String]$AqMySqlVersion = "1.0.0",
         [String]$AqMySqlPortPublish = "47021",
@@ -108,8 +112,15 @@ if (!$CleanUp) {
         }
         Set-Item -Path env:AQSOLR_PORT_PUBLISH -Value $AqSolrPortPublish
 
-        Set-Item -Path env:MSSQL_SA_PASSWORD -Value "SoSecure!"
-        Set-Item -Path env:AQMYSQL_USER_PASS -Value "8aWZjNadxspXQEHu"
+        Set-Item -Path env:MSSQL_SA_PASSWORD -Value $MsSqlSaPassword
+        Set-Item -Path env:MSSQL_GATEWAY_SP_PASSWORD -Value $MsSqlGatewaySpPassword
+        Set-Item -Path env:MSSQL_GATEWAY_SP_USERNAME -Value $MsSqlGatewaySpUsername
+        if ($GatewayVersion -eq "0.3.0") {
+                Set-Item -Path env:MSSQL_GATEWAY_SP_PASSWORD -Value $MsSqlSaPassword
+                Set-Item -Path env:MSSQL_GATEWAY_SP_USERNAME -Value "sa"
+        }
+
+        Set-Item -Path env:AQMYSQL_USER_PASS -Value $AqMySqlUserPassword
 
         Set-Item -Path env:PERCEPTIA_STACK_NAME -Value $PERCEPTIA_STACK_NAME
 
