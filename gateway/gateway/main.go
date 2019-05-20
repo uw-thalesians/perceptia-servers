@@ -34,16 +34,17 @@ const sessionDuration = time.Duration(time.Hour * 48)
 // sqlDriverName is the name of the SQL driver to register with the go sql lib
 const sqlDriverName = "sqlserver"
 
-// Regex for services to match on
+// Services to match on
 const (
-	serviceAqRestRegex  = "anyquiz"
-	serviceGatewayRegex = "(?:gateway|account|auth)"
+	serviceAqRest  = "anyquiz"
+	serviceGateway = "gateway"
 )
 
 // gateway provided collections
 const (
 	colUsers    = "users"
 	colSessions = "sessions"
+	colHealth   = "health"
 )
 
 const uuidV4Regex = "[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89aAbB][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}"
@@ -65,63 +66,66 @@ func main() {
 	logger = kitlog.With(logger, "ts", kitlog.DefaultTimestampUTC, "caller", kitlog.DefaultCaller, "env", gwEnv)
 
 	// Get address for server to listen for requests on
-	listenAddr, _ := utility.DefaultEnv("GATEWAY_LISTEN_ADDR", ":443")
+	listenAddr, envSetLA := utility.DefaultEnv("GATEWAY_LISTEN_ADDR", ":443")
+	if !envSetLA {
+		_ = logger.Log("notice", "environment variable not set, setting to default", "var", "GATEWAY_LISTEN_ADDR", "value", listenAddr)
+	}
 
 	// Get the directory path to the TLS key and cert
 	tlsCertPath, errTLSCertPath := utility.RequireEnv("GATEWAY_TLSCERTPATH")
 	// Fail if the path to the cert is not provided
 	if errTLSCertPath != nil {
-		_ = logger.Log("error", errTLSCertPath, "result", "exit")
+		_ = logger.Log("error", errTLSCertPath, "var", "GATEWAY_TLSCERTPATH", "result", "exit")
 		os.Exit(1)
 	}
 	tlsKeyPath, errTLSKeyPath := utility.RequireEnv("GATEWAY_TLSKEYPATH")
 	// Fail if the path to the key is not provided
 	if errTLSKeyPath != nil {
-		_ = logger.Log("error", errTLSKeyPath, "result", "exit")
+		_ = logger.Log("error", errTLSKeyPath, "var", "GATEWAY_TLSKEYPATH", "result", "exit")
 		os.Exit(1)
 	}
 
 	sessionSigningKey, errSSK := utility.RequireEnv("GATEWAY_SESSION_KEY")
 	// Fail if the key data is not provided
 	if errSSK != nil {
-		_ = logger.Log("error", errSSK, "result", "exit")
+		_ = logger.Log("error", errSSK, "var", "GATEWAY_SESSION_KEY", "result", "exit")
 		os.Exit(1)
 	}
 
 	mssqlScheme, errMSS := utility.RequireEnv("MSSQL_SCHEME")
 	// Fail if the value is not provided
 	if errMSS != nil {
-		_ = logger.Log("error", errMSS, "result", "exit")
+		_ = logger.Log("error", errMSS, "var", "MSSQL_SCHEME", "result", "exit")
 		os.Exit(1)
 	}
 	mssqlUsername, errMSU := utility.RequireEnv("MSSQL_USERNAME")
 	// Fail if the value is not provided
 	if errMSU != nil {
-		_ = logger.Log("error", errMSU, "result", "exit")
+		_ = logger.Log("error", errMSU, "var", "MSSQL_USERNAME", "result", "exit")
 		os.Exit(1)
 	}
 	mssqlPassword, errMSP := utility.RequireEnv("MSSQL_PASSWORD")
 	// Fail if the value is not provided
 	if errMSP != nil {
-		_ = logger.Log("error", errMSP, "result", "exit")
+		_ = logger.Log("error", errMSP, "var", "MSSQL_PASSWORD", "result", "exit")
 		os.Exit(1)
 	}
 	mssqlHost, errMSH := utility.RequireEnv("MSSQL_HOST")
 	// Fail if the value is not provided
 	if errMSH != nil {
-		_ = logger.Log("error", errMSH, "result", "exit")
+		_ = logger.Log("error", errMSH, "var", "MSSQL_HOST", "result", "exit")
 		os.Exit(1)
 	}
 	mssqlPort, errMSPO := utility.RequireEnv("MSSQL_PORT")
 	// Fail if the value is not provided
 	if errMSPO != nil {
-		_ = logger.Log("error", errMSPO, "result", "exit")
+		_ = logger.Log("error", errMSPO, "var", "MSSQL_PORT", "result", "exit")
 		os.Exit(1)
 	}
 	mssqlDatabase, errMSDB := utility.RequireEnv("MSSQL_DATABASE")
 	// Fail if the value is not provided
 	if errMSDB != nil {
-		_ = logger.Log("error", errMSDB, "result", "exit")
+		_ = logger.Log("error", errMSDB, "var", "MSSQL_DATABASE", "result", "exit")
 		os.Exit(1)
 	}
 
@@ -129,7 +133,7 @@ func main() {
 	redisAddress, errRDAD := utility.RequireEnv("REDIS_ADDRESS")
 	// Fail if the value is not provided
 	if errRDAD != nil {
-		_ = logger.Log("error", errRDAD, "result", "exit")
+		_ = logger.Log("error", errRDAD, "var", "REDIS_ADDRESS", "result", "exit")
 		os.Exit(1)
 	}
 
@@ -137,13 +141,13 @@ func main() {
 	aqRestHostname, errAQHN := utility.RequireEnv("AQREST_HOSTNAME")
 	// Fail if the value is not provided
 	if errAQHN != nil {
-		_ = logger.Log("error", errAQHN, "result", "exit")
+		_ = logger.Log("error", errAQHN, "var", "AQREST_HOSTNAME", "result", "exit")
 		os.Exit(1)
 	}
 	aqRestPort, errAQPN := utility.RequireEnv("AQREST_PORT")
 	// Fail if the value is not provided
 	if errAQPN != nil {
-		_ = logger.Log("error", errAQPN, "result", "exit")
+		_ = logger.Log("error", errAQPN, "var", "AQREST_PORT", "result", "exit")
 		os.Exit(1)
 	}
 
@@ -176,26 +180,27 @@ func main() {
 	sessionStore := session.NewRedisStore(rc, sessionDuration)
 
 	// Create Handler Context
-	hcx := handler.NewContext(sessionStore, userStore, sessionSigningKey, gatewayServiceApiVersion, gatewayServiceApiVersionsSupported, logger)
+	hcx := handler.NewContext(sessionStore, userStore, sessionSigningKey,
+		gatewayServiceApiVersion, gatewayServiceApiVersionsSupported, logger)
 
 	// Create new mux router
 	gmux := mux.NewRouter()
 
 	gmuxApi := gmux.PathPrefix("/api/").Subrouter()
 
-	// "/api/v1/"
+	// "/api/vX/"
 	gmuxApiV := gmuxApi.PathPrefix("/{" + handler.ReqVarMajorVersion + ":v[0-9]+}/").Subrouter()
 
 	//// Service Routes
 
 	// "/api/vX/anyquiz/"
-	gmuxApiV.PathPrefix("/" + serviceAqRestRegex + "/").Handler(hcx.NewServiceProxy(aqRestHostname, aqRestPort))
+	gmuxApiV.PathPrefix("/" + serviceAqRest + "/").Handler(hcx.NewServiceProxy(aqRestHostname, aqRestPort))
 
-	//// Gateway routes
-	gmuxApiVGateway := gmuxApiV.PathPrefix("/gateway/").Subrouter()
+	//// Gateway routes /api/vX/gateway/
+	gmuxApiVGateway := gmuxApiV.PathPrefix("/" + serviceGateway + "/").Subrouter()
 
 	// Health check route
-	gmuxApiVGateway.HandleFunc("/health", hcx.HealthHandler)
+	gmuxApiVGateway.HandleFunc("/"+colHealth, hcx.HealthHandler)
 
 	// Users route
 	gmuxApiVGateway.HandleFunc("/"+colUsers, hcx.UsersDefaultHandler)
@@ -218,7 +223,7 @@ func main() {
 
 	// Sessions Specific routes
 
-	// Matches for: /api/v1/gateway/sessions/{sessionIdentifier} which is either "this" or session uuid
+	// Matches for: /api/vX/gateway/sessions/{sessionIdentifier} which is either "this" or session uuid
 	gmuxApiVGatewaySessionsSpecific := gmuxApiVGatewaySessions.PathPrefix(
 		"/{" + handler.ReqVarSession + ":(?:" + handler.SpecificSessionHandlerDeleteUserAlias + "|(?:" + uuidV4Regex + "))}").Subrouter()
 
