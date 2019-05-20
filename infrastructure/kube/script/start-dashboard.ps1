@@ -1,0 +1,1 @@
+az aks browse --resource-group perceptiaAks --name perceptiaCluster

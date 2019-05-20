@@ -3,12 +3,13 @@ kind: Deployment
 metadata:
   name: gateway-deployment
   labels:
-    app.kubernetes.io/name: gateway
-    app.kubernetes.io/instance: gateway-1
-    app.kubernetes.io/version: "0.1.1"
-    app.kubernetes.io/managed-by: kubectl
-    app.kubernetes.io/component: server
-    app.kubernetes.io/part-of: perceptia
+    label.perceptia.info/name: gateway
+    label.perceptia.info/instance: gateway-1
+    label.perceptia.info/version: "0.3.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: server
+    label.perceptia.info/type: frontend
+    label.perceptia.info/part-of: perceptia-api
 spec:
   replicas: 1
   selector:
@@ -18,16 +19,17 @@ spec:
     metadata:
       labels:
         app: gateway
-        app.kubernetes.io/name: gateway
-        app.kubernetes.io/instance: gateway-1
-        app.kubernetes.io/version: "0.1.1"
-        app.kubernetes.io/managed-by: kubectl
-        app.kubernetes.io/component: server
-        app.kubernetes.io/part-of: perceptia
+        label.perceptia.info/name: gateway
+        label.perceptia.info/instance: gateway-1
+        label.perceptia.info/version: "0.3.0"
+        label.perceptia.info/managed-by: kubectl
+        label.perceptia.info/component: server
+        label.perceptia.info/type: frontend
+        label.perceptia.info/part-of: perceptia-api
     spec:
       containers:
       - name: gateway
-        image: uwthalesians/gateway:0.1.1-build-89-branch-develop
+        image: uwthalesians/gateway:0.3.0-build-232-branch-develop
         ports:
         - containerPort: 443
           name: "https"
@@ -36,15 +38,381 @@ spec:
             value: "/encrypt/tls.crt"
           - name: GATEWAY_TLSKEYPATH
             value: "/encrypt/tls.key"
+          - name: AQREST_HOSTNAME
+            value: "aqrest"
+          - name: AQREST_PORT
+            value: "80"
+          - name: GATEWAY_SESSION_KEY
+            valueFrom:
+              secretKeyRef:
+                name: gateway
+                key: session-key
+          - name: MSSQL_DATABASE
+            value: "Perceptia"
+          - name: MSSQL_HOST
+            value: "mssql"
+          - name: MSSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mssql
+                key: sa_password
+          - name: MSSQL_PORT
+            value: "1433"
+          - name: MSSQL_SCHEME
+            value: "sqlserver"
+          - name: MSSQL_USERNAME
+            value: "sa"
+          - name: REDIS_ADDRESS
+            value: "redis:6379"
         volumeMounts:
           - name: "encrypt"
             mountPath: "/encrypt"
             readOnly: true
         resources:
           limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 200m
+            memory: 1Gi
       volumes:
         - name: "encrypt"
           secret:
-            secretName: api-tls
+            secretName: api-tls  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  labels:
+    label.perceptia.info/name: redis
+    label.perceptia.info/instance: redis-1
+    label.perceptia.info/version: "5.0.4"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/type: backend
+    label.perceptia.info/sub-of: gateway
+spec:
+  ports:
+  - protocol: TCP
+    port: 6379
+    targetPort: 6379
+    name: redis
+  clusterIP: None
+  selector:
+    app: redis
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  labels:
+    app: redis
+    label.perceptia.info/name: redis
+    label.perceptia.info/instance: redis-1
+    label.perceptia.info/version: "5.0.4"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: gateway
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  serviceName: "redis"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: redis
+        image: redis:5.0.4-alpine
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - name: redis-vol
+          mountPath: /data
+      volumes:
+        - name: redis-vol
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql
+  labels:
+    label.perceptia.info/name: mssql
+    label.perceptia.info/instance: mssql-1
+    label.perceptia.info/version: "0.7.1"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: gateway
+spec:
+  ports:
+  - protocol: TCP
+    port: 1433
+    targetPort: 1433
+    name: mssql
+  clusterIP: None
+  selector:
+    app: mssql
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mssql
+  labels:
+    app: mssql
+    label.perceptia.info/name: mssql
+    label.perceptia.info/instance: mssql-1
+    label.perceptia.info/version: "0.7.1"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: gateway
+spec:
+  selector:
+    matchLabels:
+      app: mssql
+  serviceName: "mssql"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mssql
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mssql
+        image: uwthalesians/mssql:0.7.1-build-232-branch-develop
+        ports:
+        - containerPort: 1433
+          name: mssql
+        env:
+          - name: SA_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mssql
+                key: sa_password
+          - name: ACCEPT_EULA
+            value: "Y"
+          - name: SKIP_SETUP_IF_EXISTS
+            value: "Y"
+        volumeMounts:
+        - name: mssql-vol
+          mountPath: /var/opt/mssql
+      volumes:
+        - name: mssql-vol
+          emptyDir: {}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: aqrest
+  labels:
+    label.perceptia.info/name: aqrest
+    label.perceptia.info/instance: gateway-1
+    label.perceptia.info/version: "1.1.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: server
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+spec:
+  selector:
+    app: aqrest
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: http
+    name: http
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aqrest-deployment
+  labels:
+    label.perceptia.info/name: aqrest
+    label.perceptia.info/instance: aqrest-1
+    label.perceptia.info/version: "1.1.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: server
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aqrest
+  template:
+    metadata:
+      labels:
+        app: aqrest
+        label.perceptia.info/name: aqrest
+        label.perceptia.info/instance: aqrest-1
+        label.perceptia.info/version: "1.1.0"
+        label.perceptia.info/managed-by: kubectl
+        label.perceptia.info/component: server
+        label.perceptia.info/type: backend
+        label.perceptia.info/part-of: perceptia-api
+    spec:
+      containers:
+      - name: aqrest
+        image: uwthalesians/aqrest:1.1.0-build-232-branch-develop
+        ports:
+        - containerPort: 80
+          name: "http"
+        env:
+          - name: user_pass
+            valueFrom:
+              secretKeyRef:
+                name: aqmysql
+                key: user_password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aqmysql
+  labels:
+    label.perceptia.info/name: aqmysql
+    label.perceptia.info/instance: aqmysql-1
+    label.perceptia.info/version: "1.0.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: aqrest
+spec:
+  ports:
+  - protocol: TCP
+    port: 3306
+    targetPort: 3306
+    name: aqmysql
+  clusterIP: None
+  selector:
+    app: aqmysql
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: aqmysql
+  labels:
+    app: aqmysql
+    label.perceptia.info/name: aqmysql
+    label.perceptia.info/instance: aqmysql-1
+    label.perceptia.info/version: "1.0.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: aqrest
+spec:
+  selector:
+    matchLabels:
+      app: aqmysql
+  serviceName: "aqmysql"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: aqmysql
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: aqmysql
+        image: uwthalesians/aqmysql:1.0.0-build-232-branch-develop
+        ports:
+        - containerPort: 3306
+          name: aqmysql
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: aqmysql
+                key: root_password
+          - name: user_pass
+            valueFrom:
+              secretKeyRef:
+                name: aqmysql
+                key: user_password
+        volumeMounts:
+        - name: aqmysql-vol
+          mountPath: /var/opt/mssql
+        resources:
+          limits:
+            memory: 2Gi
+      volumes:
+        - name: aqmysql-vol
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aqsolr
+  labels:
+    label.perceptia.info/name: aqsolr
+    label.perceptia.info/instance: aqsolr-1
+    label.perceptia.info/version: "1.0.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: aqrest
+spec:
+  ports:
+  - protocol: TCP
+    port: 8983
+    targetPort: 8983
+    name: aqsolr
+  clusterIP: None
+  selector:
+    app: aqsolr
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aqsolr-deployment
+  labels:
+    label.perceptia.info/name: aqsolr
+    label.perceptia.info/instance: aqsolr-1
+    label.perceptia.info/version: "1.0.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: database
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: aqrest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aqsolr
+  template:
+    metadata:
+      labels:
+        app: aqsolr
+        label.perceptia.info/name: aqsolr
+        label.perceptia.info/instance: aqsolr-1
+        label.perceptia.info/version: "1.0.0"
+        label.perceptia.info/managed-by: kubectl
+        label.perceptia.info/component: database
+        label.perceptia.info/type: backend
+        label.perceptia.info/part-of: perceptia-api
+        label.perceptia.info/sub-of: aqrest
+    spec:
+      containers:
+      - name: aqsolr
+        image: uwthalesians/aqsolr:1.0.0-build-232-branch-develop
+        command: 
+          - "solr-precreate"
+        args:
+          -  stream 
+          - /opt/solr/server/solr/configsets/stream
+        ports:
+        - containerPort: 8983
+          name: aqsolr

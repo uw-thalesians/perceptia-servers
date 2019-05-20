@@ -4,6 +4,7 @@ metadata:
   name: kubernetes-dashboard
   labels:
     k8s-app: kubernetes-dashboard
+    label.perceptia.info/name: kubernetes-dashboard
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

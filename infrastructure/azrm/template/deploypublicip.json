@@ -1,63 +1,61 @@
 {
-        "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-        "contentVersion": "1.0.0.0",
-        "parameters": {
-            "location": {
-                "type": "string"
-            },
-            "publicIpAddressName": {
-                "type": "string"
-            },
-            "publicIpAddressNameDev": {
-                "type": "string"
-            },
-            "publicIpAddressType": {
-                "type": "string"
-            },
-            "publicIpAddressSku": {
-                "type": "string"
-            }
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "apiProfile": "2018-06-01-profile",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "westus2"
         },
-        "resources": [
-            {
-                "name": "[parameters('publicIpAddressName')]",
-                "type": "Microsoft.Network/publicIpAddresses",
-                "apiVersion": "2018-08-01",
-                "location": "[parameters('location')]",
-                "properties": {
-                    "publicIpAllocationMethod": "[parameters('publicIpAddressType')]"
-                },
-                "sku": {
-                    "name": "[parameters('publicIpAddressSku')]"
-                },
-                "tags": {
-                    "use": "capstone"
-                }
-            },
-            {
-                "name": "[parameters('publicIpAddressNameDev')]",
-                "type": "Microsoft.Network/publicIpAddresses",
-                "apiVersion": "2018-08-01",
-                "location": "[parameters('location')]",
-                "properties": {
-                    "publicIpAllocationMethod": "[parameters('publicIpAddressType')]"
-                },
-                "sku": {
-                    "name": "[parameters('publicIpAddressSku')]"
-                },
-                "tags": {
-                    "use": "capstone"
-                }
-            }
-        ],
-        "outputs": {
-            "publicIpAddressName": {
+        "publicIpAddressName": {
+            "type": "string"
+        },
+        "publicIpAddressType": {
+            "type": "string"
+        },
+        "publicIpAddressSku": {
+            "type": "string"
+        },
+        "partOf": {
                 "type": "string",
-                "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIpAddressName'))).IpAddress]"
+                "metadata": {
+                    "description": "Tag noting the part of the application the resource group is for."
+                }
+        },
+        "environment": {
+            "type": "string",
+            "metadata": {
+                "description": "Tag noting the part of the application the resource group is for."
             },
-            "publicIpAddressNameDev": {
-                "type": "string",
-                "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIpAddressNameDev'))).IpAddress]"
+            "allowedValues": [
+                "development",
+                "production"
+                ]
+    }
+    },
+    "resources": [
+        {
+            "name": "[parameters('publicIpAddressName')]",
+            "apiVersion": "2018-08-01",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publicIpAllocationMethod": "[parameters('publicIpAddressType')]"
+            },
+            "sku": {
+                "name": "[parameters('publicIpAddressSku')]"
+            },
+            "tags": {
+                "use": "capstone",
+                "part-of": "[parameters('partOf')]",
+                "environment": "[parameters('environment')]"
             }
         }
+    ],
+    "outputs": {
+        "publicIpAddressName": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIpAddressName'))).IpAddress]"
+        }
     }
+}

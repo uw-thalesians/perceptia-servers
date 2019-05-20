@@ -1,1 +1,1 @@
-kubectl apply -f .\..\setup\namespace.yaml
+kubectl apply -f ".\..\setup\namespace.yaml"

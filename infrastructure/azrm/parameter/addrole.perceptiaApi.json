@@ -1,0 +1,12 @@
+{
+        "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+        "contentVersion": "1.1.0.1",
+        "parameters": {
+            "principalId": {
+                "value": "fa39d507-02f2-4018-b719-2c2c2cd154b7"
+            },
+            "builtInRoleType": {
+                "value": "Network Contributor"
+            }
+        }
+}
