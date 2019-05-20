@@ -29,22 +29,26 @@ convertCGI(data)
 if "root" in vals:
   print vals["root"]
 
-provided_n_neighbors = 20
-if "n_neighbors" in vals:
-  provided_n_neighbors = vals["n_neighbors"]
-
-provided_min_dist = 0.1
-if "min_dist" in vals:
-  provided_min_dist = vals["min_dist"]
-
-reducer = umap.UMAP(random_state=0, min_dist=provided_min_dist, n_neighbors=provided_n_neighbors)
 
 quiz_keywords = mysql_quiz.get_all_keywords()
 
 num_nodes = len(quiz_keywords)
 if num_nodes==0:
-  print json.dumps({"umap": [], "num_nodes" : 0})
+  print json.dumps({"umap": {}, "num_nodes" : 0})
   quit()
+
+provided_n_neighbors = 20
+
+if "n_neighbors" in vals:
+  provided_n_neighbors = vals["n_neighbors"]
+
+if num_nodes < provided_n_neighbors:
+  provided_n_neighbors = num_nodes
+
+provided_min_dist = 0.1
+if "min_dist" in vals:
+  provided_min_dist = vals["min_dist"]
+
 
 #https://github.com/commonsense/conceptnet5/wiki/API
 #http://api.conceptnet.io/c/en/
@@ -93,8 +97,14 @@ if "error" in concept_df.columns and concept_df.drop("error", axis=1).shape[1]==
   quit()
 
 li_vectors = pd.get_dummies(concept_df["sense"])
-li_vectors["label"] = concept_df["keyword"]
-vectors = li_vectors.groupby("label").sum()
+li_vectors["keyword"] = concept_df["keyword"]
+vectors = li_vectors.groupby("keyword").sum()
+
+init_algo = "spectral"
+if num_nodes < len(vectors.columns):
+  init_algo = "random"
+
+reducer = umap.UMAP(random_state=0, min_dist=provided_min_dist, n_neighbors=provided_n_neighbors, init=init_algo)
 
 embedding = reducer.fit_transform(vectors.values)
 
@@ -114,4 +124,4 @@ vectors["color"] = vectors["dom_sense"].apply(lambda x: color_dict[x])
 vectors["x"] = embedding[:,0]
 vectors["y"] = embedding[:,1]
 
-print json.dumps(vectors[["label", "x", "y", "color"]])
+print json.dumps({"umap": vectors[["x", "y", "color"]].to_dict(orient="index"), "num_nodes":num_nodes})

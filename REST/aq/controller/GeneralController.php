@@ -30,28 +30,32 @@ class GeneralController
         echo json_encode(array("rest_api_v"=> "1.1", "quizzes" => $quiz_list, "sort"=>$results["sort"], "start"=>$results["start"], "end"=>$results["end"]));
     }
 
-    public static function listAllQuizzesJSON($root) {
+    public static function umapJSON($root) {
         header('Content-type: application/json');
 
         $ch = curl_init();
 
-        $umap_py = "localhost/py/umap.py?root=" . urlencode($root);
+        $umap_py = "http://localhost/py/umap_conceptnet.py";//?root=" . urlencode($root);
 
         curl_setopt($ch, CURLOPT_URL, $umap_py);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
         $resp = curl_exec($ch);
 
+        //echo $resp;
+        $resp = json_decode($resp, true);
+
         curl_close($ch);
 
         $topics = array();
 
-        foreach( $resp["topic"] as $topic ) {
+        foreach( $resp["umap"] as $topic=>$info ) {
+
             $topics[] = array(
-                                "keyword"=>$topic->keyword,
-                                "url"=>$topic->url,
-                                "x"=>$topic->x,
-                                "y"=>$topic->y);
+                                "keyword"=>$topic,
+                                "color"=>$info["color"],
+                                "x"=>$info["x"],
+                                "y"=>$info["y"]);
         }
 
         echo json_encode(array("rest_api_v" => "1.1", "root"=>$root, "topics"=> $topics));
