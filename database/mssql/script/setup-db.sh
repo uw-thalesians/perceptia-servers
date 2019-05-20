@@ -58,17 +58,38 @@ then
         fi
 fi
 
+# create Perceptia database
+/opt/mssql-tools/bin/sqlcmd \
+-S localhost -U sa -P ${SA_PASSWORD} -d 'master' -b \
+-Q "If Exists(SELECT [name] FROM master.dbo.sysdatabases WHERE [name] = 'Perceptia')
+Begin
+	USE [master]
+	ALTER DATABASE [Perceptia] SET SINGLE_USER WITH ROLLBACK IMMEDIATE
+	DROP DATABASE [Perceptia]
+End
+;
+CREATE DATABASE [Perceptia]
+	CONTAINMENT = PARTIAL
+	COLLATE Latin1_General_100_CI_AS_SC
+;"
+if [ $? -eq 1 ]
+then
+        echo "Unable to create $GATEWAY_SP_USERNAME user."
+        exit 1
+fi
+
+
 # run the setup script to create the DB and the schema in the DB
 echo "Applying schema.sql to Perceptia database"
-/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${SA_PASSWORD} -d master -i /script/sql/schema.sql
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${SA_PASSWORD} -d Perceptia -i /script/Perceptia/schema.sql
 
 # run the setup script to create the stored procedures for the DB
 echo "Applying procedure.sql to Perceptia database"
-/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${SA_PASSWORD} -d master -i /script/sql/procedure.sql
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${SA_PASSWORD} -d Perceptia -i /script/Perceptia/procedure.sql
 
 # run the setup script to populate the DB
 echo "Applying procedure.sql to Perceptia database"
-/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${SA_PASSWORD} -d master -i /script/sql/populate.sql
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${SA_PASSWORD} -d Perceptia -i /script/Perceptia/populate.sql
 
 # add SQL database user
 /opt/mssql-tools/bin/sqlcmd \
@@ -95,7 +116,7 @@ sleep 20s
 # Remove Database scripts
 if [ "$MSSQL_ENVIRONMENT" == "production" ]
 then
-        rm /script/sql/schema.sql /script/sql/procedure.sql /script/sql/populate.sql
+        rm /script/Perceptia/schema.sql /script/Perceptia/procedure.sql /script/Perceptia/populate.sql
 fi
 
 # Ensure Database was created successfully

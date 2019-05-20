@@ -1,7 +1,7 @@
 /*
 	Title: Perceptia Database Procedures
-	Version: 0.8.0
-	Schema Version: 0.7.0
+	Version: 0.8.1
+	Schema Version: 0.7.1
 */
 -------------------------------------------------------------------------------
 -- Change Log --
@@ -18,6 +18,15 @@
 	2019/04/28, Chris, Add Update Hash, DisplayName, FullName for user, 0.7.0
 	2019/04/28, Chris, Fix params for Update sp, 0.7.1
 	2019/05/18, Chris, Add Session get and delete sp, 0.8.0
+	2019/05/20, Chris, Move version populate to populate, 0.8.1
+*/
+
+-------------------------------------------------------------------------------
+-- Change Log --
+-------------------------------------------------------------------------------
+
+/*
+	TODO: On User Delete remove all data about user that should not be stored
 */
 
 -------------------------------------------------------------------------------
@@ -33,31 +42,11 @@
 -- Setup --
 -------------------------------------------------------------------------------
 
+/*
 USE [Perceptia]
 ;
 GO
-
--------------------------------------------------------------------------------
--- Populate Database --
--------------------------------------------------------------------------------
-
------------------------------------------------------------
--- Version Table --
------------------------------------------------------------
-INSERT INTO [Version] (
-		[Uuid]
-		,[Name]
-		,[Version]
-		,[Description]
-	)
-VALUES (
-		N'1F51BCCE-959B-4732-97D4-3AD688850ED8'
-		,N'Stored Procedures'
-		,N'0.8.0'
-		,N'The Perceptia Database Stored Procedures.'
-	)
-;
-GO
+*/
 
 -------------------------------------------------------------------------------
 -- Procedure Error Notes --
@@ -179,7 +168,9 @@ BEGIN
 		THROW 50301, N'user does not exist', 1
 	;
 
-	SELECT [U].[Uuid] AS [UserUuid], [U].[Username], [U].[DisplayName], [P].[Bio], [P].[GravitarUrl], [PS].[DisplayName] AS [ShareDisplayName], [PS].[Bio] AS [ShareBio], [PS].[GravitarUrl] AS [ShareGravitarUrl]
+	SELECT [U].[Uuid] AS [UserUuid], [U].[Username], [U].[DisplayName], [P].[Bio], 
+			[P].[GravitarUrl], [PS].[DisplayName] AS [ShareDisplayName], 
+			[PS].[Bio] AS [ShareBio], [PS].[GravitarUrl] AS [ShareGravitarUrl]
 		FROM [User] AS [U]
 		INNER JOIN [UserProfile] AS [UP]
 			ON [U].[Uuid] = [UP].[User_Uuid]
@@ -365,7 +356,7 @@ BEGIN
 	SELECT [E].[Uuid], [E].[Email], [E].[Created] 
 		FROM [User] AS [U]
 		INNER JOIN [UserEmail] AS [UE]
-			ON [U].[Uuid] = [UE].[User_UUID]
+			ON [U].[Uuid] = [UE].[User_Uuid]
 		INNER JOIN [Email] AS [E]
 			ON [UE].[Email_Uuid] = [E].[Uuid]
 		WHERE [U].[Uuid] = @UserUuid
@@ -406,7 +397,7 @@ BEGIN
 	SELECT [U].[Uuid], [U].[Username], [U].[Created] 
 		FROM [User] AS [U]
 		INNER JOIN [UserEmail] AS [UE]
-			ON [U].[Uuid] = [UE].[User_UUID]
+			ON [U].[Uuid] = [UE].[User_Uuid]
 		INNER JOIN [Email] AS [E]
 			ON [UE].[Email_Uuid] = [E].[Uuid]
 		WHERE [E].[Email] = @Email
@@ -880,7 +871,7 @@ BEGIN TRY
 	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @UserUuid)
 		THROW 50301, N'user does not exist', 1
 		;
-	IF @Username = (SELECT [Username] FROM [User] WHERE [Uuid] = @UserUuid)
+	IF EXISTS (SELECT [Username] FROM [User] WHERE [Uuid] = @UserUuid AND [Username] = @Username)
 		THROW 50402, N'username already users username', 1
 		;
 	IF EXISTS (SELECT [Username] FROM [User] WHERE [Username] = @Username)
@@ -1094,7 +1085,7 @@ BEGIN TRY
 	IF @Share IS NULL
 		THROW 50102, N'share must not be null', 1
 		;
-	IF @Share != N'Y' OR @Share != N'N'
+	IF @Share NOT IN (N'Y', N'N')
 		THROW 50201, N'share can only be Y or N', 1
 		;
 	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @UserUuid)
@@ -1156,7 +1147,7 @@ BEGIN TRY
 	IF @Share IS NULL
 		THROW 50102, N'share must not be null', 1
 		;
-	IF @Share != N'Y' OR @Share != N'N'
+	IF @Share NOT IN (N'Y', N'N')
 		THROW 50201, N'share can only be Y or N', 1
 		;
 	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @UserUuid)
@@ -1218,7 +1209,7 @@ BEGIN TRY
 	IF @Share IS NULL
 		THROW 50102, N'share must not be null', 1
 		;
-	IF @Share != N'Y' OR @Share != N'N'
+	IF @Share NOT IN (N'Y', N'N')
 		THROW 50201, N'share can only be Y or N', 1
 		;
 	IF NOT EXISTS (SELECT [Uuid] FROM [User] WHERE [Uuid] = @UserUuid)
@@ -1348,7 +1339,7 @@ BEGIN TRY
 	SET @EmailUuid = (
 			SELECT [E].[Uuid] FROM [User] AS [U]
 				INNER JOIN [UserEmail] AS [UE]
-					ON [U].[Uuid] = [UE].[User_UUID]
+					ON [U].[Uuid] = [UE].[User_Uuid]
 				INNER JOIN [Email] AS [E]
 					ON [UE].[Email_Uuid] = [E].[Uuid]
 				WHERE [U].[Uuid] = @UserUuid AND [E].[Email] = @Email
@@ -1400,6 +1391,7 @@ BEGIN TRY
 	BEGIN TRANSACTION [T1]
 		DELETE FROM [User]
 			WHERE [Uuid] = @UserUuid
+		;
 	COMMIT TRANSACTION [T1]
 	;
 END TRY

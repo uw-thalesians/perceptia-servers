@@ -1,6 +1,6 @@
 /*
 	Title: Perceptia Database Schema
-	Version: 0.7.0
+	Version: 0.7.1
 */
 -------------------------------------------------------------------------------
 -- Change Log --
@@ -17,6 +17,7 @@
 	2019/04/28, Chris, Update sp to 0.7.0, 0.5.0
 	2019/04/28, Chris, Update sp to 0.7.1, 0.5.0
 	2019/05/18, Chris, Add Session Version Profile table, 0.7.0
+	2019/05/20, Chris, Move Version to Populate, 0.7.1
 */
 
 -------------------------------------------------------------------------------
@@ -34,6 +35,7 @@
 -------------------------------------------------------------------------------
 -- Setup Database --
 -------------------------------------------------------------------------------
+/*
 -- Select master to remove 
 USE [master]
 ;
@@ -56,14 +58,17 @@ CREATE DATABASE [Perceptia]
 	COLLATE Latin1_General_100_CI_AS_SC
 ;
 GO
+*/
 
 -------------------------------------------------------------------------------
 -- Create Tables --
 -------------------------------------------------------------------------------
 -- Ensure Perceptia database is selected
+/*
 USE [Perceptia]
 ;
 GO
+*/
 
 -----------------------------------------------------------
 -- Version Table --
@@ -265,7 +270,12 @@ ALTER TABLE [UserEmail]
 	CONSTRAINT [FK_UserEmail_UserUuid] FOREIGN KEY ([User_Uuid])
 		REFERENCES [User] ([Uuid])
 		ON DELETE CASCADE
-	,CONSTRAINT [FK_UserEmail_EmailUuid] FOREIGN KEY ([Email_Uuid])
+;
+GO
+
+ALTER TABLE [UserEmail]
+	ADD
+	CONSTRAINT [FK_UserEmail_EmailUuid] FOREIGN KEY ([Email_Uuid])
 		REFERENCES [Email] ([Uuid])
 		ON DELETE CASCADE
 ;
@@ -281,7 +291,12 @@ ALTER TABLE [UserCredential]
 	CONSTRAINT [FK_UserCredential_UserUuid] FOREIGN KEY ([User_Uuid])
 		REFERENCES [User] ([Uuid])
 		ON DELETE CASCADE
-	,CONSTRAINT [FK_UserCredential_CredentialUuid] FOREIGN KEY ([Credential_Uuid])
+;
+GO
+
+ALTER TABLE [UserCredential]
+	ADD
+	CONSTRAINT [FK_UserCredential_CredentialUuid] FOREIGN KEY ([Credential_Uuid])
 		REFERENCES [Credential] ([Uuid])
 		ON DELETE CASCADE
 ;
@@ -296,7 +311,12 @@ ALTER TABLE [UserSession]
 	CONSTRAINT [FK_UserSession_UserUuid] FOREIGN KEY ([User_Uuid])
 		REFERENCES [User] ([Uuid])
 		ON DELETE CASCADE
-	,CONSTRAINT [FK_UserSession_SessionUuid] FOREIGN KEY ([Session_Uuid])
+;
+GO
+
+ALTER TABLE [UserSession]
+	ADD
+	CONSTRAINT [FK_UserSession_SessionUuid] FOREIGN KEY ([Session_Uuid])
 		REFERENCES [Session] ([Uuid])
 		ON DELETE CASCADE
 ;
@@ -311,7 +331,12 @@ ALTER TABLE [UserProfile]
 	CONSTRAINT [FK_UserProfile_UserUuid] FOREIGN KEY ([User_Uuid])
 		REFERENCES [User] ([Uuid])
 		ON DELETE CASCADE
-	,CONSTRAINT [FK_UserProfile_ProfileUuid] FOREIGN KEY ([Profile_Uuid])
+;
+GO
+
+ALTER TABLE [UserProfile]
+	ADD
+	CONSTRAINT [FK_UserProfile_ProfileUuid] FOREIGN KEY ([Profile_Uuid])
 		REFERENCES [Profile] ([Uuid])
 		ON DELETE CASCADE
 ;
@@ -326,7 +351,12 @@ ALTER TABLE [UserProfileSharing]
 	CONSTRAINT [FK_UserProfileSharing_UserUuid] FOREIGN KEY ([User_Uuid])
 		REFERENCES [User] ([Uuid])
 		ON DELETE CASCADE
-	,CONSTRAINT [FK_UserProfileSharing_ProfileSharingUuid] FOREIGN KEY ([ProfileSharing_Uuid])
+;
+GO
+
+ALTER TABLE [UserProfileSharing]
+	ADD
+	CONSTRAINT [FK_UserProfileSharing_ProfileSharingUuid] FOREIGN KEY ([ProfileSharing_Uuid])
 		REFERENCES [ProfileSharing] ([Uuid])
 		ON DELETE CASCADE
 ;
@@ -384,35 +414,12 @@ GO
 -------------------------------------------------------------------------------
 
 -----------------------------------------------------------
--- Execute Stored Procedures in DB--
+-- Execute Stored Procedures in DB --
 -----------------------------------------------------------
 CREATE ROLE [RL_ExecuteAllProcedures]
 ;
 GO
 
 GRANT EXECUTE TO [RL_ExecuteAllProcedures]
-;
-GO
-
--------------------------------------------------------------------------------
--- Populate Database --
--------------------------------------------------------------------------------
-
------------------------------------------------------------
--- Version Table --
------------------------------------------------------------
-
-INSERT INTO [Version] (
-		[Uuid]
-		,[Name]
-		,[Version]
-		,[Description]
-	)
-VALUES (
-		N'8FBE90DA-70C2-4C0C-91AB-A2B8FE31F0D4'
-		,N'Schema'
-		,N'0.6.0'
-		,N'The Perceptia Database Schema.'
-	)
 ;
 GO

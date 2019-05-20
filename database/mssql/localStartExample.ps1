@@ -6,7 +6,7 @@ Param (
     [String]$MsSqlSkipSetupIfExist = "Y",
     [String]$MsSqlSkipSetup = "N",
     [switch]$BuildMsSql,
-    [string]$MsSqlVersion = "0.8.0",
+    [string]$MsSqlVersion = "0.8.1",
     [string]$MsSqlBuild = "232",
     [string]$MsSqlBranch = "develop",
     [String]$PerceptiaDockerNet = "perceptia-net",
