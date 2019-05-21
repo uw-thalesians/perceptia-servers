@@ -230,13 +230,16 @@ func main() {
 	gmuxApiVGatewaySessionsSpecific.PathPrefix("").HandlerFunc(hcx.SessionsSpecificHandler)
 
 	// Add Middleware to "/api"
+	//gmuxApi.Use
 	gmuxApi.Use(handler.NewCors)
 	gmuxApi.Use(hcx.NewAuthenticator)
 
 	// Add Middleware to "/api/{majorVersion}"
+	// gmuxApiV.Use
 
 	// Add Middleware to "/api/{majorVersion}/gateway"
-
+	// gmuxApiVGateway.Use
+	gmuxApiVGateway.Use()
 	// Add Middleware to "/api/{majorVersion}/gateway/users/{uuid}"
 	gmuxApiVGatewayUsersSpecific.Use(hcx.NewEnsureAuth)
 
