@@ -139,16 +139,16 @@ if (!$CleanUp) {
 
         if ($MsSqlRemoveDbVolume -or $RemoveAllDbVolumes) {
                 Write-Host "-MsSqlRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$MSSQL_VOLUME_NAME"
-                if ((docker ps -aq --filter "label=app.perceptia.info/name=mssql"   --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
-                        docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=mssql"  --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
+                if ((docker ps -aq --filter "label=label.perceptia.info/name=mssql"   --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
+                        docker rm --force (docker ps -aq --filter "label=label.perceptia.info/name=mssql"  --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
                 } 
                 Start-Sleep -Seconds 2
                 docker volume rm ${PERCEPTIA_STACK_NAME}_$MSSQL_VOLUME_NAME
         }
         if ($RedisRemoveDbVolume -or $RemoveAllDbVolumes) {
                 Write-Host "-RedisRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$REDIS_VOLUME_NAME"
-                if ((docker ps -aq --filter "label=app.perceptia.info/name=redis"   --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
-                        docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=redis"  --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
+                if ((docker ps -aq --filter "label=label.perceptia.info/name=redis"   --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
+                        docker rm --force (docker ps -aq --filter "label=label.perceptia.info/name=redis"  --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
                 } 
                 
                 Start-Sleep -Seconds 2
@@ -156,16 +156,16 @@ if (!$CleanUp) {
         }
         if ($AqMySqlRemoveDbVolume -or $RemoveAllDbVolumes) {
                 Write-Host "-AqMySqlRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$AQMYSQL_VOLUME_NAME"
-                if ((docker ps -aq --filter "label=app.perceptia.info/name=aqmysql" --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
-                        docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=aqmysql" --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
+                if ((docker ps -aq --filter "label=label.perceptia.info/name=aqmysql" --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
+                        docker rm --force (docker ps -aq --filter "label=label.perceptia.info/name=aqmysql" --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
                 }  
                 
                 Start-Sleep -Seconds 2
                 docker volume rm ${PERCEPTIA_STACK_NAME}_$AQMYSQL_VOLUME_NAME
         }
         if ($RemoveAllContainers) {
-                if ((docker ps -aq --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
-                        docker rm --force (docker ps -aq --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
+                if ((docker ps -aq --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
+                        docker rm --force (docker ps -aq --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
                 }  
         }
 
@@ -224,16 +224,16 @@ if (!$CleanUp) {
         }
         if ($MsSqlRemoveDbVolume -or $RemoveAllDbVolumes) {
                 Write-Host "-MsSqlRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$MSSQL_VOLUME_NAME"
-                if ((docker ps -aq --filter "label=app.perceptia.info/name=mssql"   --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
-                        docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=mssql"  --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
+                if ((docker ps -aq --filter "label=label.perceptia.info/name=mssql"   --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
+                        docker rm --force (docker ps -aq --filter "label=label.perceptia.info/name=mssql"  --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
                 } 
                 Start-Sleep -Seconds 2
                 docker volume rm ${PERCEPTIA_STACK_NAME}_$MSSQL_VOLUME_NAME
         }
         if ($RedisRemoveDbVolume -or $RemoveAllDbVolumes) {
                 Write-Host "-RedisRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$REDIS_VOLUME_NAME"
-                if ((docker ps -aq --filter "label=app.perceptia.info/name=redis"   --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
-                        docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=redis"  --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
+                if ((docker ps -aq --filter "label=label.perceptia.info/name=redis"   --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
+                        docker rm --force (docker ps -aq --filter "label=label.perceptia.info/name=redis"  --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
                 } 
                 
                 Start-Sleep -Seconds 2
@@ -241,16 +241,16 @@ if (!$CleanUp) {
         }
         if ($AqMySqlRemoveDbVolume -or $RemoveAllDbVolumes) {
                 Write-Host "-AqMySqlRemoveDbVolume or -RemoveAllDbVolumes option set, removing volume: ${PERCEPTIA_STACK_NAME}_$AQMYSQL_VOLUME_NAME"
-                if ((docker ps -aq --filter "label=app.perceptia.info/name=aqmysql" --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
-                        docker rm --force (docker ps -aq --filter "label=app.perceptia.info/name=aqmysql" --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
+                if ((docker ps -aq --filter "label=label.perceptia.info/name=aqmysql" --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
+                        docker rm --force (docker ps -aq --filter "label=label.perceptia.info/name=aqmysql" --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
                 }  
                 
                 Start-Sleep -Seconds 2
                 docker volume rm ${PERCEPTIA_STACK_NAME}_$AQMYSQL_VOLUME_NAME
         }
         if ($RemoveAllContainers) {
-                if ((docker ps -aq --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
-                        docker rm --force (docker ps -aq --filter "label=app.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
+                if ((docker ps -aq --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}").Length -gt 0) {
+                        docker rm --force (docker ps -aq --filter "label=label.perceptia.info/part-of=${PERCEPTIA_STACK_NAME}")
                 }  
         }
         Write-Host "Docker stack should be cleaned up..."
