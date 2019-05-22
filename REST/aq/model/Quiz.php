@@ -11,6 +11,7 @@ class Quiz
     private $_questions;
     private $_timestamp;
     private $_source;
+    private $_paras;
 
     public function __construct($init)
     {
@@ -20,6 +21,19 @@ class Quiz
         $this->_image = $init['image'];
         $this->_timestamp = $init['when'];
         $this->_source = $init['source'];
+        $this->_paras = $init['paras'];
+        
+        if(isset($this->_paras)) {
+            $summary = "";
+
+            //print_r(gettype($this->_paras));
+
+            foreach($this->_paras as $para) {
+                $summary .= $para["text"];
+            }
+
+            $this->_summary = $summary;
+        }
 
         $this->_questions = array();
     }

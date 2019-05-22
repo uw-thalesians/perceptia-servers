@@ -101,6 +101,23 @@ $f3->route('GET /api/v1/anyquiz/questions/@keyword', function($f3) {
 
 });
 
+$f3->route('GET /api/v1/anyquiz/study/@keyword', function($f3) {
+
+    $quizController = new QuizController();
+
+    $source = 'wiki';
+
+    if( $f3->exists('GET.source') ) {
+        $source = $f3->get('GET.source');
+    }
+
+    $keyword = $f3->get('PARAMS.keyword');
+
+    header('Content-Type: application/json');
+    $quizController->studyJSON($keyword, $source);
+
+});
+
 $f3->route('POST /api/v1/anyquiz/questions/grade', function() {
     header('Content-Type: application/json');
     
