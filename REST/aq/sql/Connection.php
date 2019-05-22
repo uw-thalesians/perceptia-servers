@@ -43,8 +43,6 @@ class Connection
 
         $sql = "SELECT * FROM quizzes WHERE keyword=:keyword and source=:source";
 
-        //$update_read = "UPDATE read_count ";
-
         $quiz = null;
 
         try {
@@ -62,7 +60,26 @@ class Connection
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if($row) {
-                // print_r($row);
+
+                $update_read = "UPDATE quizzes SET total_read_count = total_read_count + 1 WHERE id=:quiz_id";
+
+                $select_para = "SELECT id, text FROM paragraphs WHERE quiz_id=:quiz_id";
+
+                $id = $row["id"];
+
+                $stmt = Connection::$conn->prepare($update_read);
+                $stmt->bindValue(":quiz_id", $id, PDO::PARAM_INT);
+                $stmt->execute();
+
+                $stmt = Connection::$conn->prepare($select_para);
+                $stmt->bindValue(":quiz_id", $id, PDO::PARAM_INT);
+                $stmt->execute();
+
+                $paras = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                $row['paras'] = $paras;
+
+                #print_r($row);
                 $quiz = new Quiz( $row );
 
             } else {
@@ -120,8 +137,24 @@ class Connection
                 $response = json_decode($response, true)["response"];
                 // print_r($response);
 
-                $summary = $response["docs"][0]["attr_body"][0];
-                // print_r($summary);
+                #print_r($response["docs"][0]["attr_body"][0]);
+//https://github.com/commonsense/conceptnet5/wiki/API
+                switch($response["docs"][0]["attr_stream_content_type"])
+                {
+                    case "text/html; charset=utf-8":
+                        //check if it's possible to keep original html and use something like beautiful soup
+                        //to extract p tags
+                        $summary = explode("\n \n postPage", $response["docs"][0]["attr_body"][0]);
+                        break;
+                    case "application/pdf":
+                        $summary = explode("\n \n page", $response["docs"][0]["attr_body"][0]);
+                        break;
+
+                    default:
+                        $summary = explode("\n \n ", $response["docs"][0]["attr_body"][0]);
+                }
+                
+                #print_r($summary);
 
                 break;
 
@@ -156,7 +189,7 @@ class Connection
 
     private function addNewQuiz($keyword, $summary, $source)//, $lang)
     {
-        $sql = "INSERT INTO quizzes (keyword, image, summary, source) VALUES (:keyword, :image, :summary, :source)";
+        $sql = "INSERT INTO quizzes (keyword, image, source) VALUES (:keyword, :image, :source)";
 
         //https://cse.google.com/cse/create/new
         //https://developers.google.com/custom-search/json-api/v1/introduction#identify_your_application_to_google_with_api_key
@@ -293,11 +326,27 @@ class Connection
             $stmt = Connection::$conn->prepare($sql);
 
             $stmt->bindValue(":keyword", $keyword);
-            $stmt->bindValue(":summary", $summary);
             $stmt->bindValue(":image", $remotePath);
             $stmt->bindValue(":source", $source);
 
             $stmt->execute();
+
+            $quiz_id = Connection::$conn->lastInsertId();
+
+            //since bind value expects unique tokens, execute these one at a time for now, but look for
+            //"the right way" as time permits
+
+            $sql = "insert into paragraphs (quiz_id, text) VALUES (:quiz_id, :text)";
+
+            foreach ( $summary as $para ) {
+
+                $stmt = Connection::$conn->prepare($sql);
+
+                $stmt->bindValue(":quiz_id", $quiz_id, PDO::PARAM_INT);
+                $stmt->bindValue(":text", $para, PDO::PARAM_STR);
+
+                $stmt->execute();
+            }
 
             $quiz = $this->findQuiz($keyword, $source);
 
@@ -306,6 +355,7 @@ class Connection
         }
 
         $path_to_py = dirname($_SERVER['PHP_SELF']) . "/py/n_cgi.py";
+
 
         #print_r($path_to_py);
 
@@ -462,7 +512,6 @@ class Connection
             echo "Error getting questions: " + $e->getMessage();
         }
 
-
         return $answers;
     }
 
@@ -471,7 +520,7 @@ class Connection
         $quiz = $this->findQuiz($keyword, $source);//, $lang);
 
         #print_r($quiz);
-	$sql = "SELECT * FROM quiz_questions WHERE quiz_id=:quiz_id LIMIT 10";
+        $sql = "SELECT * FROM quiz_questions WHERE quiz_id=:quiz_id LIMIT 10";
 
         try {
 
@@ -523,6 +572,83 @@ class Connection
                     "q_type"    => $result["q_type"],
                     "id"        => $result["id"],
                     "answer" 	=> ($result["q_type"]==1)?$answers:[],
+                );
+
+            }
+
+
+            shuffle($questions); //DevSkim: ignore DS148264 
+
+            $quiz->questions = $questions;
+
+	#	print_r($quiz);
+
+        } catch (Exception $e){
+            echo "Error reading or parsing existing quiz questions: " . $e->getMessage();
+        }
+
+
+		return $quiz;
+	}
+
+    public function getStudyQuestions($keyword, $source)//, $lang)
+    {
+        $quiz = $this->findQuiz($keyword, $source);//, $lang);
+
+        #print_r($quiz);
+	    $sql = "SELECT * FROM quiz_questions WHERE quiz_id=:quiz_id LIMIT 10";
+
+        try {
+
+            $stmt = Connection::$conn->prepare($sql);
+
+            $stmt->bindValue(":quiz_id", $quiz->id);
+
+            $stmt->execute();
+
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+            $questions = array();
+            foreach($results as $result) {
+
+                do {
+                    $otherAnswers = $this->getRandomAnswers(3);
+                } while(in_array($result["answer"], $otherAnswers));
+
+                $chr = mb_substr($result["answer"], 0, 1, "UTF-8");
+                $capitalize = mb_strtolower($chr, "UTF-8") != $chr;
+
+                $case_fn = "mb_strtolower";
+                if($capitalize) {
+                    $case_fn = "mb_strtoupper";
+                }
+
+                    for( $i = 0; $i < sizeof($otherAnswers); $i++) {
+                        #print_r($otherAnswers[$i]);
+                        $otherAnswers[$i] = call_user_func($case_fn, mb_substr($otherAnswers[$i], 0, 1, "UTF-8")) . mb_substr($otherAnswers[$i], 1, mb_strlen($otherAnswers[$i]), "UTF-8");
+                        #print_r($otherAnswers[$i]);
+                    }
+
+                //preg_replace('\\n', '',
+                // Delimiter must not be alphanumeric or backslash[
+                $answers = array(
+                    $result["answer"],
+                    $otherAnswers[0],
+                    $otherAnswers[1],
+                    $otherAnswers[2],
+                );
+
+                shuffle($answers); //DevSkim: ignore DS148264 
+
+                //preg_replace('\\n', '',
+                // Delimiter must not be alphanumeric or backslash[
+                $questions[] = array(
+                    "question" 	=> $result["question"],
+                    "q_type"    => $result["q_type"],
+                    "id"        => $result["id"],
+                    "answer" 	=> ($result["q_type"]==1)?$answers:[],
+                    "p_id"      => $result["p_id"],
                 );
 
             }
