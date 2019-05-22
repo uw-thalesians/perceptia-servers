@@ -9,20 +9,20 @@ variables:
   - group: ApiDevelopment
   # Gateway Variables
   - name: GatewayVersionMajor
-    value: '0'
+    value: '1'
   - name: GatewayVersionMinor
-    value: '3'
+    value: '0'
   - name: GatewayVersionPatch
     value: '0'
   - name: GatewayImageQualified
     value: '$(DockerHubOrg)/$(GatewayImageName)'
   # Mssql Variables
   - name: MssqlVersionMajor
-    value: '0'
-  - name: MssqlVersionMinor
-    value: '8'
-  - name: MssqlVersionPatch
     value: '1'
+  - name: MssqlVersionMinor
+    value: '0'
+  - name: MssqlVersionPatch
+    value: '0'
   - name: MssqlImageQualified
     value: '$(DockerHubOrg)/$(MssqlImageName)'
   # Aqrest Variables
