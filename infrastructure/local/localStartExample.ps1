@@ -64,6 +64,10 @@ if (!$CleanUp) {
                 Write-Host "Latest switch provided, using latest build from branch: $TAG_BRANCH"
                 Set-Variable -Name TAG_BUILD -Value "latest"              
         }
+        if ($Build -and !$Latest) {
+                Write-Host "Build option provided, using build $TAG_BUILD from branch: $TAG_BRANCH"
+                Set-Variable -Name TAG_BUILD -Value "latest"              
+        }
         if (($TAG_BUILD).Length -eq 0) {
                 Write-Host "Build must be provided, but no build provided, exiting..."
                 exit(1)

@@ -76,6 +76,8 @@ services:
       SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
       SKIP_SETUP_IF_EXISTS: "Y"
       MSSQL_ENVIRONMENT: "development"
+      GATEWAY_SP_USERNAME: "${MSSQL_GATEWAY_SP_USERNAME}"
+      GATEWAY_SP_PASSWORD: "${MSSQL_GATEWAY_SP_PASSWORD}"
     volumes:
       - type: volume
         source: mssql_pc_vol
