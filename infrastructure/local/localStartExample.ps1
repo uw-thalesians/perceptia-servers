@@ -1,12 +1,12 @@
 Param (
         [Switch]$CleanUp,
         [switch]$Latest,
-        [string]$Build = "232",
+        [string]$Build = "288",
         [String]$Branch = "develop",
         [switch]$CurrentBranch,
-        [String]$GatewayVersion = "0.3.0",
+        [String]$GatewayVersion = "1.0.0",
         [string]$GatewayPortPublish = "4443",
-        [String]$MsSqlVersion = "0.7.1",
+        [String]$MsSqlVersion = "1.0.0",
         [String]$MsSqlSaPassword = "SecureNow!",
         [String]$MsSqlPortPublish = "47011",
         [String]$MsSqlGatewaySpUsername = "gateway_sp",
@@ -23,7 +23,8 @@ Param (
         [String]$AqSolrVersion = "1.0.0",
         [String]$AqSolrPortPublish = "47022",
         [switch]$RemoveAllDbVolumes,
-        [switch]$RemoveAllContainers
+        [switch]$RemoveAllContainers,
+        [switch]$SkipImageCheck
 )
 
 Set-Variable -Name DOCKERHUB_ORG -Value "uwthalesians"
@@ -58,15 +59,15 @@ if (!$CleanUp) {
                 Write-Host "Branch must be set, but no branch set, exiting"
                 exit(1)
         }
-
+ 
         Set-Variable -Name TAG_BUILD -Value $Build # Build number 
+    
         if ($Latest) {
                 Write-Host "Latest switch provided, using latest build from branch: $TAG_BRANCH"
                 Set-Variable -Name TAG_BUILD -Value "latest"              
-        }
-        if ($Build -and !$Latest) {
-                Write-Host "Build option provided, using build $TAG_BUILD from branch: $TAG_BRANCH"
-                Set-Variable -Name TAG_BUILD -Value "latest"              
+        } else {
+                Write-Host "Using build $TAG_BUILD from branch: $TAG_BRANCH"
+                Set-Variable -Name TAG_BUILD -Value "$Build"              
         }
         if (($TAG_BUILD).Length -eq 0) {
                 Write-Host "Build must be provided, but no build provided, exiting..."
@@ -178,15 +179,18 @@ if (!$CleanUp) {
         }
 
         # Ensure images exist
-        $ALL_IMAGES = @($env:GATEWAY_IMAGE_AND_TAG, $env:MSSQL_IMAGE_AND_TAG, $env:REDIS_IMAGE_AND_TAG, $env:AQREST_IMAGE_AND_TAG, $env:AQMYSQL_IMAGE_AND_TAG, $env:AQSOLR_IMAGE_AND_TAG)
-        Write-Host "Checking dockerhub for images..."
-        foreach ($IMAGE in $ALL_IMAGES) {
-                (docker pull $IMAGE) | Out-Null 
-                if (!$?) {
-                        Write-Host "Image: $IMAGE not found on dockerhub, exiting"
-                        exit(1)
+        if (!$SkipImageCheck) {
+                $ALL_IMAGES = @($env:GATEWAY_IMAGE_AND_TAG, $env:MSSQL_IMAGE_AND_TAG, $env:REDIS_IMAGE_AND_TAG, $env:AQREST_IMAGE_AND_TAG, $env:AQMYSQL_IMAGE_AND_TAG, $env:AQSOLR_IMAGE_AND_TAG)
+                Write-Host "Checking dockerhub for images..."
+                foreach ($IMAGE in $ALL_IMAGES) {
+                        (docker pull $IMAGE) | Out-Null 
+                        if (!$?) {
+                                Write-Host "Image: $IMAGE not found on dockerhub, exiting"
+                                exit(1)
+                        }
                 }
         }
+       
         Write-Host "All images found!"
         Write-Host "`n"
         Write-Host "Starting up the docker stack: $PERCEPTIA_STACK_NAME"

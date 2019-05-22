@@ -112,6 +112,8 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
 `-RemoveAllContainers` (switch) will cause all containers used by the stack labeled as "app.perceptia.info/part-of=perceptia-api" to be deleted
 
+`-SkipImageCheck` (switch) will skip checking and pulling the images before starting the stack (note, if stack can't find images the stack will succeed but the containers won't be started because the image could not be found, so use this only if you know the branches exist)
+
 ### Docker Stack Config
 
 The docker stack config makes certain assumptions about the images being run and the local ip environemnt on the device where the script is being run.
