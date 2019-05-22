@@ -1,6 +1,6 @@
 /*
 	Title: Perceptia Database Schema
-	Version: 0.7.1
+	Version: 1.0.0
 */
 -------------------------------------------------------------------------------
 -- Change Log --
@@ -18,6 +18,15 @@
 	2019/04/28, Chris, Update sp to 0.7.1, 0.5.0
 	2019/05/18, Chris, Add Session Version Profile table, 0.7.0
 	2019/05/20, Chris, Move Version to Populate, 0.7.1
+	2019/05/21, Chris, Set version to 1.0.0, 1.0.0
+*/
+
+-------------------------------------------------------------------------------
+-- TODO --
+-------------------------------------------------------------------------------
+
+/*
+	- Add check constraints for business logic
 */
 
 -------------------------------------------------------------------------------
@@ -202,7 +211,7 @@ GO
 CREATE TABLE [Profile] (
 	[Uuid] UNIQUEIDENTIFIER DEFAULT(NEWID()) NOT NULL
 	,[Bio] NVARCHAR(1000)
-	,[GravitarUrl] NVARCHAR(1000)
+	,[GravatarUrl] NVARCHAR(1000)
 	,[Created] DATETIME DEFAULT(GETDATE())
 	,CONSTRAINT [PK_Profile_Uuid] PRIMARY KEY ([Uuid])
 )
@@ -233,7 +242,7 @@ GO
 CREATE TABLE [ProfileSharing] (
 	[Uuid] UNIQUEIDENTIFIER DEFAULT(NEWID()) NOT NULL
 	,[Bio] NCHAR(1)
-	,[GravitarUrl] NCHAR(1)
+	,[GravatarUrl] NCHAR(1)
 	,[DisplayName] NCHAR(1)
 	,CONSTRAINT [PK_ProfileSharing_Uuid] PRIMARY KEY ([Uuid])
 )

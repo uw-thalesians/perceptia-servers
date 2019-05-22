@@ -8,6 +8,7 @@
 /*
 	Date, Changer, Short Description, Version
 	2019/05/19, Chris, Created Populate, 0.1.0
+	2019/05/21, Chris, Update versions for schema and proc, 0.2.0
 */
 
 -------------------------------------------------------------------------------
@@ -44,7 +45,7 @@ INSERT INTO [Version] (
 VALUES (
 		N'1F51BCCE-959B-4732-97D4-3AD688850ED8'
 		,N'Stored Procedures'
-		,N'0.8.1'
+		,N'1.0.0'
 		,N'The Perceptia Database Stored Procedures.'
 	)
 ;
@@ -63,7 +64,7 @@ INSERT INTO [Version] (
 VALUES (
 		N'8FBE90DA-70C2-4C0C-91AB-A2B8FE31F0D4'
 		,N'Schema'
-		,N'0.7.1'
+		,N'1.0.0'
 		,N'The Perceptia Database Schema.'
 	)
 ;
