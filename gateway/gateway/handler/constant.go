@@ -15,7 +15,8 @@ const (
 // Custom HTTP Header Names
 const (
 	HeaderPerceptiaUserUuid    = "Perceptia-User-Uuid"
-	HeaderPerceptiaSessionUuid = "Perceptia-SessionUuid"
+	HeaderPerceptiaSessionUuid = "Perceptia-Session-Uuid"
+	HeaderPerceptiaApiVersion  = "Perceptia-Api-Version"
 )
 
 // HTTP Content-Type Header Values.
@@ -31,6 +32,11 @@ const (
 	ACAllowHeaders   = "Content-Type, Authorization"
 	ACExposeHeaders  = "Authorization"
 	ACMaxAge         = "600"
+)
+
+// Query Parameters
+const (
+	QpApiVersion = "apiVersion"
 )
 
 // URL path values.
@@ -51,13 +57,14 @@ var (
 	errUserNotFound = errors.New("user not found")
 	//errInvalidEmail               = errors.New("invalid email")
 	errAccountUserNameUnavailable = errors.New("username unavailable, please select a different user name")
+	errSessionNotFound            = errors.New("session not found")
 
 	errActionNotAuthorized = errors.New("action not authorized for the requested resource")
 	errUnauthorized        = errors.New("user not authorized, please start a new session")
 	errContentTypeNotJson  = errors.New("expected content type was json but application/json content type not set")
 )
 
-// request variables
+// Gmux request variables
 const (
 	ReqVarMajorVersion = "majorVersion"
 	ReqVarUserUuid     = "userUuid"

@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/uw-thalesians/perceptia-servers/gateway/gateway/utility"
+
 	uuid "github.com/satori/go.uuid"
 
 	kitlog "github.com/go-kit/kit/log"
@@ -21,25 +23,28 @@ type Context struct {
 	sessionStore             session.Store
 	userStore                user.Store
 	logger                   kitlog.Logger
-	gatewayVersion           string
-	gatewayVersionsSupported []string
+	gatewayVersion           *utility.SemVer
+	gatewayVersionsSupported map[int]*utility.SemVer
+	environment              string
 }
 
 // NewContext creates a new Context, initialized using the provided handler context values.
 // Returns a pointer to the created Context.
 func NewContext(sessionStore session.Store, userStore user.Store,
-	sessionSigningKey, gatewayVersion string, gatewayVersionsSupported []string, logger kitlog.Logger) *Context {
+	sessionSigningKey string, gatewayVersion *utility.SemVer, gatewayVersionsSupported map[int]*utility.SemVer, logger kitlog.Logger) *Context {
 	if sessionStore == nil || userStore == nil || len(sessionSigningKey) <= 0 {
 		panic("all parameters must not be nil or empty")
 	}
-	return &Context{sessionSigningKey, sessionStore,
-		userStore, logger, gatewayVersion, gatewayVersionsSupported}
+	environment, _ := utility.DefaultEnv("GATEWAY_ENVIRONMENT", "development")
+	return &Context{sessionSigningKey: sessionSigningKey, sessionStore: sessionStore,
+		userStore: userStore, logger: logger, gatewayVersion: gatewayVersion,
+		gatewayVersionsSupported: gatewayVersionsSupported, environment: environment}
 }
 
 type Error struct {
 	Reference   string `json:"reference"`
-	ServerError bool   `json:"serverError,omitempty"`
-	ClientError bool   `json:"clientError,omitempty"`
+	ServerError bool   `json:"serverError"`
+	ClientError bool   `json:"clientError"`
 	Message     string `json:"message"`
 	Context     string `json:"context"`
 	Code        int    `json:"Code"`
@@ -69,7 +74,7 @@ func (cx *Context) ensureJSONHeader(w http.ResponseWriter, r *http.Request) bool
 func (cx *Context) handleError(w http.ResponseWriter, r *http.Request, errorToLog error, logContext,
 	clientErrorMessage string,
 	statusCode int) {
-	logReference := cx.logError(r, errorToLog, logContext, clientErrorMessage, statusCode)
+	logReference := cx.logError(errorToLog, logContext, clientErrorMessage, statusCode)
 
 	// Only send error to client if clientErrorMessage provided.
 	if len(clientErrorMessage) != 0 {
@@ -88,7 +93,7 @@ func (cx *Context) handleError(w http.ResponseWriter, r *http.Request, errorToLo
 func (cx *Context) handleErrorJson(w http.ResponseWriter, r *http.Request, errorToLog error, logContext string,
 	clientErrorJson *Error,
 	statusCode int) {
-	logReference := cx.logError(r, errorToLog, logContext, clientErrorJson.Message, statusCode)
+	logReference := cx.logError(errorToLog, logContext, clientErrorJson.Message, statusCode)
 	clientErrorJson.Reference = logReference
 	// Only send error to client if clientErrorMessage provided.
 	if clientErrorJson != nil {
@@ -101,7 +106,7 @@ func (cx *Context) handleErrorJson(w http.ResponseWriter, r *http.Request, error
 // Will return a string containing the log reference to be used by the caller to associate further logging or
 // response to client with this logged error.
 // statusCode should be the expected status code to be sent to the client with the clientErrorMessage.
-func (cx *Context) logError(r *http.Request, errorToLog error, logContext, clientErrorMessage string,
+func (cx *Context) logError(errorToLog error, logContext, clientErrorMessage string,
 	statusCode int) string {
 	logReference := uuid.NewV4().String()
 	_ = cx.logger.Log("logReference", logReference,
@@ -175,14 +180,31 @@ func (cx *Context) getUserFromRequest(r *http.Request) (*user.User, error) {
 	if errAuth != nil {
 		return nil, errAuth
 	}
-	return &authSess.User, nil
+	return authSess.User, nil
+}
+
+func (cx *Context) getSessionUuidFromRequest(r *http.Request) (*uuid.UUID, error) {
+	//validate the session token in the request,
+	//fetch the session state from the session store,
+	//and return the authenticated user
+	//or an error if the user is not authenticated
+	sessToken, errTK := session.GetSessionID(r, cx.sessionSigningKey)
+	if errTK != nil {
+		return nil, errTK
+	}
+	authSess := &SessionState{}
+	errAuth := cx.sessionStore.Get(sessToken, authSess)
+	if errAuth != nil {
+		return nil, errAuth
+	}
+	return &authSess.SessionUuid, nil
 }
 
 func (cx *Context) getSessionStateFromRequest(r *http.Request) (*SessionState, error) {
 	//validate the session token in the request,
 	//fetch the session state from the session store,
 	//and return the authenticated user
-	//or an error if the user is not authenticated
+	//or an error if the user is not in a session
 	sessToken, errTK := session.GetSessionID(r, cx.sessionSigningKey)
 	if errTK != nil {
 		return nil, errTK
@@ -217,7 +239,7 @@ func (cx *Context) respondEncode(w http.ResponseWriter, objToEncode interface{},
 	w.WriteHeader(statusCode)
 	err := json.NewEncoder(w).Encode(objToEncode)
 	if err != nil {
-		logReference := cx.logError(nil, err, fmt.Sprintf("error encoding object of type: %T, object:%v", objToEncode,
+		logReference := cx.logError(err, fmt.Sprintf("error encoding object of type: %T, object:%v", objToEncode,
 			objToEncode), "", statusCode)
 		return err, logReference
 	}
@@ -229,7 +251,7 @@ func (cx *Context) respondText(w http.ResponseWriter, textToSend string, statusC
 	w.WriteHeader(statusCode)
 	_, err := io.WriteString(w, textToSend)
 	if err != nil {
-		logReference := cx.logError(nil, err, fmt.Sprintf("error writing textToSend to response stream"), "",
+		logReference := cx.logError(err, fmt.Sprintf("error writing textToSend to response stream"), "",
 			statusCode)
 		return err, logReference
 	}

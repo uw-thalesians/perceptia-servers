@@ -66,6 +66,18 @@ func (rs *RedisStore) Get(sid SessionID, sessionState interface{}) error {
 	return nil
 }
 
+// Exists determines if the session id is in the session store.
+func (rs *RedisStore) Exists(sid SessionID) (bool, error) {
+
+	res := rs.Client.Exists(getRedisKey(sid))
+
+	if res.Err() != nil {
+		return false, res.Err()
+	}
+	exRes := res.Val()
+	return exRes == 1, nil
+}
+
 // Delete deletes all state data associated with the SessionID from the store.
 func (rs *RedisStore) Delete(sid SessionID) error {
 	err := rs.Client.Del(getRedisKey(sid)).Err()

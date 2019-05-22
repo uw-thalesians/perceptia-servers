@@ -16,6 +16,9 @@ type Store interface {
 	// Get populates `sessionState` with the data previously saved for the given SessionID
 	Get(sid SessionID, sessionState interface{}) error
 
+	// Exists tests if the given key is set
+	Exists(sid SessionID) (bool, error)
+
 	// Delete deletes all state data associated with the SessionID from the store.
 	Delete(sid SessionID) error
 }

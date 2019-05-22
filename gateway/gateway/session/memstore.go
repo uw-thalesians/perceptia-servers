@@ -49,3 +49,9 @@ func (ms *MemStore) Delete(sid SessionID) error {
 	ms.entries.Delete(sid.String())
 	return nil
 }
+
+// Delete deletes all state data associated with the SessionID from the store.
+func (ms *MemStore) Exists(sid SessionID) (bool, error) {
+	ms.entries.Delete(sid.String())
+	return false, nil
+}

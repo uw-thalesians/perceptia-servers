@@ -17,10 +17,12 @@ type SessionState struct {
 	SessionUuid   uuid.UUID         `json:"sessionUuid"`
 	StartTime     time.Time         `json:"startTime"`
 	Authenticated bool              `json:"authenticated"`
-	User          user.User         `json:"user"`
+	User          *user.User        `json:"user"`
 }
 
 // NewSessionState constructs a new SessionState struct using the provided startTime and User.
-func NewSessionState(startTime time.Time, user user.User, sessionUuid uuid.UUID) *SessionState {
-	return &SessionState{StartTime: startTime, User: user, SessionUuid: sessionUuid}
+func NewSessionState(startTime time.Time, user *user.User,
+	sessionUuid uuid.UUID, sessionId session.SessionID, authenticated bool) *SessionState {
+	return &SessionState{StartTime: startTime, User: user,
+		SessionUuid: sessionUuid, SessionID: sessionId, Authenticated: authenticated}
 }

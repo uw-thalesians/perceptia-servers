@@ -3,11 +3,10 @@ package session
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
-	"cloud.google.com/go/civil"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -15,33 +14,45 @@ const HeaderAuthorization = "Authorization"
 const ParamAuthorization = "access_token"
 const SchemeBearer = "Bearer "
 
-// ErrNoSessionID is used when no session ID was found in the Authorization header.
-var ErrNoSessionID = errors.New("session: no session ID found in " + HeaderAuthorization + " header")
+// ErrNoSessionId is used when no session ID was found in the Authorization header.
+var ErrNoSessionId = errors.New("session: no session ID found in header " +
+	HeaderAuthorization + " or query params " + ParamAuthorization)
 
 // ErrInvalidScheme is used when the authorization scheme is not supported.
 var ErrInvalidScheme = errors.New("session: authorization scheme not supported")
 
+var ErrInvalidSessionId = errors.New("invalid session id")
+
+var ErrUnexpected = errors.New("session: unexpected error occurred")
+
 type SessionInfo struct {
 	Uuid      uuid.UUID
 	SessionId SessionID
-	Created   civil.DateTime
+	Created   time.Time
 }
 
 type Sessions map[SessionID]*SessionInfo
 
-// BeginSession creates a new SessionID, saves the `sessionState` to the store, adds an
-// Authorization header to the response with the SessionID, and returns the new SessionID.
-func BeginSession(signingKey string, store Store, sessionState interface{}, w http.ResponseWriter) (SessionID, error) {
+// CreateSession creates a new SessionID and session uuid.
+func CreateSession(signingKey string) (SessionID, uuid.UUID, error) {
 	sesID, err := NewSessionID(signingKey)
+	sesUuid := uuid.NewV4()
 	if err != nil {
-		return InvalidSessionID, fmt.Errorf("BeginSession: error generating session id: %s", err.Error())
+		return InvalidSessionID, sesUuid, ErrUnexpected
 	}
-	errSS := store.Save(sesID, sessionState)
+	return sesID, sesUuid, nil
+}
+
+// BeginSession saves the `sessionState` to the store, adds an
+// Authorization header to the response with the SessionID, and returns the new SessionID.
+func BeginSession(sessionId SessionID, store Store, sessionState interface{}, w http.ResponseWriter) error {
+
+	errSS := store.Save(sessionId, sessionState)
 	if errSS != nil {
-		return InvalidSessionID, fmt.Errorf("BeginSession: error saving session: %s", errSS.Error())
+		return ErrUnexpected
 	}
-	w.Header().Add(HeaderAuthorization, SchemeBearer+string(sesID))
-	return sesID, nil
+	w.Header().Add(HeaderAuthorization, SchemeBearer+string(sessionId))
+	return nil
 }
 
 // GetSessionID extracts and validates the SessionID from the request headers.
@@ -50,17 +61,18 @@ func GetSessionID(r *http.Request, signingKey string) (SessionID, error) {
 	if len(authString) == 0 {
 		authString = r.FormValue(ParamAuthorization)
 		if len(authString) == 0 {
-			return InvalidSessionID, ErrNoSessionID
+			return InvalidSessionID, ErrNoSessionId
 		}
-	}
-	if strings.HasPrefix(authString, SchemeBearer) {
-		authString = strings.TrimSpace(strings.Replace(authString, SchemeBearer, "", 1))
 	} else {
-		return InvalidSessionID, ErrInvalidScheme
+		if strings.HasPrefix(authString, SchemeBearer) {
+			authString = strings.TrimSpace(strings.Replace(authString, SchemeBearer, "", 1))
+		} else {
+			return InvalidSessionID, ErrInvalidScheme
+		}
 	}
 	sesID, errVID := ValidateID(authString, signingKey)
 	if errVID != nil {
-		return InvalidSessionID, errVID
+		return InvalidSessionID, ErrInvalidSessionId
 	}
 	return sesID, nil
 }
@@ -81,14 +93,10 @@ func GetState(r *http.Request, signingKey string, store Store, sessionState inte
 
 // EndSession extracts the SessionID from the request, and deletes the associated data in the provided store,
 // returning the extracted SessionID.
-func EndSession(r *http.Request, signingKey string, store Store) (SessionID, error) {
-	sesID, errGSID := GetSessionID(r, signingKey)
-	if errGSID != nil {
-		return InvalidSessionID, errGSID
-	}
-	errSD := store.Delete(sesID)
+func EndSession(sessionId SessionID, store Store) error {
+	errSD := store.Delete(sessionId)
 	if errSD != nil {
-		return sesID, errSD
+		return errSD
 	}
-	return sesID, nil
+	return nil
 }
