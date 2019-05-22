@@ -166,6 +166,22 @@ To clean up (take down the containers started by running this script):
 
     Run: `.\locaStartExample.ps1 -CleanUp -RemoveAllDbVolumes`
 
+`-Latest` (Switch) when used, starts the stack using the latest images for the given version of each image built from the develop branch, default false
+
+`-Build` (String) specify the build number to use image builds from, default is a known working build for all images used, will be ignored if -Latest is also set
+
+`-Branch` (String) specify the branch to use image builds from, default is "develop"
+
+`-CurrentBranch` (Switch) when set, uses the name of the current branch to specify the images to use, if on branch "feature/peacock-local-start" would use images with the branch tag "peacock-local-start", default false
+
+`-GatewayVersion` (String) sets the version of the gateway image to use, default is a known stable version of the image
+
+`-GatewayPortPublish` which is the port the gateway service should be exposed on the host machine, default value is "4443"
+
+`-BuildGateway` (switch) will build the gateway using the local source, default is: false. To set true, include the switch
+
+`-MsSqlVersion` (String) sets the version of the mssql image to use, default is a known stable version of the image
+
 `-MsSqlDatabase` (string) which is used to pass in the name of the database to use for connections to the server, default value is: "Perceptia"
 
 `-MsSqlHost` (string) which is used to pass in the hostname of the mssql database server, default value is: "mssql"
@@ -186,8 +202,6 @@ To clean up (take down the containers started by running this script):
 
 `-PerceptiaDockerNet` (string) which is the name of the docker network the container should be attached to when run, default value is "perceptia-net"
 
-`-GatewayPortPublish` which is the port the gateway service should be exposed on the host machine, default value is "4443"
-
 `-RedisPort` which is the port the gateway should reach the redis container at, default is: "6379
 
 `-RedisPortPublish` which is the port to publish the redis container if run by this script, default is: "6379"
@@ -199,8 +213,6 @@ To clean up (take down the containers started by running this script):
 `-MsSqlRemoveDbVolume` (switch) will remove any existing named volume used by the mssql service, default is false
 
 `-RedisRemoveDbVolume` (switch) will remove any existing named volume used by the redis service, default is false
-
-`-BuildGateway` (switch) will build the gateway using the local source, default is: false. To set true, include the switch
 
 `-RemoveAllDbVolumes` (switch) will remove any existing named volume used by the redis or mssql service, default is false
 
