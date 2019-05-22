@@ -150,6 +150,8 @@ Run: `.\locaStartExample.ps1 -MsSqlSkipSetupIfExist Y`
 
 `-MsSqlRemoveDbVolume` (switch) when set, removes any existing volume created for the mssql container
 
+`-RemoveAllDbVolumes` (switch) when set, removes any existing volume created by this script
+
 `-CleanUp` (switch) when set, removes any container(s) created by this script
 
 ##### Docker Options Explained
