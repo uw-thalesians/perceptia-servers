@@ -29,6 +29,23 @@ class GeneralController
 
         echo json_encode(array("rest_api_v"=> "1.1", "quizzes" => $quiz_list, "sort"=>$results["sort"], "start"=>$results["start"], "end"=>$results["end"]));
     }
+
+    public static function quizStatusJSON($keyword, $source) {
+
+        $conn = new Connection();
+
+        $results = $conn->getQuizStatus($keyword, $source);
+
+        $resp = array("rest_api_v"=> "1.1",
+                         "keyword" => $keyword,
+                         "source" => $source);
+
+        foreach($results as $key=>$val) {
+            $resp[$key]=$val;
+        }
+
+        echo json_encode($resp);
+    }
 }
 
 ?>

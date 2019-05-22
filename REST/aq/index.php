@@ -2,7 +2,9 @@
 
 ini_set('max_execution_time', 120);
 
-session_start();
+session_start([
+    'read_and_close' => true,
+]);
 
 $f3 = require('vendor/bcosca/fatfree-core/base.php');
 
@@ -40,6 +42,25 @@ $f3->route('GET /api/v1/anyquiz/read/@keyword', function($f3) {
     $quizController = new QuizController();
     
     $quizController->startJSON( $keyword, $source);
+});
+
+$f3->route('GET /api/v1/anyquiz/status/@keyword', function($f3) {
+    
+    header('Content-Type: application/json');
+    
+    $keyword = $f3->get('PARAMS.keyword');
+
+    $source = "wiki";
+
+    if( $f3->exists('GET.source') ) {
+        $source = $f3->get('GET.source');
+    }
+
+    if( $f3->exists('GET.url') ) {
+        $keyword = $f3->get('GET.url');
+    }
+
+    GeneralController::quizStatusJSON($keyword, $source);
 });
 
 $f3->route('GET /api/v1/anyquiz/list', function($f3) {

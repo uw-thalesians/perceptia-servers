@@ -1,9 +1,12 @@
 <?php
 
 require_once 'config.php';
+require_once 'status.php';
 
 class Connection
 {
+    
+
     private static $conn;
 
     private $_f3;
@@ -43,6 +46,10 @@ class Connection
 
         $sql = "SELECT * FROM quizzes WHERE keyword=:keyword and source=:source";
 
+        if(isset($status)) {
+            $sql .=  "and status=$status";
+        }
+
         //$update_read = "UPDATE read_count ";
 
         $quiz = null;
@@ -66,6 +73,7 @@ class Connection
                 $quiz = new Quiz( $row );
 
             } else {
+                $this->storeQuizRequest($keyword, $source);
                 // print_r("row not found");
                 $summary = $this->fetchSummary($keyword, $source);
                 // print_r($summary);
@@ -77,6 +85,26 @@ class Connection
         }
 
         return $quiz;
+    }
+
+    private function storeQuizRequest($keyword, $source) {
+        $sql = "INSERT INTO quizzes (keyword, image, summary, source) VALUES (:keyword, :image, :summary, :source)";
+
+        try {
+
+            $stmt = Connection::$conn->prepare($sql);
+
+            $stmt->bindValue(":keyword", $keyword);
+            $stmt->bindValue(":summary", "");
+            $stmt->bindValue(":image", "");
+            $stmt->bindValue(":source", $source);
+            //default value of 0 status inserted
+
+            $stmt->execute();
+
+        } catch (Exception $e){
+            echo "Error creating quiz: " . $e->getMessage();
+        }
     }
 
     private function fetchSummary($keyword, $source) {
@@ -149,15 +177,65 @@ class Connection
 
         curl_close($curl_handle);
 
+
+        $this->updateQuizStatus($quiz->keyword, $quiz->source, STATUS::RETRVD_MEDIA);
         #print_r($summary);
 
         return $summary;
     }
 
+    private function updateQuizStatus($keyword, $source, $status) {
+        $sql = "UPDATE quizzes SET status=:status WHERE keyword=:keyword and source=:source";
+
+        try {
+
+            $stmt = Connection::$conn->prepare($sql);
+            
+            $stmt->bindValue(":status", $status, PDO::PARAM_INT);
+            $stmt->bindValue(":keyword", $keyword, PDO::PARAM_STR);
+            $stmt->bindValue(":source", $source, PDO::PARAM_STR);
+
+            $stmt->execute();
+
+        } catch (Exception $e){
+            echo "Error creating quiz: " . $e->getMessage();
+        }
+    }
+
+    public function getQuizStatus($keyword, $source) {
+        $sql = "SELECT status FROM quizzes WHERE keyword=:keyword and source=:source";
+
+        $result = array();
+
+        try {
+
+            $stmt = Connection::$conn->prepare($sql);
+
+            $stmt->bindValue(":keyword", $keyword, PDO::PARAM_STR);
+            $stmt->bindValue(":source", $source, PDO::PARAM_STR);
+
+            $stmt->execute();
+
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            if(count($rows)==0) {
+                $result["error"] = STATUS::STATUS_NOTFOUND . " with keyword=$keyword and source=$source";
+            }else {
+                $status = $rows[0]["status"];
+                $result["progress"] = $status;
+                $result["total_steps"] = STATUS::getCount();
+                $result["status_string"] = STATUS::STATUS_STRINGS[$status];
+            }
+        } catch (Exception $e){
+            echo "Error finding quiz: " . $e->getMessage();
+            $result["error"] = STATUS::STATUS_NOTFOUND . " with keyword=$keyword and source=$source";
+        }
+
+        return $result;
+    }
+
     private function addNewQuiz($keyword, $summary, $source)//, $lang)
     {
-        $sql = "INSERT INTO quizzes (keyword, image, summary, source) VALUES (:keyword, :image, :summary, :source)";
-
         //https://cse.google.com/cse/create/new
         //https://developers.google.com/custom-search/json-api/v1/introduction#identify_your_application_to_google_with_api_key
         //https://console.developers.google.com/apis/credentials?project=my-project-1489383889696
@@ -288,6 +366,8 @@ class Connection
         if(!isset($remotePath))
             $remotePath = 'images/quiz.png';
 
+        $sql = "UPDATE quizzes SET summary=:summary, image=:image where keyword=:keyword AND source=:source";
+
         try {
 
             $stmt = Connection::$conn->prepare($sql);
@@ -296,6 +376,7 @@ class Connection
             $stmt->bindValue(":summary", $summary);
             $stmt->bindValue(":image", $remotePath);
             $stmt->bindValue(":source", $source);
+            //default value of 0 status inserted
 
             $stmt->execute();
 
@@ -304,6 +385,11 @@ class Connection
         } catch (Exception $e){
             echo "Error creating quiz: " . $e->getMessage();
         }
+
+        //in this older impl, the media was already retrieved before the first insert,
+        //this will be here in newer code, so it is here now rather than changing the previous
+        //insert and dealing with it again later in a merge conflict resolution
+        $this->updateQuizStatus($quiz->keyword, $quiz->source, STATUS::QG_BEGINS);
 
         $path_to_py = dirname($_SERVER['PHP_SELF']) . "/py/n_cgi.py";
 
@@ -323,6 +409,8 @@ class Connection
         //print_r($output);
 
         curl_close($curl);
+
+        $this->updateQuizStatus($quiz->keyword, $quiz->source, STATUS::QG_COMPLETED);
 
         return $quiz;
     }
@@ -351,7 +439,7 @@ class Connection
             */
         }
 
-        $sql = "SELECT * FROM quizzes ORDER BY :order LIMIT :start, :row_count";
+        $sql = "SELECT * FROM quizzes WHERE status=:status ORDER BY :order LIMIT :start, :row_count";
 
         //print_r($sql);
 
@@ -383,6 +471,7 @@ class Connection
 
             $stmt->bindValue(":row_count", $row_count, PDO::PARAM_INT);
             $stmt->bindValue(":order", $order, PDO::PARAM_STR);
+            $stmt->bindValue(":status", STATUS::READY, PDO::PARAM_INT);
 
             $stmt->execute();
 
