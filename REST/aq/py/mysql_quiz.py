@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
 
+import json
 import mysql.connector
 
 from config import mysql_user, mysql_pass, mysql_host, mysql_db, mysql_port
@@ -10,7 +11,7 @@ def get_all_text():
         cnx = mysql.connector.connect(user=mysql_user, password=mysql_pass, host=mysql_host, port=mysql_port, database=mysql_db)
         curRetrieveQuiz = cnx.cursor(buffered=True)
 
-        query = "select summary from quizzes"
+        query = "select * from paragraphs"
 
         curRetrieveQuiz.execute(query)
 
@@ -20,11 +21,32 @@ def get_all_text():
             summaries.append(curSummary)
 
     except mysql.connector.Error as e:
-        print(str(e))
+        print json.dumps({"error":str(e)})
     finally:
         cnx.close()
 
     return summaries
+
+def get_all_keywords():
+    try:
+        cnx = mysql.connector.connect(user=mysql_user, password=mysql_pass, host=mysql_host, port=mysql_port, database=mysql_db)
+        curRetrieveKeyword = cnx.cursor(buffered=True)
+
+        query = "select keyword from quizzes"
+
+        curRetrieveKeyword.execute(query)
+
+        keywords = []
+
+        for (curKeyword) in curRetrieveKeyword:
+            keywords.append(curKeyword)
+
+    except mysql.connector.Error as e:
+        print(str(e))
+    finally:
+        cnx.close()
+
+    return keywords
 
 def put_text(keyword, summary):
     row_id=None
@@ -33,10 +55,10 @@ def put_text(keyword, summary):
         cnx = mysql.connector.connect(user=mysql_user, password=mysql_pass, host=mysql_host, port=mysql_port, database=mysql_db)
         cursor = cnx.cursor()
 
-        print("about to insert from python")
+        #print("about to insert from python")
 
-        query = "insert into quizzes (keyword, summary, source, total_read_count) VALUES (%s, %s, %s, %s)"
-        vals = (keyword, summary)
+        query = "insert into quizzes (keyword, source, total_read_count) VALUES (%s, %s, %s, %s)"
+        vals = (keyword)
 
         cursor.execute(query, vals, source, 1)
 
@@ -49,7 +71,7 @@ def put_text(keyword, summary):
         #    quiz_id = curQuiz_id
 
     except mysql.connector.Error as e:
-        print(e)
+        print(json.dumps({"error":str(e)}))
     finally:
         cnx.close()
 
@@ -64,19 +86,28 @@ def get_text(keyword):#, lang):
         cnx = mysql.connector.connect(user=mysql_user, password=mysql_pass, host=mysql_host, port=mysql_port, database=mysql_db)
         curRetrieveQuiz = cnx.cursor(buffered=True)
 
-        query = "select keyword, summary, id from quizzes where keyword='"+keyword+"'"# AND lang='"+lang+"'"
+        query = "select keyword, id from quizzes where keyword='"+keyword+"'"# AND lang='"+lang+"'"
 
         curRetrieveQuiz.execute(query)
 
-        #print(curRetrieveQuiz)
-        for (curKeyword, curSummary, curQuiz_id) in curRetrieveQuiz:
-            #print(curKeyword, curSummary, curQuiz_id)
-            #keyword = curKeyword
-            summary = curSummary
+        curRetrieveParas = cnx.cursor(buffered=True)
+
+        for (curKeyword, curQuiz_id) in curRetrieveQuiz:
+
+            query = "select id, text from paragraphs where quiz_id='"+str(curQuiz_id)+"'"# AND lang='"+lang+"'"
+
+            curRetrieveParas.execute(query)
+
+            summary = {}
+
+            for (p_id, text) in curRetrieveParas:
+
+                summary[p_id] =text
+
             quiz_id = curQuiz_id
 
     except mysql.connector.Error as e:
-        print(e)
+        print json.dumps({"error":str(e)})
     finally:
         cnx.close()
 
@@ -109,14 +140,14 @@ def get_graph_quiz(title):
         cnx.close()
     return nodes, graph_quiz_id
 
-def add_question(question, answer, quiz_id, q_type):
+def add_question(question, answer, quiz_id, q_type, p_id):
     row_id = None
     try:
         cnx = mysql.connector.connect(user=mysql_user, password=mysql_pass, host=mysql_host, port=mysql_port, database=mysql_db)
 
         curCreateQuestion = cnx.cursor()#buffered=True)
 
-        curCreateQuestion.execute("insert into quiz_questions (question, answer, quiz_id, q_type) values (%s, %s, %s, %s)", (question, answer, quiz_id, q_type))
+        curCreateQuestion.execute("insert into quiz_questions (question, answer, quiz_id, q_type, p_id) values (%s, %s, %s, %s, %s)", (question, answer, quiz_id, q_type, p_id))
 
         cnx.commit()
         

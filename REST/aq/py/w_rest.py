@@ -51,7 +51,7 @@ try:
     page = wikipedia.page(keyword)
 
   #print summary_text
-  summary_text_short = wikipedia.summary(keyword)
+  #summary_text_short = wikipedia.summary(keyword)
   #print("about to use beautifulsoup")
 
   bs4_page = BeautifulSoup(page.html(), "html.parser")
@@ -62,7 +62,7 @@ try:
   para = [p.text for p in bs4_page.select("p")]
   #print("processed")
   summary_text = para
-  summary_text = u" ".join(para)
+  #summary_text = u" ".join(para)
   #print("selected para")
   #print(summary_text)
 
@@ -71,10 +71,10 @@ try:
   #summary_text = unicodedata.normalize("NFKD", summary_text).encode('ascii', 'ignore')
   #print summary_text
 except Exception as e:
-  summary_text = u" ".join(para)
+  #summary_text = u" ".join(para)
   summary_text = unicode(e)
 
 #print summary_text
 #print json.dumps({"summary_text":summary_text})
-print json.dumps({u"summary_text":summary_text_short, u"requested_from":os.environ.get("HTTP_X_FORWARDED_FOR")})
+print json.dumps({u"summary_text":summary_text, u"requested_from":os.environ.get("HTTP_X_FORWARDED_FOR")})
 #mysql_quiz.put_text(keyword, summary_text)

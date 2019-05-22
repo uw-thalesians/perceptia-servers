@@ -21,4 +21,10 @@ convertCGI(data)
 #print json.loads(json.dumps(vals))
 import n
 
-n.create_quiz(" ".join(vals["keyword"]))
+if "keyword" not in vals:
+  print "{\"error\":\"Parsing of keyword GET parameter failed\"}"
+  exit
+
+keyword_str = " ".join(vals["keyword"])
+
+n.create_quiz(keyword_str)
