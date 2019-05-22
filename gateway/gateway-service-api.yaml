@@ -1,6 +1,6 @@
 openapi: 3.0.2
 info:
-  version: "0.3.0"
+  version: "1.0.0"
   title: Gateway Service API
   description: This document describes the APIs that are provided directly by the Gateway service of the Perceptia application. All other APIs in the Perceptia application are handled by seperate services which the Gateway passes along.
   contact:
@@ -38,7 +38,7 @@ paths:
   /api/v1/gateway/users:
     post:
       summary: Creates an account for the provided user and logs them in.
-      description: Creates an account using the provided account information and returns the created user. Additionally, will create a new session, thus login in the user, saving the session token as an Authorization header, with the Bearer authorization scheme.
+      description: "Creates an account using the provided account information and returns the created user. Additionally, will create a new session, thus login in the user, saving the session token as an Authorization header, with the Bearer authorization scheme. Note: Currently if email is provided it is discarded."
       operationId: postGatewayUsers
       tags:
         - new user
@@ -73,7 +73,7 @@ paths:
   /api/v1/gateway/users/{userUuid}:
     get:
       summary: Gets the basic account information for the given user.
-      description: This will return the basic account information for a user of the system. Requires the client to be authenticated. Currently any user can get the basic account information for any other user, this may change in the future. (Authorization header required, see '#/components/headers/Authorization')
+      description: This will return the basic account information for a user of the system. Requires the client to be in an authenticated. Only the user can request their own information. (Authorization header required, see '#/components/headers/Authorization')
       operationId: getGatewayUsers
       tags:
         - users
@@ -104,55 +104,9 @@ paths:
                 $ref: '#/components/schemas/Error'
         '500':
           $ref: '#/components/responses/UnexpectedError'
-    patch:
-      summary: Updates the user's Display Name and or Full Name.
-      description: Using the provided requestBody, will update the Display Name and or Full Name of the user if the field is provided. A user may only update their own Display Name and or Full Name. (Authorization header required, see '#/components/headers/Authorization')
-      operationId: patchGatewayUsers
-      tags:
-        - users
-      parameters:
-        - $ref: '#/components/parameters/UserUuid'
-      x-headers:
-        - $ref: '#/components/headers/Authorization'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserUpdates'
-      responses:
-        '200':
-          description: Basic user object containing the users UUID in the system. Updates applied successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          description: User made a bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          description: User tried to update a user other than themself
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: User not found or unsupported major api version used
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '415':
-          $ref: '#/components/responses/ContentTypeNotJson'
-        '500':
-          $ref: '#/components/responses/UnexpectedError'
     delete:
       summary: Deletes the user of the current session.
-      description: This request will delete the users account with no review or waiting period. This method is very risky and should be used only with additional client side checks. (Authorization header required, see '#/components/headers/Authorization')
+      description: This request will delete the users account with no review or waiting period. This method is very risky and should be used only with additional client side checks. User must be in an authenticated session. Only the user can delete their own account. (Authorization header required, see '#/components/headers/Authorization')
       operationId: deleteGatewayUsers
       tags:
         - users
@@ -162,11 +116,12 @@ paths:
         - $ref: '#/components/headers/Authorization'
       responses:
         '200':
-          description: User deleted successfully and signed out.
+          description: User deleted and session ended.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/User'
+                type: string
+              example: account deleted successfully
         '400':
           description: User made a bad request
           content:
@@ -191,8 +146,8 @@ paths:
           $ref: '#/components/responses/UnexpectedError'
   /api/v1/gateway/sessions:
     post:
-      summary: Start an authenticated sesssion for the user.
-      description: Uses the provided credentials to start a new session for the user. This request returns and authentication token which when provided in future requests allows the request to be authorized as that user without having to provide their credentials with each request.
+      summary: Start a sesssion for the user.
+      description: Uses the provided credentials to start a new session for the user. This request returns and authentication token which when provided in future requests allows the request to be authorized as that user without having to provide their credentials with each request. If no body is present, will start an unauthenticated session. This session can be upgraded to an authenticated session by making a repeat call to this endpoint with the UserCredentials object in the body.
       operationId: postGatewaySessions
       tags:
         - new session
@@ -203,7 +158,7 @@ paths:
               $ref: '#/components/schemas/UserCredentials'
       responses:
         '201':
-          description: Session created and added to Authorization header.
+          description: Session created and added to Authorization header. If no body was provided in request then there will be no response body.
           content:
             application/json:
               schema:
@@ -230,7 +185,7 @@ paths:
   /api/v1/gateway/sessions/{sessionIdentifier}}:
     delete:
       summary: Deletes the current session.
-      description: This request will delete the current authenticated session. Once deleted the users authorization token will no longer be valid. The user will need to create a new session to access authenticated routes. (Authorization header required, see '#/components/headers/Authorization')
+      description: This request will delete the current session. Once deleted the authorization token will no longer be valid. (Authorization header required, see '#/components/headers/Authorization')
       operationId: deleteGatewaySessions
       tags:
         - sessions
@@ -240,10 +195,10 @@ paths:
         - $ref: '#/components/parameters/SessionIdentifier'
       responses:
         '200':
-          description: Session removed successfully, user signed out.
+          description: Session removed successfully.
           content:
             text/plain:
-              example: signed out
+              example: session ended
         '400':
           description: User made a bad request
           content:
@@ -278,7 +233,7 @@ components:
     UserUuid:
       name: userUuid
       in: path
-      description: uuid for user being requested
+      description: v4 uuid for user being requested
       required: true
       schema:
         type: string
@@ -292,7 +247,7 @@ components:
         type: string
   responses:
     Unauthenticated:
-      description: authentication token missing or not valid
+      description: user is not in an authenticated session
       content:
         application/json:
           schema:
@@ -300,9 +255,9 @@ components:
     UnexpectedError:
       description: Unexpected error occured on server
       content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     ContentTypeNotJson:
       description: Content-Type header did not contain application/json
       content:
@@ -314,17 +269,12 @@ components:
       type: object
       required:
         - name
-        - version
         - status
       properties:
         name:
           type: string
           description: human text describing health report
           example: "Perceptia API Health Report"
-        version:
-          type: string
-          description: text representation of the specific version of the api that created this report
-          example: "1.1.1"
         status:
           type: string
           description: |
@@ -374,7 +324,6 @@ components:
         - uuid
         - username
         - displayName
-        - fullName
       properties:
         uuid:
           type: string
@@ -386,27 +335,9 @@ components:
           example: joeuser
           maxLength: 255
           minLength: 3
-        fullName:
-          type: string
-          description: full name of the user
-          example: Joe John User
-          maxLength: 255
         displayName:
           type: string
           description: will be used to refer to the user in most locations on site where a name is needed for the user
-          example: Joe
-          maxLength: 255
-    UserUpdates:
-      type: object
-      properties:
-        fullName:
-          type: string
-          description: full name of the user, will only update if provided
-          example: Joe John User
-          maxLength: 255
-        displayName:
-          type: string
-          description: name user should be called, will only update if provided
           example: Joe
           maxLength: 255
     UserCredentials:
@@ -417,7 +348,7 @@ components:
       properties:
         username:
           type: string
-          description: name to represent the user by in the system
+          description: name the user is represented by in the system
           example: joeuser
           maxLength: 255
           minLength: 3

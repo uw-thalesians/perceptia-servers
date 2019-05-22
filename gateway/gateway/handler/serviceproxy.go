@@ -23,9 +23,13 @@ func (cx *Context) NewServiceProxy(hostname, port string) *httputil.ReverseProxy
 			r.URL.Host = hostnameAndPort
 			// Remove existing User Uuid header
 			r.Header.Del(HeaderPerceptiaUserUuid)
+			r.Header.Del(HeaderPerceptiaSessionUuid)
 
 			if user, errGAU := cx.getUserFromRequest(r); errGAU == nil && user != nil {
 				r.Header.Set(HeaderPerceptiaUserUuid, user.Uuid.String())
+			}
+			if sesUuid, errGAU := cx.getSessionUuidFromRequest(r); errGAU == nil && sesUuid != nil {
+				r.Header.Set(HeaderPerceptiaSessionUuid, sesUuid.String())
 			}
 		},
 	}

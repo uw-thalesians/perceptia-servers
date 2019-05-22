@@ -1,4 +1,3 @@
 *
-!Perceptia/
-!entrypoint.sh
-!setup-db.sh
+!Perceptia/*
+!script/*

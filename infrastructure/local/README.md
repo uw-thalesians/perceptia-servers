@@ -82,6 +82,12 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
 `-MsSqlVersion` (String) sets the version of the mssql image to use, default is a known stable version of the image
 
+`-MsSqlSaPassword` (string) which is used to pass in either the password to use to secure the mssql server, the default value is: "SecureNow!"
+
+`-MsSqlGatewaySpUsername` (string) which is the username the gateway will use to connect to the Perceptia database as
+
+`-MsSqlGatewaySpPassword` (string) which is the password for the user the gateway will connect to the Perceptia database as
+
 `-MsSqlPortPublish` (String) sets the port that the mssql service can recieve requests on, default is "47011" which maps to "1433" inside the container (Note, the mssql service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
 
 `-MsSqlRemoveDbVolume` (switch) when set, will remove the volume the database was created in, forcing it to be rebuilt, default false, meaning the database will not reset if it already exists, but if it doesn't it will be created
@@ -91,6 +97,8 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 `-AqRestPortPublish` (String) sets the port that the aqrest service can recieve requests on, default is "47020" which maps to "80" inside the contianer (Note, the aqrest service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
 
 `-AqMySqlVersion` (String) sets the version of the aqmysql image to use, default is a known stable version of the image
+
+`-AqMySqlUserPassword` (String) sets the password used to connect to the any_quiz_db database.
 
 `-AqMySqlPortPublish` (String) sets the port that the aqmysql service can recieve requests on, default is "47021" which maps to "3306" inside the contianer (Note, the aqmysql service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
 

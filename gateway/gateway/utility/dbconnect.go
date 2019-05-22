@@ -3,60 +3,25 @@ package utility
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
-	"log"
 	"net/url"
 	"time"
+
+	kitlog "github.com/go-kit/kit/log"
 )
-
-var ErrInvalidDsn = errors.New("establish: provided dsn invalid")
-var ErrUnableToPing = errors.New("establish: unable to ping database")
-
-// Establish creates a connection to the provided dsn using the named sql driver.
-// If the dsn is invalid an error will be logged and ErrInvalidDsn will be returned
-// If the dsn is valid, but the Database does not respond to a ping,
-// the ping error will be printed using the standard logger and the error will be returned along with the valid *sql.DB.
-func Establish(driverName, dsn string, ping bool) (*sql.DB, error) {
-	sqlDB, errSQLOpen := sql.Open(driverName, dsn)
-	if errSQLOpen != nil {
-		log.Printf("error: unable to open connection to MySQL database: %s", errSQLOpen.Error())
-		return sqlDB, ErrInvalidDsn
-	}
-
-	if ping {
-		errSQLPing := sqlDB.Ping()
-		if errSQLPing != nil {
-			for i := 0; i < 5; i++ {
-				errSQLPing = sqlDB.Ping()
-				if errSQLPing == nil {
-					break
-				}
-				time.Sleep(time.Second * time.Duration(i))
-			}
-		}
-
-		if errSQLPing != nil {
-			log.Printf("Database connection established, but unable to ping database, got error: %s", errSQLPing)
-			return sqlDB, ErrUnableToPing
-		}
-	}
-
-	return sqlDB, nil
-}
 
 // BuildDsn uses the provided values to build a URL based DSN to connect to a database.
 //
 // Parameters
-// scheme is the connection scheme, such as "sqlserver"
-// username: to authenticate to the server with, such as "sa"
-// password: for the account given by the username
-// hostname: for the server hosting the database, such as "localhost"
-// port: for the port the server is listening for a connection on
-// database: for the database to use for all requests using this connection
+// 		scheme is the connection scheme, such as "sqlserver"
+// 		username: to authenticate to the server with, such as "sa"
+// 		password: for the account given by the username
+// 		hostname: for the server hosting the database, such as "localhost"
+// 		port: for the port the server is listening for a connection on
+// 		database: for the database to use for all requests using this connection
 //
-// Return values:
-// dsn: database connection string in format: "<scheme>://<username>:<password>@<hostname>:<port>?params=p1"
+// Outputs
+// 		dsn: database connection string in format: "<scheme>://<username>:<password>@<hostname>:<port>?params=p1"
 func BuildDsn(scheme, username, password, hostname, port, database string) (dsn *url.URL) {
 	query := url.Values{}
 	query.Add("app name", "gateway")
@@ -69,17 +34,55 @@ func BuildDsn(scheme, username, password, hostname, port, database string) (dsn 
 	}
 }
 
-// PingDatabase will periodically check to see if the database connection is still
-func PingDatabase(ctx context.Context, db *sql.DB, sleepFailTime time.Duration, sleepTestTime time.Duration) {
+// PingDatabase will periodically check to see if the database connection is still open and the database is accessible.
+//
+//
+// Parameters
+//
+//
+//		ctx: basic context
+//
+//		db: the connection for the database that should be pinged
+//
+//		sleepFailTime: the amount of time PingDatabase should wait to ping again after a failed ping
+//
+//		mssqlRequiredVersion: checks the version of the stored procedures the database is exposing
+//			Will log an error if a version other than the one specified is exposed
+//
+//		logger: a Logger to log any issues/errors
+//
+//
+// Outputs none
+func PingDatabase(ctx context.Context, db *sql.DB, sleepFailTime time.Duration, sleepTestTime time.Duration, mssqlRequiredVersion *SemVer, logger kitlog.Logger) {
 	for {
 		select {
 		case <-ctx.Done():
-			log.Print("PingDatabase: ping check canceled")
+			_ = logger.Log("PingDatabase: ping check canceled")
+
 			return
 		default:
 			if err := db.Ping(); err != nil {
-				log.Printf("PingDatabase: sent ping at: %s; error: %s", time.Now().String(), err)
+				_ = logger.Log("func", "utility.PingDatabase", "pingError", err.Error(), "note", "will retry in "+sleepTestTime.String())
 				time.Sleep(sleepFailTime)
+			} else {
+				row := db.QueryRow("USP_ReadProcedureVersion")
+				type versionVal struct {
+					Version string `json:"version"`
+				}
+				var vv versionVal
+				errS := row.Scan(&vv.Version)
+				if errS == nil {
+					semVerProc, errSVS := SemVerFromString(vv.Version)
+					if errSVS != nil {
+						_ = logger.Log("utility.PingDatabase", "invalid version string provided")
+					} else if !semVerProc.Equals(mssqlRequiredVersion) {
+						_ = logger.Log("utility.PingDatabase", "unsupported database version",
+							"versionRequired", mssqlRequiredVersion.String(),
+							"versionConnected", semVerProc.String())
+					}
+				} else {
+					_ = logger.Log("utility.PingDatabase", "unable to get proc version from database", "error", errS.Error())
+				}
 			}
 			time.Sleep(sleepTestTime)
 		}

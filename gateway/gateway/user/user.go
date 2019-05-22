@@ -81,7 +81,6 @@ var (
 type User struct {
 	Uuid        uuid.UUID `json:"uuid"`
 	Username    string    `json:"username"`
-	FullName    string    `json:"fullName"`
 	DisplayName string    `json:"displayName"`
 }
 
@@ -97,11 +96,6 @@ type NewUser struct {
 	FullName    string `json:"fullName"`
 	DisplayName string `json:"displayName"`
 	EncodedHash string `json:"encodedHash"`
-}
-
-type Updates struct {
-	FullName    string `json:"fullName,omitempty"`
-	DisplayName string `json:"displayName,omitempty"`
 }
 
 // argon2Params represents the parameters to the Argon2 password hashing algorithm.
@@ -153,21 +147,6 @@ func (nu *NewUser) PrepNewUser() {
 	nu.Username = PrepUsername(nu.Username)
 	nu.FullName = PrepFullName(nu.FullName)
 	nu.DisplayName = PrepDisplayName(nu.DisplayName)
-}
-
-func (u *Updates) ValidateUpdates() error {
-	if err := ValidateDisplayName(u.DisplayName); err != nil {
-		return err
-	}
-	if err := ValidateFullName(u.FullName); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (u *Updates) PrepUpdates() {
-	u.FullName = PrepFullName(u.FullName)
-	u.DisplayName = PrepDisplayName(u.DisplayName)
 }
 
 // PrepFullName prepares the provided string to be used.

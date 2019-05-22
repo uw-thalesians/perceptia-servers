@@ -68,7 +68,7 @@ Example: `/api/v1/anyquiz/read/apple?param1=val1&param2=val2`
 
 #### [Params API Version](#params-api-version)
 
-The apiVersion parameter can be used to indicate the minimum version required for the given api within the major version provided (meaning, if the client sends an apiVersion parameter with a value of 1.1.0, the collection requested can reply as long as it implements a version greater than 1.1.0 and less than 2.0.0, and if the client sends an apiVersion parameter with a value of 2.0.1, the collection requested can reply as long as it implements a version greater than 2.0.1 and less than 3.0.0), not all collections may use this parameter. This parameter is eqivalent to the Perceptia-Api-Version header, however only one should be set, the result is undefined if both the parameter and header are provided. The Perceptia-Api-Version header should be used instead of the query parameter.
+The apiVersion parameter can be used to indicate the minimum version required for the given api within the major version in the path (meaning, if the client sends an apiVersion parameter with a value of 1.1.0, the collection requested can reply as long as it implements a version greater than 1.1.0 and less than 2.0.0, and if the client sends an apiVersion parameter with a value of 2.0.1, the collection requested can reply as long as it implements a version greater than 2.0.1 and less than 3.0.0), not all collections may use this parameter. This parameter is eqivalent to the Perceptia-Api-Version header, however only one should be set, the result is undefined if both the parameter and header are provided. The Perceptia-Api-Version header should be used instead of the query parameter. Note, if version is less than major 1, version must match on major and minor.
 
 Parameter: `apiVersion={major.minor.patch}:` where major.minor.patch denotes the minimum required version for the API that this query should be processed by. This parameter can be used to ensure the query won't be run by a version earlier than the one specified
 
@@ -96,7 +96,7 @@ Example: `Header-Key: value`
 
 #### [Header API Version](#header-api-version)
 
-The Perceptia-Api-Version header can be used to indicate the minimum version required for the given api within the major version provided (meaning, if the client sends a header with a value of 1.1.0, the collection requested can reply as long as it implements a version greater than 1.1.0 and less than 2.0.0, and if the client sends a header with a value of 2.0.1, the collection requested can reply as long as it implements a version greater than 2.0.1 and less than 3.0.0), not all collections may use this header. This parameter is eqivalent to the Perceptia-Api-Version header, however only one should be set, the result is undefined if both the parameter and header are provided. The Perceptia-Api-Version header should be used instead of the query parameter.
+The Perceptia-Api-Version header can be used to indicate the minimum version required for the given api within the major version provided (meaning, if the client sends a header with a value of 1.1.0, the collection requested can reply as long as it implements a version greater than 1.1.0 and less than 2.0.0, and if the client sends a header with a value of 2.0.1, the collection requested can reply as long as it implements a version greater than 2.0.1 and less than 3.0.0), not all collections may use this header. This parameter is eqivalent to the Perceptia-Api-Version header, however only one should be set, the result is undefined if both the parameter and header are provided. The Perceptia-Api-Version header should be used instead of the query parameter. Note, if version is less than major 1, version must match on major and minor.
 
 Header key: `Perceptia-Api-Version` is the header that should be set to indicate the minimum version of the collection api the request should be processed by
 
@@ -174,6 +174,8 @@ A note about API versions below 1, such as 0.1.0. These versions are under devel
 
 * 0.3.0 - [API Specification](./v1/gateway/0.3.0.yaml) | [API Documentation](./v1/gateway/0.3.0.html)
 
+* 1.0.0 - [API Specification](./v1/gateway/1.0.0.yaml) | [API Documentation](./v1/gateway/1.0.0.html)
+
 [Gateway Service API - Current](./../gateway/gateway-service-api.yaml)
 
 ### [AnyQuiz Service API](#anyquiz-service-api)
@@ -203,8 +205,6 @@ Header key: `Perceptia-User-Uuid` custom header
 Header value: `{uuid}` is the uuid (v4) of the authenticated user, matching the regex: "[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89aAbB][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}"
 
 #### [Header Perceptia-Session-Uuid](#header-perceptia-session-uuid)
-
-**WARNING: Not Yet Implemented**
 
 This header is only used internally by the Perceptia service to communicate to downstream services the uuid of the session. If this header is found in a request from a user it is always removed wheather or not the user is in a session. If the user is in a session, the session uuid is added as the value for the header.
 

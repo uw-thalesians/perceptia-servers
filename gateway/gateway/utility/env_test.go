@@ -31,10 +31,10 @@ func TestRequireEnv(t *testing.T) {
 		},
 		{
 			name:                "Basic: env set but empty",
-			hint:                "Should return error as env value not expected",
+			hint:                "Should not return error as env var is set",
 			envVarName:          envVarNameValueEmpty,
-			expectedEnvVarValue: envVarValue,
-			expectError:         true,
+			expectedEnvVarValue: "",
+			expectError:         false,
 		},
 		{
 			name:                "Basic: env not set",

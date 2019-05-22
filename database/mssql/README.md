@@ -98,6 +98,12 @@ All [environment variables for the base image](#base-image-container-environment
 
 `SKIP_SETUP_IF_EXISTS=Y` (optional) if value is "Y" will skip running setup-db.sh script which bootstraps the database schema if the Perceptia database already exists. Any other value besides `Y` will be ignored, as if `SKIP_SETUP_IF_EXISTS` was not set
 
+`GATEWAY_SP_USERNAME={username}` (required) sets the name to use to create the service principal user that the gateway service will use to connect to the gateway
+
+`GATEWAY_SP_PASSWORD={password}` (required) sets the password to use to authenticate using the service principal user for the gateway service
+
+`MSSQL_ENVIRONMENT={production|development}` (optional) sets the environment the server is running in, production: limited logging, development: verbose logging, default development
+
 #### [Example Setup using uwthalesians mssql image](#example-setup-using-uwthalesians-mssql-image)
 
 1. pull the image from docker (check [registry](https://hub.docker.com/r/uwthalesians/mssql) for latest images)
@@ -128,15 +134,25 @@ The script accepts several comand line options which can be set when running the
 
 Run: `.\locaStartExample.ps1 -MsSqlSkipSetupIfExist Y`
 
-`-MsSqlPassword` which is used to pass in either the password to use to secure the mssql server, the default value is: "SecureNow!"
+`-MsSqlSaPassword` (string) which is used to pass in either the password to use to secure the mssql server, the default value is: "SecureNow!"
 
-`-MsSqlPortPublish` which is the port the docker container should listen for requests on and send to the mssql server, default value is: "1401",
+`-MsSqlPortPublish` (string) which is the port the docker container should listen for requests on and send to the mssql server, default value is: "1401"
 
-`-MsSqlSkipSetupIfExist` which allows setting what value is passed for the custom image environment variable SKIP_SETUP_IF_EXISTS (see [custom image env vars](#custom-image-env-vars)), default value is: "N", meaning setup will run (unless another option over rules this)
+`-MsSqlGatewaySpUsername` (string) which is the username the gateway will use to connect to the Perceptia database as
 
-`-MsSqlSkipSetup` which allows setting what value is passed for the custom image environment variable SKIP_SETUP (see [custom image env vars](#custom-image-env-vars)), default value is: "N", meaning setup will run (unless another option over rules this)
+`-MsSqlGatewaySpPassword` (string) which is the password for the user the gateway will connect to the Perceptia database as
+
+`-MsSqlSkipSetupIfExist` (string) which allows setting what value is passed for the custom image environment variable SKIP_SETUP_IF_EXISTS (see [custom image env vars](#custom-image-env-vars)), default value is: "Y", meaning setup will run (unless another option over rules this)
+
+`-MsSqlSkipSetup` (string) which allows setting what value is passed for the custom image environment variable SKIP_SETUP (see [custom image env vars](#custom-image-env-vars)), default value is: "N", meaning setup will run (unless another option over rules this)
 
 `-PerceptiaDockerNet` which specifies the name to use for the docker network to connect the container to, this should be set to the same docker network that is used by the other backend containers, default value is: "perceptia-net"
+
+`-MsSqlRemoveDbVolume` (switch) when set, removes any existing volume created for the mssql container
+
+`-RemoveAllDbVolumes` (switch) when set, removes any existing volume created by this script
+
+`-CleanUp` (switch) when set, removes any container(s) created by this script
 
 ##### Docker Options Explained
 
