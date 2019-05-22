@@ -23,6 +23,8 @@ CREATE TABLE `any_quiz_db`.`quizzes` (
     `when` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `source` VARCHAR(64) NOT NULL DEFAULT 'wiki',
     `total_read_count` INT NOT NULL DEFAULT '1', 
+
+    `status` INT NOT NULL DEFAULT '0',
     PRIMARY KEY(id)
 );
 
