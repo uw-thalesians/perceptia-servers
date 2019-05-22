@@ -10,6 +10,7 @@ const (
 	HeaderACAllowHeaders  = "Access-Control-Allow-Headers"
 	HeaderACExposeHeaders = "Access-Control-Expose-Headers"
 	HeaderACMaxAge        = "Access-Control-Max-Age"
+	HeaderAuthorization   = "Authorization"
 )
 
 // Custom HTTP Header Names
@@ -29,8 +30,8 @@ const (
 const (
 	ACAllowOriginAll = "*"
 	ACAllowMethods   = "GET, PUT, POST, PATCH, DELETE"
-	ACAllowHeaders   = "Content-Type, Authorization"
-	ACExposeHeaders  = "Authorization"
+	ACAllowHeaders   = HeaderContentType + ", " + HeaderAuthorization + ", " + HeaderPerceptiaApiVersion
+	ACExposeHeaders  = HeaderAuthorization + ", " + HeaderPerceptiaApiVersion
 	ACMaxAge         = "600"
 )
 
