@@ -51,7 +51,7 @@ param(
 #******************************************************************************
 $ErrorActionPreference = "Stop"
 
-$SECRET = (Get-Content -Path $servicePrincipalClientSecretFile)
+$SECRET = ConvertTo-SecureString -Force -AsPlainText (Get-Content -Path $servicePrincipalClientSecretFile)
 
 # Start the deployment
 Write-Host "Starting deployment...";

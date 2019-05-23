@@ -15,7 +15,7 @@
             "value": 64
         },
         "agentCount": {
-            "value": 1
+            "value": 2
         },
         "agentVMSize": {
             "value": "Standard_E2s_v3"
