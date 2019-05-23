@@ -170,15 +170,18 @@ class Connection
                 switch($response["docs"][0]["attr_stream_content_type"])
                 {
                     case "text/html; charset=utf-8":
+                        //print_r("using text/html; charset=utf-8 splitting strategy");
                         //check if it's possible to keep original html and use something like beautiful soup
                         //to extract p tags
                         $summary = explode("\n \n postPage", $response["docs"][0]["attr_body"][0]);
                         break;
                     case "application/pdf":
+                        //print_r("using application/pdf splitting strategy");
                         $summary = explode("\n \n page", $response["docs"][0]["attr_body"][0]);
                         break;
 
                     default:
+                        //print_r("using default splitting strategy");
                         $summary = explode("\n \n ", $response["docs"][0]["attr_body"][0]);
                 }
                 
@@ -443,7 +446,7 @@ class Connection
 
         #print_r($path_to_py);
 
-        $nltk_py_path = "http://${_SERVER['SERVER_NAME']}${path_to_py}?keyword=" . urlencode($quiz->keyword);// . "&lang=" . urlencode($lang);
+        $nltk_py_path = "localhost${path_to_py}?keyword=" . urlencode($quiz->keyword);// . "&lang=" . urlencode($lang);
 
         #print_r($nltk_py_path);
         $curl = curl_init();
