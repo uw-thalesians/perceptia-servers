@@ -5,7 +5,7 @@ metadata:
   labels:
     label.perceptia.info/name: gateway
     label.perceptia.info/instance: gateway-1
-    label.perceptia.info/version: "0.3.0"
+    label.perceptia.info/version: "1.0.0"
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: server
     label.perceptia.info/type: frontend
@@ -21,7 +21,7 @@ spec:
         app: gateway
         label.perceptia.info/name: gateway
         label.perceptia.info/instance: gateway-1
-        label.perceptia.info/version: "0.3.0"
+        label.perceptia.info/version: "1.0.0"
         label.perceptia.info/managed-by: kubectl
         label.perceptia.info/component: server
         label.perceptia.info/type: frontend
@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
       - name: gateway
-        image: uwthalesians/gateway:0.3.0-build-232-branch-develop
+        image: uwthalesians/gateway:1.0.0-build-288-branch-develop
         ports:
         - containerPort: 443
           name: "https"
@@ -55,13 +55,16 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: mssql
-                key: sa_password
+                key: gateway-sp-password
           - name: MSSQL_PORT
             value: "1433"
           - name: MSSQL_SCHEME
             value: "sqlserver"
           - name: MSSQL_USERNAME
-            value: "sa"
+            valueFrom:
+              secretKeyRef:
+                name: mssql
+                key: gateway-sp-username
           - name: REDIS_ADDRESS
             value: "redis:6379"
         volumeMounts:
@@ -146,7 +149,7 @@ metadata:
   labels:
     label.perceptia.info/name: mssql
     label.perceptia.info/instance: mssql-1
-    label.perceptia.info/version: "0.7.1"
+    label.perceptia.info/version: "1.0.0"
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: database
     label.perceptia.info/type: backend
@@ -170,7 +173,7 @@ metadata:
     app: mssql
     label.perceptia.info/name: mssql
     label.perceptia.info/instance: mssql-1
-    label.perceptia.info/version: "0.7.1"
+    label.perceptia.info/version: "1.0.0"
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: database
     label.perceptia.info/type: backend
@@ -190,7 +193,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: mssql
-        image: uwthalesians/mssql:0.7.1-build-232-branch-develop
+        image: uwthalesians/mssql:1.0.0-build-293-branch-quetzal-aks-kube
         ports:
         - containerPort: 1433
           name: mssql
@@ -199,7 +202,17 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: mssql
-                key: sa_password
+                key: sa-password
+          - name: GATEWAY_SP_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: mssql
+                key: gateway-sp-username
+          - name: GATEWAY_SP_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mssql
+                key: gateway-sp-password
           - name: ACCEPT_EULA
             value: "Y"
           - name: SKIP_SETUP_IF_EXISTS
@@ -217,7 +230,7 @@ metadata:
   name: aqrest
   labels:
     label.perceptia.info/name: aqrest
-    label.perceptia.info/instance: gateway-1
+    label.perceptia.info/instance: aqrest-1
     label.perceptia.info/version: "1.1.0"
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: server
@@ -264,7 +277,7 @@ spec:
     spec:
       containers:
       - name: aqrest
-        image: uwthalesians/aqrest:1.1.0-build-232-branch-develop
+        image: uwthalesians/aqrest:1.1.0-build-288-branch-develop
         ports:
         - containerPort: 80
           name: "http"
@@ -273,7 +286,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: aqmysql
-                key: user_password
+                key: user-password
 ---
 apiVersion: v1
 kind: Service
@@ -326,7 +339,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: aqmysql
-        image: uwthalesians/aqmysql:1.0.0-build-232-branch-develop
+        image: uwthalesians/aqmysql:1.0.0-build-288-branch-develop
         ports:
         - containerPort: 3306
           name: aqmysql
@@ -335,12 +348,12 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: aqmysql
-                key: root_password
+                key: root-password
           - name: user_pass
             valueFrom:
               secretKeyRef:
                 name: aqmysql
-                key: user_password
+                key: user-password
         volumeMounts:
         - name: aqmysql-vol
           mountPath: /var/opt/mssql
@@ -360,7 +373,7 @@ metadata:
     label.perceptia.info/instance: aqsolr-1
     label.perceptia.info/version: "1.0.0"
     label.perceptia.info/managed-by: kubectl
-    label.perceptia.info/component: database
+    label.perceptia.info/component: server
     label.perceptia.info/type: backend
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: aqrest
@@ -383,7 +396,7 @@ metadata:
     label.perceptia.info/instance: aqsolr-1
     label.perceptia.info/version: "1.0.0"
     label.perceptia.info/managed-by: kubectl
-    label.perceptia.info/component: database
+    label.perceptia.info/component: server
     label.perceptia.info/type: backend
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: aqrest
@@ -400,14 +413,14 @@ spec:
         label.perceptia.info/instance: aqsolr-1
         label.perceptia.info/version: "1.0.0"
         label.perceptia.info/managed-by: kubectl
-        label.perceptia.info/component: database
+        label.perceptia.info/component: server
         label.perceptia.info/type: backend
         label.perceptia.info/part-of: perceptia-api
         label.perceptia.info/sub-of: aqrest
     spec:
       containers:
       - name: aqsolr
-        image: uwthalesians/aqsolr:1.0.0-build-232-branch-develop
+        image: uwthalesians/aqsolr:1.0.0-build-288-branch-develop
         command: 
           - "solr-precreate"
         args:
