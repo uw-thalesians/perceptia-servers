@@ -26,6 +26,7 @@ echo "SKIP_SETUP=$SKIP_SETUP"
 echo "SKIP_SETUP_IF_EXISTS=$SKIP_SETUP_IF_EXISTS"
 
 # Setup Database to use containered databases
+echo "Setting server to allow contained databases"
 /opt/mssql-tools/bin/sqlcmd \
 -S localhost -U sa -P ${SA_PASSWORD} -b \
 -Q "EXECUTE sp_configure 'contained database authentication', 1; RECONFIGURE;"
@@ -35,6 +36,7 @@ then
         exit 1
 fi
 
+echo "Checking if SKIP_SETUP variable was set to Y"
 if [ "$SKIP_SETUP" == "Y" ]
 then
         echo "SKIP_SETUP=Y, skipping setup-db.sh script"
@@ -48,8 +50,10 @@ fi
 
 SKIP_SETUP_IF_EXISTS=$SKIP_SETUP_IF_EXISTS
 
+echo "Checking if SKIP_SETUP_IF_EXISTS was set to Y"
 if [ "$SKIP_SETUP_IF_EXISTS" == "Y" ]
 then
+        echo "Checking to see if Perceptia database exists"
         /opt/mssql-tools/bin/sqlcmd \
         -S localhost -U sa -P ${SA_PASSWORD} -d 'master' -b \
         -Q "IF NOT EXISTS(SELECT [name] FROM master.dbo.sysdatabases WHERE [name] = 'Perceptia') THROW 50100, 'Database does not exist', 1"
@@ -61,6 +65,7 @@ then
 fi
 
 # create Perceptia database
+echo "Creating Perceptia database on server"
 /opt/mssql-tools/bin/sqlcmd \
 -S localhost -U sa -P ${SA_PASSWORD} -d 'master' -b \
 -Q "If Exists(SELECT [name] FROM master.dbo.sysdatabases WHERE [name] = 'Perceptia')
@@ -94,6 +99,7 @@ echo "Applying procedure.sql to Perceptia database"
 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${SA_PASSWORD} -d Perceptia -i /script/Perceptia/populate.sql
 
 # add SQL database user
+echo "Adding $GATEWAY_SP_USERNAME user to Perceptia database"
 /opt/mssql-tools/bin/sqlcmd \
 -S localhost -U sa -P ${SA_PASSWORD} -d 'Perceptia' -b \
 -Q "CREATE USER $GATEWAY_SP_USERNAME WITH PASSWORD = '$GATEWAY_SP_PASSWORD';"
@@ -103,6 +109,7 @@ then
         exit 1
 fi
 
+echo "Adding $GATEWAY_SP_USERNAME to the role: RL_ExecuteAllProcedures"
 /opt/mssql-tools/bin/sqlcmd \
 -S localhost -U sa -P ${SA_PASSWORD} -d 'Perceptia' -b \
 -Q "ALTER ROLE RL_ExecuteAllProcedures ADD MEMBER $GATEWAY_SP_USERNAME;"
@@ -113,6 +120,7 @@ then
 fi
 
 # Wait for database to finish loading
+echo "Sleeping for 20 seconds to allow the database to finish loading..."
 sleep 20s
 
 # Remove Database scripts
@@ -122,6 +130,7 @@ then
 fi
 
 # Ensure Database was created successfully
+echo "Ensuring database was created successfully"
 /opt/mssql-tools/bin/sqlcmd \
 -S localhost -U sa -P ${SA_PASSWORD} -d 'master' -b \
 -Q "IF NOT EXISTS(SELECT [name] FROM master.dbo.sysdatabases WHERE [name] = 'Perceptia') THROW 50100, 'Database does not exist', 1"
@@ -129,4 +138,6 @@ if [ $? -eq 1 ]
 then
         echo "Database was not created successfully!"
         exit 1
+else 
+        echo "Database found, Perceptia database created successfully!"
 fi
