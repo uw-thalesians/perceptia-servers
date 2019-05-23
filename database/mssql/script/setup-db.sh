@@ -3,8 +3,7 @@
 # Skip setup if specified
 # Defailt: Don't skip
 
-echo "SKIP_SETUP=$SKIP_SETUP"
-echo "SKIP_SETUP_IF_EXISTS=$SKIP_SETUP_IF_EXISTS"
+
 if [ "$MSSQL_ENVIRONMENT" == "" ]
 then
         echo "MSSQL_ENVIRONMENT not set, defaulting to development"
@@ -12,7 +11,19 @@ then
 fi
 echo "MSSQL_ENVIRONMENT=$MSSQL_ENVIRONMENT"
 
+# wait for the SQL Server to come up
+if [ "$MSSQL_ENVIRONMENT" == "production" ]
+then
+        echo "Sleeping for 30s to allow server to start"
+        sleep 30s
+elif [ "$MSSQL_ENVIRONMENT" == "development" ]
+then
+        echo "Sleeping for 20s to allow server to start"
+        sleep 20s
+fi
 
+echo "SKIP_SETUP=$SKIP_SETUP"
+echo "SKIP_SETUP_IF_EXISTS=$SKIP_SETUP_IF_EXISTS"
 
 # Setup Database to use containered databases
 /opt/mssql-tools/bin/sqlcmd \
@@ -30,16 +41,7 @@ then
         exit 0
 fi
 
-# wait for the SQL Server to come up
-if [ "$MSSQL_ENVIRONMENT" == "production" ]
-then
-        echo "Sleeping for 20s to allow server to start"
-        sleep 20s
-elif [ "$MSSQL_ENVIRONMENT" == "development" ]
-then
-        echo "Sleeping for 10s to allow server to start"
-        sleep 10s
-fi
+
 
 # Skip setup if database exists
 # Default: don't skip
