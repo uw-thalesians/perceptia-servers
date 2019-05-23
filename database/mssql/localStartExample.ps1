@@ -6,7 +6,7 @@ Param (
     [String]$MsSqlSkipSetupIfExist = "Y",
     [String]$MsSqlSkipSetup = "N",
     [switch]$BuildMsSql,
-    [string]$MsSqlVersion = "0.8.1",
+    [string]$MsSqlVersion = "1.0.0",
     [string]$MsSqlBuild = "232",
     [string]$MsSqlBranch = "develop",
     [String]$PerceptiaDockerNet = "perceptia-net",
@@ -66,7 +66,7 @@ if (!$CleanUp) {
     Write-Host "MsSql Server is listening on the host at: localhost:${MsSqlPortPublish}"
 } else {
     docker rm --force (docker ps -aq --filter "label=label.perceptia.info/part-of=${MSSQL_SL_SERVICE_NAME}")
-    if ($MsSqlRemoveDbVolume-or $RemoveAllDbVolumes) {
+    if ($MsSqlRemoveDbVolume -or $RemoveAllDbVolumes) {
         Write-Host "MsSqlRemoveDbVolume or RemoveAllDbVolumes option true, removing previous database"
         docker volume rm $MSSQL_VOLUME_NAME
     }

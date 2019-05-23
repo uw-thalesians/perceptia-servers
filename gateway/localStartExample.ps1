@@ -1,10 +1,10 @@
 Param (
-    [string]$Build = "232",
+    [string]$Build = "288",
     [String]$Branch = "develop",
     [switch]$CurrentBranch,
     [switch]$Latest,
-    [String]$GatewayVersion = "0.3.0",
-    [String]$MsSqlVersion = "0.7.1",
+    [String]$GatewayVersion = "1.0.0",
+    [String]$MsSqlVersion = "1.0.0",
     [String]$MsSqlDatabase = "Perceptia",
     [String]$MsSqlHost = "mssql",
     [String]$MsSqlSaPassword = "SecureNow!",
@@ -90,7 +90,7 @@ if (!$CleanUp) {
             Write-Host "Build must be provided, but no build provided, exiting..."
             exit(1)
     } 
-
+    Write-Host "`n"
     
     Set-Variable -Name BUILD_AND_BRANCH -Value "build-${TAG_BUILD}-branch-${TAG_BRANCH}"
 
@@ -104,28 +104,54 @@ if (!$CleanUp) {
         
         Set-Variable -Name GATEWAY_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${GATEWAY_IMAGE_NAME}:${GatewayVersion}-${BUILD_AND_BRANCH}"
         Write-Host "Using gateway image: $GATEWAY_IMAGE_AND_TAG"
+        Write-Host "`n"
     } 
     
-    if ((docker ps -aq --filter "label=label.perceptia.info/name=$GATEWAY_CONTAINER_NAME" --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}").Length -gt 0) {
-        docker rm --force (docker ps -aq --filter "label=label.perceptia.info/name=$GATEWAY_CONTAINER_NAME" --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}")
+    # Remove Existing Containers
+    if ((docker ps -aq --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}").Length -gt 0) {
+        Write-Host "Removing all containers started by this script..."
+        docker rm --force (docker ps -aq --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}")
+    }
+
+    #Remove existing volumes
+    if ($RemoveAllDbVolumes -and (((docker volume ls --format "{{.Name}}") -Match "${GATEWAY_SERVICE_NAME}"))) {
+        Write-Host "Database volume reset requested"
+        if ((docker ps -aq --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}")) {
+                Write-Host "Removing all containers before removing volumes"
+                docker rm --force (docker ps -aq --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}")
+        }  
+        docker volume rm (docker volume ls --format "{{.Name}}" --filter "name=${GATEWAY_SERVICE_NAME}")
+    }
+
+    if (($MsSqlRemoveDbVolume) -and (((docker volume ls --format "{{.Name}}") -Match "$MSSQL_VOLUME_NAME" ))){
+        Write-Host "-MsSqlRemoveDbVolume option set, removing volume: $MSSQL_VOLUME_NAME"
+        if ((docker ps -aq --filter "label=label.perceptia.info/name=mssql" --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}")) {
+                docker rm --force (docker ps -aq --filter "label=label.perceptia.info/name=mssql"  --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}")
+        } 
+        Start-Sleep -Seconds 2
+        docker volume rm $MSSQL_VOLUME_NAME
+    }
+    if (($RedisRemoveDbVolume) -and (((docker volume ls --format "{{.Name}}") -Match "$REDIS_VOLUME_NAME" ))) {
+        Write-Host "-RedisRemoveDbVolume option set, removing volume: $REDIS_VOLUME_NAME"
+        if ((docker ps -aq --filter "label=label.perceptia.info/name=redis" --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}")) {
+                docker rm --force (docker ps -aq --filter "label=label.perceptia.info/name=redis"  --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAMEE}")
+        } 
+        
+        Start-Sleep -Seconds 2
+        docker volume rm $REDIS_VOLUME_NAME
     }
     
-    docker network create -d bridge $PerceptiaDockerNet
+    if (!((docker network ls) -Match $PerceptiaDockerNet)) {
+        Write-Host "Docker network $PerceptiaDockerNet does not exist, creating now..."
+        docker network create -d bridge $PerceptiaDockerNet 
+        Write-Host "`n"
+    }
+    
 
 
     
     if (!$SkipRedis) {
         Write-Host "SkipRedis option false, starting redis dependency"
-    
-        if ((docker ps -aq --filter "label=label.perceptia.info/name=$REDIS_CONTAINER_NAME" --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}").Length -gt 0) {
-            docker rm --force (docker ps -aq --filter "label=label.perceptia.info/name=$REDIS_CONTAINER_NAME" --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}")
-        }
-        
-    
-        if ($RedisRemoveDbVolume -or $RemoveAllDbVolumes) {
-            Write-Host "RedisRemoveDbVolume option true, clearing old sessions"
-            docker volume rm $REDIS_VOLUME_NAME
-        }
 
         Set-Variable -Name REDIS_IMAGE_AND_TAG -Value "redis:5.0.4-alpine"
         # Check if image exists
@@ -148,24 +174,16 @@ if (!$CleanUp) {
         --publish "${RedisPortPublish}:6379" `
         --mount type=volume,source=${REDIS_VOLUME_NAME},destination=/data `
         redis:5.0.4-alpine
+        Write-Host "`n"
         Write-Host "Redis Server is listening inside docker network: ${PerceptiaDockerNet} at: ${REDIS_CONTAINER_NAME}:1433"
         Write-Host "Redis Server is listening on the host at: localhost:${MsSqlPortPublish}"
+        Write-Host "`n"
     } else {
         Write-Host "Be sure to start mssql dependency, see README"
     }
-    
+    Write-Host "`n"
     if (!$SkipMsSql) {
         Write-Host "SkipMsSql option false, starting mssql dependency"
-    
-        if ((docker ps -aq --filter "label=label.perceptia.info/name=$MSSQL_CONTAINER_NAME" --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}").Length -gt 0) {
-            docker rm --force (docker ps -aq --filter "label=label.perceptia.info/name=$MSSQL_CONTAINER_NAME" --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}")
-        }
-        
-    
-        if ($MsSqlRemoveDbVolume -or $RemoveAllDbVolumes) {
-            Write-Host "MsSqlRemoveDbVolume option true, removing previous database"
-            docker volume rm ${MSSQL_VOLUME_NAME}
-        }
 
         if (($MsSqlVersion).Length -eq 0) {
             Write-Host "Version must be provided, but no version provided for mssql, exiting..."
@@ -201,9 +219,10 @@ if (!$CleanUp) {
         --network $PerceptiaDockerNet `
         --publish "${MsSqlPortPublish}:1433" `
         ${MSSQL_IMAGE_AND_TAG}
-    
+        Write-Host "`n"
         Write-Host "MsSql Server is listening inside docker network: ${PerceptiaDockerNet} at: ${MSSQL_CONTAINER_NAME}:1433"
         Write-Host "MsSql Server is listening on the host at: localhost:${MsSqlPortPublish}"
+        Write-Host "`n"
     } else {
         Write-Host "Be sure to start mssql dependency, see README"
     }
@@ -232,7 +251,7 @@ if (!$CleanUp) {
     --env MSSQL_SCHEME="$MSSQL_SCHEME" `
     --env MSSQL_USERNAME="$MSSQL_USERNAME" `
     --env REDIS_ADDRESS="${RedisHost}:$RedisPort" `
-    --label "label.perceptia.info/name=gateway" `
+    --label "label.perceptia.info/name=${GATEWAY_CONTAINER_NAME}" `
     --label "label.perceptia.info/instance=gateway-1" `
     --label "label.perceptia.info/managed-by=docker" `
     --label "label.perceptia.info/component=server" `
@@ -244,6 +263,7 @@ if (!$CleanUp) {
     --mount type=bind,source=$GATEWAY_TLSMOUNTSOURCE,target=/encrypt/,readonly `
     ${GATEWAY_IMAGE_AND_TAG}
     
+    Write-Host "`n"
     Write-Host "Gateway is listening at https://localhost:${GatewayPortPublish}"
     docker ps --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}"
 } else {
@@ -251,17 +271,31 @@ if (!$CleanUp) {
     if ((docker ps -aq --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}").Length -gt 0) {
         docker rm --force (docker ps -aq --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}")
     }
-    
-    
-    if ($RedisRemoveDbVolume -or $RemoveAllDbVolumes) {
-        Write-Host "RedisRemoveDbVolume option true, clearing old sessions"
+    if ($RemoveAllDbVolumes -and (((docker volume ls --format "{{.Name}}") -Match "${GATEWAY_SERVICE_NAME}"))) {
+        Write-Host "Database volume reset requested"
+        if ((docker ps -aq --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}")) {
+                Write-Host "Removing all containers before removing volumes"
+                docker rm --force (docker ps -aq --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}")
+        }  
+        docker volume rm (docker volume ls --format "{{.Name}}" --filter "name=${GATEWAY_SERVICE_NAME}")
+    }
+    if (($MsSqlRemoveDbVolume) -and (((docker volume ls --format "{{.Name}}") -Match "$MSSQL_VOLUME_NAME" ))){
+        Write-Host "-MsSqlRemoveDbVolume option set, removing volume: $MSSQL_VOLUME_NAME"
+        if ((docker ps -aq --filter "label=label.perceptia.info/name=mssql" --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}")) {
+                docker rm --force (docker ps -aq --filter "label=label.perceptia.info/name=mssql"  --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}")
+        } 
+        Start-Sleep -Seconds 2
+        docker volume rm $MSSQL_VOLUME_NAME
+    }
+    if (($RedisRemoveDbVolume) -and (((docker volume ls --format "{{.Name}}") -Match "$REDIS_VOLUME_NAME" ))) {
+        Write-Host "-RedisRemoveDbVolume option set, removing volume: $REDIS_VOLUME_NAME"
+        if ((docker ps -aq --filter "label=label.perceptia.info/name=redis" --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAME}")) {
+                docker rm --force (docker ps -aq --filter "label=label.perceptia.info/name=redis"  --filter "label=label.perceptia.info/part-of=${GATEWAY_SERVICE_NAMEE}")
+        } 
+        
+        Start-Sleep -Seconds 2
         docker volume rm $REDIS_VOLUME_NAME
     }
-
-    if ($MsSqlRemoveDbVolume -or $RemoveAllDbVolumes) {
-        Write-Host "MsSqlRemoveDbVolume option true, removing previous database"
-        docker volume rm ${MSSQL_VOLUME_NAME}
-    }
-
+    Write-Host "Complete!"
 }
 
