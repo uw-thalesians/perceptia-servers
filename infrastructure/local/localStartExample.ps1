@@ -131,11 +131,12 @@ if (!$CleanUp) {
 
                 
         if ((docker stack ls --format "{{.Name}}") -Match $PERCEPTIA_STACK_NAME) {
+                Write-Host "`n"
                 Write-Host "Note, due to issue with bind points (see https://github.com/docker/for-win/issues/1521), must clean up stack before redeployment"
                 Write-Host "Cleaning up the docker stack: $PERCEPTIA_STACK_NAME"
                 docker stack rm $PERCEPTIA_STACK_NAME
-                Write-Host "Waiting 10 seconds to allow docker to clean up"
-                Start-Sleep -Seconds "10"
+                Write-Host "Waiting 15 seconds to allow docker to clean up"
+                Start-Sleep -Seconds "15"
         }
 
         if ($RemoveAllDbVolumes -and (((docker volume ls --format "{{.Name}}") -Match "${PERCEPTIA_STACK_NAME}"))) {
@@ -198,6 +199,8 @@ if (!$CleanUp) {
         docker stack deploy -c perceptia-stack.yml $PERCEPTIA_STACK_NAME
         if (!$?) {
                 Write-Host "Docker stack: $PERCEPTIA_STACK_NAME failed to start, see error above."
+                Write-Host "`n"
+                Write-Host "In most cases rerunning this script a second time will resolve error."
                 exit(1)
         }
         Write-Host "`n"
