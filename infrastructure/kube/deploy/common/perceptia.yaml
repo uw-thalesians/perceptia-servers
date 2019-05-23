@@ -193,7 +193,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: mssql
-        image: uwthalesians/mssql:1.0.0-build-288-branch-develop
+        image: uwthalesians/mssql:1.0.0-build-293-branch-quetzal-aks-kube
         ports:
         - containerPort: 1433
           name: mssql
