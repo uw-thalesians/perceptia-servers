@@ -96,6 +96,10 @@ $f3->route('GET /api/v1/anyquiz/questions/@keyword', function($f3) {
 
     $keyword = $f3->get('PARAMS.keyword');
 
+    if( $f3->exists('GET.url') ) {
+        $keyword = $f3->get('GET.url');
+    }
+
     header('Content-Type: application/json');
     $quizController->questionsJSON($keyword, $source);
 
@@ -113,6 +117,10 @@ $f3->route('GET /api/v1/anyquiz/study/@keyword', function($f3) {
 
     $keyword = $f3->get('PARAMS.keyword');
 
+    if( $f3->exists('GET.url') ) {
+        $keyword = $f3->get('GET.url');
+    }
+    
     header('Content-Type: application/json');
     $quizController->studyJSON($keyword, $source);
 
