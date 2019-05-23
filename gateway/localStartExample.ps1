@@ -1,42 +1,52 @@
 Param (
-    [string]$Build = "288",
+    [switch]$Latest,
+    [string]$Build = "303",
     [String]$Branch = "develop",
     [switch]$CurrentBranch,
-    [switch]$Latest,
+
+    [String]$PerceptiaDockerNet = "perceptia-net",
+
+    [switch]$BuildGateway = $false,
     [String]$GatewayVersion = "1.0.0",
+    [String]$GatewayPortPublish = "4443",
+
+    [switch]$SkipMsSql = $false,
     [String]$MsSqlVersion = "1.0.0",
     [String]$MsSqlDatabase = "Perceptia",
     [String]$MsSqlHost = "mssql",
-    [String]$MsSqlSaPassword = "SecureNow!",
     [String]$MsSqlPort = "1433",
+    [String]$MsSqlSaPassword = "SecureNow!",
     [String]$MsSqlPortPublish = "1401",
     [String]$MsSqlScheme = "sqlserver",
     [String]$MsSqlUsername = "sa",
     [String]$MsSqlGatewaySpUsername = "gateway_sp",
     [String]$MsSqlGatewaySpPassword = "ThisIsReal!",
-    [String]$PerceptiaDockerNet = "perceptia-net",
-    [String]$GatewayPortPublish = "4443",
+    [switch]$MsSqlRemoveDbVolume = $false,
+
+    [switch]$SkipRedis = $false,
     [String]$RedisPort = "6379",
     [String]$RedisPortPublish = "6379",
     [String]$RedisHost = "redis",
+    [switch]$RedisRemoveDbVolume = $false,
+
     [String]$AqRestPort = "80",
     [String]$AqRestHost = "aqrest",
-    [switch]$SkipRedis = $false,
-    [switch]$RedisRemoveDbVolume = $false,
-    [switch]$MsSqlRemoveDbVolume = $false,
-    [switch]$SkipMsSql = $false,
-    [switch]$BuildGateway = $false,
+
     [switch]$CleanUp = $false,
     [switch]$RemoveAllDbVolumes = $false
 )
 
+# Setup Base Veriables
 Set-Variable -Name DOCKERHUB_ORG -Value "uwthalesians"
 
 Set-Variable -Name LATEST_COMMIT -Value "$(git rev-parse --short HEAD)"
-Set-Variable -Name GATEWAY_IMAGE_NAME -Value "gateway"
 
-Set-Variable -Name GATEWAY_CONTAINER_NAME -Value "gateway"
+## Gateway Veriables
 Set-Variable -Name GATEWAY_SERVICE_NAME -Value "gateway-lc-svc"
+
+Set-Variable -Name GATEWAY_IMAGE_NAME -Value "gateway"
+Set-Variable -Name GATEWAY_CONTAINER_NAME -Value "gateway"
+
 
 Set-Variable -Name GATEWAY_TLSCERTPATH -Value "/encrypt/fullchain.pem"
 Set-Variable -Name GATEWAY_TLSKEYPATH -Value "/encrypt/privkey.pem"
@@ -44,9 +54,11 @@ Set-Variable -Name GATEWAY_TLSMOUNTSOURCE -Value "$(Get-Location)/gateway/encryp
 
 Set-Variable -Name GATEWAY_SESSION_KEY -Value "fjsfndreifnfsnm5kngfnklef23kdnfskng"
 
+## Redis Variables
 Set-Variable -Name REDIS_CONTAINER_NAME -Value $RedisHost
 Set-Variable -Name REDIS_VOLUME_NAME -Value "${GATEWAY_SERVICE_NAME}_redis_vol"
 
+## MsSql Variables
 Set-Variable -Name MSSQL_DATABASE -Value $MsSqlDatabase
 Set-Variable -Name MSSQL_HOST -Value $MsSqlHost
 Set-Variable -Name MSSQL_PASSWORD -Value $MsSqlGatewaySpPassword

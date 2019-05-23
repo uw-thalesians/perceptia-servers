@@ -1,30 +1,37 @@
 Param (
-        [Switch]$CleanUp,
         [switch]$Latest,
-        [string]$Build = "288",
+        [string]$Build = "303",
         [String]$Branch = "develop",
         [switch]$CurrentBranch,
+
         [String]$GatewayVersion = "1.0.0",
         [string]$GatewayPortPublish = "4443",
+
         [String]$MsSqlVersion = "1.0.0",
         [String]$MsSqlSaPassword = "SecureNow!",
         [String]$MsSqlPortPublish = "47011",
         [String]$MsSqlGatewaySpUsername = "gateway_sp",
         [String]$MsSqlGatewaySpPassword = "ThisIsReal!",
         [switch]$MsSqlRemoveDbVolume,
+
         [String]$RedisPortPublish = "47012",
         [switch]$RedisRemoveDbVolume,
+
         [String]$AqRestVersion = "1.1.0",
         [String]$AqMySqlUserPassword = "8aWZjNadxspXQEHu",
         [String]$AqRestPortPublish = "47020",
+
         [String]$AqMySqlVersion = "1.0.0",
         [String]$AqMySqlPortPublish = "47021",
         [switch]$AqMySqlRemoveDbVolume,
+
         [String]$AqSolrVersion = "1.0.0",
         [String]$AqSolrPortPublish = "47022",
+
         [switch]$RemoveAllDbVolumes,
+        [switch]$SkipImageCheck,
         [switch]$RemoveAllContainers,
-        [switch]$SkipImageCheck
+        [Switch]$CleanUp
 )
 
 Set-Variable -Name DOCKERHUB_ORG -Value "uwthalesians"
