@@ -5,7 +5,7 @@ metadata:
   labels:
     label.perceptia.info/name: gateway
     label.perceptia.info/instance: gateway-1
-    label.perceptia.info/version: "0.3.0"
+    label.perceptia.info/version: "1.0.0"
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: server
     label.perceptia.info/type: frontend
@@ -20,5 +20,5 @@ spec:
     port: 443
     targetPort: https
     name: https
-  loadBalancerIP: 13.77.142.127
+  loadBalancerIP: 52.183.90.249
   type: LoadBalancer
