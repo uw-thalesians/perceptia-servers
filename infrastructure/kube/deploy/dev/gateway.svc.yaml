@@ -16,9 +16,9 @@ spec:
   selector:
     app: gateway
   ports:
-  - protocol: TCP
+  - name: https
+    protocol: TCP
     port: 443
     targetPort: https
-    name: https
-  loadBalancerIP: 52.183.90.249
+  loadBalancerIP: 52.250.113.180
   type: LoadBalancer
