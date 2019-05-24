@@ -7,7 +7,7 @@ Param (
     [String]$MsSqlSkipSetup = "N",
     [switch]$BuildMsSql,
     [string]$MsSqlVersion = "1.0.0",
-    [string]$MsSqlBuild = "303",
+    [string]$MsSqlBuild = "316",
     [string]$MsSqlBranch = "develop",
     [String]$PerceptiaDockerNet = "perceptia-net",
     [switch]$MsSqlRemoveDbVolume,
