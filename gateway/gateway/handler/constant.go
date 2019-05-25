@@ -38,6 +38,11 @@ const (
 	PragmaNoCache       = "no-cache"
 	// AuthorizationSchemeValues
 	AuthorizationBearer = "Bearer"
+	// rfc6750#section-3
+	WWWAuthenticateBearerRealm            = "Bearer realm=\"/api/\""
+	WWWAuthenticateErrorInvalidToken      = "error=\"invalid_token\""
+	WWWAuthenticateErrorInvalidRequest    = "error=\"invalid_request\""
+	WWWAuthenticateErrorInsufficientScope = "error=\"insufficient_scope\""
 )
 
 // Query Parameters

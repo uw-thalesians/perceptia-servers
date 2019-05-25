@@ -27,6 +27,10 @@ const authSessionStateKey contextKey = 4040
 // but should still only be accessed by authorized users.
 const authUserAuthenticatedKey contextKey = 5050
 
+const authSessionErrorKey contextKey = 6060
+
+const authSessionErrorValueKey contextKey = 6070
+
 var ErrUserNotInContext = errors.New("authenticator: user not in context")
 var ErrSessionNotInContext = errors.New("authenticator: SessionState not in context")
 
@@ -46,11 +50,22 @@ func (cx *Context) NewAuthenticator(handler http.Handler) http.Handler {
 func (au *Authenticator) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	sesSt, errGST := au.cx.getSessionStateFromRequest(r)
 	if errGST != nil {
+		var authErrorReason string = ""
+		var wasError bool = false
 		if errGST != session.ErrNoSessionId {
+			if errGST == session.ErrInvalidScheme {
+				authErrorReason = WWWAuthenticateErrorInvalidRequest + ",\n" + "error_description=\"Bearer scheme not provided\""
+				wasError = true
+			} else if errGST == session.ErrInvalidSessionId {
+				authErrorReason = WWWAuthenticateErrorInvalidToken + ",\n" + "error_description=\"token extracted not a valid session token\""
+				wasError = true
+			}
 			au.cx.logError(errGST, "issue getting session from request", "",
 				http.StatusInternalServerError)
 		}
-		cxWithSessionActive := context.WithValue(r.Context(), authSessionActiveKey, false)
+		cxWithAuthError := context.WithValue(r.Context(), authSessionErrorKey, wasError)
+		cxWithAuthErrorValue := context.WithValue(cxWithAuthError, authSessionErrorValueKey, authErrorReason)
+		cxWithSessionActive := context.WithValue(cxWithAuthErrorValue, authSessionActiveKey, false)
 		cxWithUserAuthFalse := context.WithValue(cxWithSessionActive, authUserAuthenticatedKey, false)
 
 		rWithUserAuthFalse := r.WithContext(cxWithUserAuthFalse)
@@ -93,7 +108,12 @@ func (ea *EnsureAuth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Context:     fmt.Sprintf("method=%s path=%s", r.Method, r.URL.Path),
 			Code:        0,
 		}
-		w.Header().Add(HeaderWWWAuthenticate, AuthorizationBearer)
+		wwwHeaderValue := WWWAuthenticateBearerRealm
+		wwwErrVal := getSessionErrorKeyValueFromContext(r)
+		if IsAuthError(r) && len(wwwErrVal) > 0 {
+			wwwHeaderValue += ",\n" + wwwErrVal
+		}
+		w.Header().Add(HeaderWWWAuthenticate, wwwHeaderValue)
 		ea.cx.handleErrorJson(w, r, nil, "request to access authenticated resource, but user is not authenticated",
 			retErr, http.StatusUnauthorized)
 		return
@@ -179,5 +199,27 @@ func IsSession(r *http.Request) bool {
 		return val.(bool)
 	default:
 		return false
+	}
+}
+
+// IsAuthError will return true if an auth error occurred, or false if no auth information was provided
+func IsAuthError(r *http.Request) bool {
+	val := r.Context().Value(authSessionErrorKey)
+	switch val.(type) {
+	case bool:
+		return val.(bool)
+	default:
+		return false
+	}
+}
+
+func getSessionErrorKeyValueFromContext(r *http.Request) string {
+	val := r.Context().Value(authSessionErrorValueKey)
+	switch val.(type) {
+	case string:
+		return val.(string)
+	default:
+		return ""
+
 	}
 }

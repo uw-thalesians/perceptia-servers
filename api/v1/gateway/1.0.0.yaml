@@ -684,6 +684,7 @@ components:
     Perceptia-Api-Version:
       description: |
         When in the response, indicates the version of the gateway api that processed the request and sent the response.
+      required: false
       style: simple
       explode: false
       schema:
@@ -691,12 +692,19 @@ components:
       example: 1.0.0
     WWW-Authenticate:
       description: Indicates the scheme that should be used to start an authenticated
-        session to access the given resource.
+        session to access the given resource. Is returned if a resource is requested
+        that requires an authenticated session, but the session could not be authenticated.
+        Additionally, the values error={"invalid_request"|"invalid_token"} and error_description={"custom
+        message"} will be appended after the bearer realm with a leading "\n," if
+        there was an authorization header in the request already, which will explain
+        why that authorization header did not satisfy the authentication requirements.
+        See [rfc6750#section-3](https://tools.ietf.org/html/rfc6750#section-3) for
+        more informaiton.
       style: simple
       explode: false
       schema:
         type: string
-      example: Bearer
+      example: Bearer realm="/api/"
   securitySchemes:
     bearerAuth:
       type: http
