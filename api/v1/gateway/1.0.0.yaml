@@ -416,6 +416,7 @@ paths:
         explode: false
         schema:
           type: string
+        example: this
       responses:
         200:
           description: Session removed successfully.
@@ -666,6 +667,7 @@ components:
       explode: false
       schema:
         type: string
+      example: this
   headers:
     Authorization:
       description: The authorization token used to authenticate the user accross requests.
