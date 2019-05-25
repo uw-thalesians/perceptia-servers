@@ -189,8 +189,8 @@ if (!$CleanUp) {
         --mount type=volume,source=${REDIS_VOLUME_NAME},destination=/data `
         redis:5.0.4-alpine
         Write-Host "`n"
-        Write-Host "Redis Server is listening inside docker network: ${PerceptiaDockerNet} at: ${REDIS_CONTAINER_NAME}:1433"
-        Write-Host "Redis Server is listening on the host at: localhost:${MsSqlPortPublish}"
+        Write-Host "Redis Server is listening inside docker network: ${PerceptiaDockerNet} at: ${REDIS_CONTAINER_NAME}:6379"
+        Write-Host "Redis Server is listening on the host at: localhost:${RedisPortPublish}"
         Write-Host "`n"
     } else {
         Write-Host "Be sure to start mssql dependency, see README"
