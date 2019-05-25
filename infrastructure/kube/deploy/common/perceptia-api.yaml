@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
       - name: gateway
-        image: uwthalesians/gateway:1.0.0-build-316-branch-develop
+        image: uwthalesians/gateway:1-build-326-branch-develop
         ports:
         - name: https
           containerPort: 443
@@ -47,6 +47,21 @@ spec:
               secretKeyRef:
                 name: gateway
                 key: session-key
+          - name: GATEWAY_API_PORT
+            valueFrom:
+              secretKeyRef:
+                name: gateway
+                key: api-port
+          - name: GATEWAY_API_SCHEME
+            valueFrom:
+              secretKeyRef:
+                name: gateway
+                key: api-scheme
+          - name: GATEWAY_API_HOST
+            valueFrom:
+              secretKeyRef:
+                name: gateway
+                key: api-host
           - name: MSSQL_DATABASE
             value: "Perceptia"
           - name: MSSQL_HOST
@@ -191,7 +206,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: mssql
-        image: uwthalesians/mssql:1.0.0-build-316-branch-develop
+        image: uwthalesians/mssql:1-build-326-branch-develop
         ports:
         - name: mssql
           containerPort: 1433
@@ -274,7 +289,7 @@ spec:
     spec:
       containers:
       - name: aqrest
-        image: uwthalesians/aqrest:1.1.0-build-316-branch-develop
+        image: uwthalesians/aqrest:1.1.0-build-326-branch-develop
         ports:
         - name: http
           containerPort: 80
@@ -335,7 +350,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: aqmysql
-        image: uwthalesians/aqmysql:1.0.0-build-316-branch-develop
+        image: uwthalesians/aqmysql:1.0.0-build-326-branch-develop
         ports:
         - name: mysql
           containerPort: 3306
@@ -415,7 +430,7 @@ spec:
     spec:
       containers:
       - name: aqsolr
-        image: uwthalesians/aqsolr:1.0.0-build-316-branch-develop
+        image: uwthalesians/aqsolr:1.0.0-build-326-branch-develop
         command: 
           - "solr-precreate"
         args:
