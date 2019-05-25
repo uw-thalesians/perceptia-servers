@@ -1,13 +1,13 @@
 Param (
         [switch]$Latest,
-        [string]$Build = "316",
+        [string]$Build = "326",
         [String]$Branch = "develop",
         [switch]$CurrentBranch,
 
-        [String]$GatewayVersion = "1.0.0",
+        [String]$GatewayVersion = "1",
         [string]$GatewayPortPublish = "4443",
 
-        [String]$MsSqlVersion = "1.0.0",
+        [String]$MsSqlVersion = "1",
         [String]$MsSqlSaPassword = "SecureNow!",
         [String]$MsSqlPortPublish = "47011",
         [String]$MsSqlGatewaySpUsername = "gateway_sp",
@@ -34,22 +34,36 @@ Param (
         [Switch]$CleanUp
 )
 
+# Setup Base Veriables
 Set-Variable -Name DOCKERHUB_ORG -Value "uwthalesians"
+
 Set-Variable -Name PERCEPTIA_STACK_NAME -Value "perceptia-api"
+
+## Gateway Veriables
 Set-Variable -Name GATEWAY_IMAGE_NAME -Value "gateway"
 Set-Variable -Name GATEWAY_API_PORT -Value "$GatewayPortPublish"
+
+## Redis Variables
 Set-Variable -Name REDIS_VOLUME_NAME -Value "redis_pc_vol"
+
+## MsSql Variables
 Set-Variable -Name MSSQL_IMAGE_NAME -Value "mssql"
 Set-Variable -Name MSSQL_VOLUME_NAME -Value "mssql_pc_vol"
+
+## AqRest Variables
 Set-Variable -Name AQREST_IMAGE_NAME -Value "aqrest"
+
+## AqMySql Variables
 Set-Variable -Name AQMYSQL_IMAGE_NAME -Value "aqmysql"
 Set-Variable -Name AQMYSQL_VOLUME_NAME -Value "aqmysql_pc_vol"
+
+## AqSolr Variables
 Set-Variable -Name AQSOLR_IMAGE_NAME -Value "aqsolr"
 
 
 
 if (!$CleanUp) {
-        Write-Host "Note, this command requires docker swarm to be initialized"
+        Write-Host "Note, this script requires docker swarm to be initialized"
         Write-Host "To initialize, run: docker swarm init"
         Write-Host "`n"
         Write-Host "Remember, you must create the Tls cert and key files in the ./encrypt/ directory"
@@ -86,7 +100,10 @@ if (!$CleanUp) {
 
         Set-Variable -Name BUILD_AND_BRANCH -Value "build-${TAG_BUILD}-branch-${TAG_BRANCH}"
 
-        # Gateway perceptia-stack.yml substitution variables
+        # Setup Environment Variables
+        Set-Item -Path env:PERCEPTIA_STACK_NAME -Value $PERCEPTIA_STACK_NAME
+
+        ## Gateway perceptia-stack.yml substitution variables
         Set-Item -Path env:GATEWAY_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${GATEWAY_IMAGE_NAME}:${GatewayVersion}-${BUILD_AND_BRANCH}"
         if (($GatewayVersion).Length -eq 0) {
                 Write-Host "Version must be provided, but no version provided for gateway, exiting..."
@@ -94,38 +111,14 @@ if (!$CleanUp) {
         }
         Set-Item -Path env:GATEWAY_PORT_PUBLISH -Value $GatewayPortPublish
         Set-Item -Path env:GATEWAY_API_PORT -Value $GATEWAY_API_PORT
-        # Mssql perceptia-stack.yml substitution variables
+
+
+        ## Mssql perceptia-stack.yml substitution variables
         Set-Item -Path env:MSSQL_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${MSSQL_IMAGE_NAME}:${MsSqlVersion}-${BUILD_AND_BRANCH}"
         if (($MsSqlVersion).Length -eq 0) {
                 Write-Host "Version must be provided, but no version provided for mssql, exiting..."
                 exit(1)
         }
-        Set-Item -Path env:MSSQL_PORT_PUBLISH -Value $MsSqlPortPublish
-        # Redis perceptia-stack.yml substituion variables
-        Set-Item -Path env:REDIS_IMAGE_AND_TAG -Value "redis:5.0.4-alpine"
-        Set-Item -Path env:REDIS_PORT_PUBLISH -Value $RedisPortPublish
-        # Aqrest perceptia-stack.yml substitution variables
-        Set-Item -Path env:AQREST_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${AQREST_IMAGE_NAME}:${AqRestVersion}-${BUILD_AND_BRANCH}"
-        if (($AqRestVersion).Length -eq 0) {
-                Write-Host "Version must be provided, but no version provided for aqrest, exiting..."
-                exit(1)
-        }
-        Set-Item -Path env:AQREST_PORT_PUBLISH -Value $AqRestPortPublish
-        # Aqmysql perceptia-stack.yml substitution variables
-        Set-Item -Path env:AQMYSQL_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${AQMYSQL_IMAGE_NAME}:${AqMySqlVersion}-${BUILD_AND_BRANCH}"
-        if (($AqMySqlVersion).Length -eq 0) {
-                Write-Host "Version must be provided, but no version provided foraqmysql, exiting..."
-                exit(1)
-        }
-        Set-Item -Path env:AQMYSQL_PORT_PUBLISH -Value $AqMySqlPortPublish
-        # Aqsolr perceptia-stack.yml substitution variables
-        Set-Item -Path env:AQSOLR_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${AQSOLR_IMAGE_NAME}:${AqSolrVersion}-${BUILD_AND_BRANCH}"
-        if (($AqSolrVersion).Length -eq 0) {
-                Write-Host "Version must be provided, but no version provided for aqsolr, exiting..."
-                exit(1)
-        }
-        Set-Item -Path env:AQSOLR_PORT_PUBLISH -Value $AqSolrPortPublish
-
         Set-Item -Path env:MSSQL_SA_PASSWORD -Value $MsSqlSaPassword
         Set-Item -Path env:MSSQL_GATEWAY_SP_PASSWORD -Value $MsSqlGatewaySpPassword
         Set-Item -Path env:MSSQL_GATEWAY_SP_USERNAME -Value $MsSqlGatewaySpUsername
@@ -133,12 +126,48 @@ if (!$CleanUp) {
                 Set-Item -Path env:MSSQL_GATEWAY_SP_PASSWORD -Value $MsSqlSaPassword
                 Set-Item -Path env:MSSQL_GATEWAY_SP_USERNAME -Value "sa"
         }
+        Set-Item -Path env:MSSQL_PORT_PUBLISH -Value $MsSqlPortPublish
 
+
+        ## Redis perceptia-stack.yml substituion variables
+        Set-Item -Path env:REDIS_IMAGE_AND_TAG -Value "redis:5.0.4-alpine"
+        Set-Item -Path env:REDIS_PORT_PUBLISH -Value $RedisPortPublish
+
+
+        ## Aqrest perceptia-stack.yml substitution variables
+        Set-Item -Path env:AQREST_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${AQREST_IMAGE_NAME}:${AqRestVersion}-${BUILD_AND_BRANCH}"
+        if (($AqRestVersion).Length -eq 0) {
+                Write-Host "Version must be provided, but no version provided for aqrest, exiting..."
+                exit(1)
+        }
+        Set-Item -Path env:AQREST_PORT_PUBLISH -Value $AqRestPortPublish
+
+
+        ## Aqmysql perceptia-stack.yml substitution variables
+        Set-Item -Path env:AQMYSQL_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${AQMYSQL_IMAGE_NAME}:${AqMySqlVersion}-${BUILD_AND_BRANCH}"
+        if (($AqMySqlVersion).Length -eq 0) {
+                Write-Host "Version must be provided, but no version provided foraqmysql, exiting..."
+                exit(1)
+        }
+        Set-Item -Path env:AQMYSQL_PORT_PUBLISH -Value $AqMySqlPortPublish
         Set-Item -Path env:AQMYSQL_USER_PASS -Value $AqMySqlUserPassword
 
-        Set-Item -Path env:PERCEPTIA_STACK_NAME -Value $PERCEPTIA_STACK_NAME
 
-                
+        ## Aqsolr perceptia-stack.yml substitution variables
+        Set-Item -Path env:AQSOLR_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${AQSOLR_IMAGE_NAME}:${AqSolrVersion}-${BUILD_AND_BRANCH}"
+        if (($AqSolrVersion).Length -eq 0) {
+                Write-Host "Version must be provided, but no version provided for aqsolr, exiting..."
+                exit(1)
+        }
+        Set-Item -Path env:AQSOLR_PORT_PUBLISH -Value $AqSolrPortPublish
+
+
+
+
+
+
+
+        # Remove stack to redeploy        
         if ((docker stack ls --format "{{.Name}}") -Match $PERCEPTIA_STACK_NAME) {
                 Write-Host "`n"
                 Write-Host "Note, due to issue with bind points (see https://github.com/docker/for-win/issues/1521), must clean up stack before redeployment"

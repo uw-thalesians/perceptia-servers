@@ -325,7 +325,7 @@ func (cx *Context) usersHandlerV1Post(w http.ResponseWriter, r *http.Request) {
 	urlLoc.Host = cx.apiInfo.Host + ":" + cx.apiInfo.Port
 	urlLoc.Scheme = cx.apiInfo.Scheme
 	urlLoc.Path = r.URL.Path
-	location := fmt.Sprintf("%s/%s", strings.TrimSuffix(urlLoc.String(), "/"), sesUuid.String())
+	location := fmt.Sprintf("%s/%s", strings.TrimSuffix(urlLoc.String(), "/"), userINS.Uuid.String())
 	w.Header().Add(HeaderLocation, location)
 	// Send response
 	_, _ = cx.respondEncode(w, userINS, http.StatusCreated)
