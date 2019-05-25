@@ -277,10 +277,10 @@ if (!$CleanUp) {
     --env GATEWAY_TLSKEYPATH="$GATEWAY_TLSKEYPATH" `
     --env MSSQL_DATABASE="$MSSQL_DATABASE" `
     --env MSSQL_HOST="$MSSQL_HOST" `
-    --env MSSQL_GATEWAY_SP_PASSWORD="$MSSQL_GATEWAY_SP_PASSWORD" `
+    --env MSSQL_PASSWORD="$MSSQL_GATEWAY_SP_PASSWORD" `
     --env MSSQL_PORT="$MSSQL_PORT" `
     --env MSSQL_SCHEME="$MSSQL_SCHEME" `
-    --env MSSQL_GATEWAY_SP_USERNAME="$MSSQL_GATEWAY_SP_USERNAME" `
+    --env MSSQL_USERNAME="$MSSQL_GATEWAY_SP_USERNAME" `
     --env REDIS_ADDRESS="${REDIS_CONTAINER_NAME}:$REDIS_PORT" `
     --label "label.perceptia.info/name=${GATEWAY_CONTAINER_NAME}" `
     --label "label.perceptia.info/instance=gateway-1" `
