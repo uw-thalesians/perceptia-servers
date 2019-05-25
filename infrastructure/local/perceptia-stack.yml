@@ -21,6 +21,7 @@ services:
       GATEWAY_SESSION_KEY: "Jw5sLdjkf6woIBE/d8tDetc+VJsql1O9K8Asdm/W9l/FiW+IfzKrsyKYON9s+MF8"
       GATEWAY_TLSCERTPATH: "/encrypt/fullchain.pem"
       GATEWAY_TLSKEYPATH: "/encrypt/privkey.pem"
+      GATEWAY_API_PORT: "${GATEWAY_API_PORT}"
       MSSQL_DATABASE: "Perceptia"
       MSSQL_HOST: "mssql"
       MSSQL_PASSWORD: "${MSSQL_GATEWAY_SP_PASSWORD}"

@@ -29,6 +29,10 @@ const InvalidEncodedPasswordHash = ""
 
 const InvalidEmail = ""
 
+var InvalidUuid, _ = uuid.FromString("09f2320c-b463-4c0a-8988-64c7085c40f1")
+
+const InvalidUsername = ""
+
 // Custom Error types
 var (
 	// ErrInvalidEmail used when the provided email is not valid.
@@ -82,6 +86,13 @@ type User struct {
 	Uuid        uuid.UUID `json:"uuid"`
 	Username    string    `json:"username"`
 	DisplayName string    `json:"displayName"`
+}
+
+// Guest User
+var InvalidUser = &User{
+	Uuid:        InvalidUuid,
+	Username:    InvalidUsername,
+	DisplayName: "",
 }
 
 // SignInCredentials represents user sign-in credentials.

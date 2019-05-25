@@ -20,7 +20,7 @@ package session
 //		{
 //			"Valid SessionID and Scheme",
 //			"Remember to get the SessionID from the Authorization header (or `auth` query string parameter), validate it, and return it",
-//			SchemeBearer + string(sid),
+//			AuthHeaderSchemeBearerPrefix + string(sid),
 //			false,
 //		},
 //		{
@@ -38,7 +38,7 @@ package session
 //		{
 //			"Invalid SessionID",
 //			"Remember to validate the id before returning it",
-//			SchemeBearer + "invalid",
+//			AuthHeaderSchemeBearerPrefix + "invalid",
 //			true,
 //		},
 //	}
@@ -67,7 +67,7 @@ package session
 //		t.Fatalf("error generating SessionID: %v", err)
 //	}
 //
-//	URL := fmt.Sprintf("/?%s=%s%s", ParamAuthorization, SchemeBearer, string(sid))
+//	URL := fmt.Sprintf("/?%s=%s%s", ParamAuthorization, AuthHeaderSchemeBearerPrefix, string(sid))
 //	req, _ := http.NewRequest("GET", URL, nil)
 //	sidRet, err := GetSessionID(req, key)
 //	if err != nil {

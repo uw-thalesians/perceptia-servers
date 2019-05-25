@@ -22,6 +22,9 @@ servers:
         default: '4443'
 paths:
   /api/v1/gateway/health:
+    description: Provides basic information about the status of the Perceptia API gateway.
+    parameters:
+        - $ref: '#/components/parameters/PerceptiaApiVersion'
     get:
       summary: Reports the status of the gateway, and the services it exposes.
       description: Provides basic health information about the gateway. Output can be expanded and filtered using the optional query parameters.
@@ -31,14 +34,19 @@ paths:
       responses:
         '200':
           description: health response
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Health'
   /api/v1/gateway/users:
+    parameters:
+        - $ref: '#/components/parameters/PerceptiaApiVersion'
     post:
-      summary: Creates an account for the provided user and logs them in.
-      description: "Creates an account using the provided account information and returns the created user. Additionally, will create a new session, thus login in the user, saving the session token as an Authorization header, with the Bearer authorization scheme. Note: Currently if email is provided it is discarded."
+      summary: Creates an account for the provided user and initiates an authenticated session.
+      description: "Creates an account using the provided account information and returns the created user. Additionally, will create a new authenticated session, saving the session token as an Authorization header, with the Bearer authorization scheme. Note: Currently if email is provided it is discarded. The Location header will also be returned, which provides an absolute locaiton for the user account created."
       operationId: postGatewayUsers
       tags:
         - new user
@@ -54,33 +62,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
+            Location:
+              $ref: '#/components/headers/Location'
+            Authorization:
+              $ref: '#/components/headers/Authorization'
         '400':
-          description: User made a bad request
+          description: User made a bad request.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
         '409':
-          description: Username provided already in use
+          description: Username provided already in use.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
         '415':
           $ref: '#/components/responses/ContentTypeNotJson'
         '500':
           $ref: '#/components/responses/UnexpectedError'
   /api/v1/gateway/users/{userUuid}:
+    parameters:
+        - $ref: '#/components/parameters/PerceptiaApiVersion'
     get:
       summary: Gets the basic account information for the given user.
-      description: This will return the basic account information for a user of the system. Requires the client to be in an authenticated. Only the user can request their own information. (Authorization header required, see '#/components/headers/Authorization')
+      description: This will return the basic account information for a user of the system. Requires the client to be in an authenticated session. Only the user can request their own information. (Authorization header required)
+      security:
+        - bearerAuth: []
       operationId: getGatewayUsers
       tags:
         - users
       parameters:
         - $ref: '#/components/parameters/UserUuid'
-      x-headers:
-        - $ref: '#/components/headers/Authorization'
       responses:
         '200':
           description: Basic user object containing the users UUID in the system.
@@ -88,32 +111,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
         '400':
           description: User made a bad request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
         '401':
           $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           description: User not found or unsupported major api version used
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
         '500':
           $ref: '#/components/responses/UnexpectedError'
     delete:
       summary: Deletes the user of the current session.
-      description: This request will delete the users account with no review or waiting period. This method is very risky and should be used only with additional client side checks. User must be in an authenticated session. Only the user can delete their own account. (Authorization header required, see '#/components/headers/Authorization')
+      description: This request will delete the users account with no review or waiting period. This method is very risky and should be used only with additional client side checks. User must be in an authenticated session. Only the user can delete their own account. (Authorization header required)
       operationId: deleteGatewayUsers
+      security:
+        - bearerAuth: []
       tags:
         - users
       parameters:
         - $ref: '#/components/parameters/UserUuid'
-      x-headers:
-        - $ref: '#/components/headers/Authorization'
       responses:
         '200':
           description: User deleted and session ended.
@@ -122,12 +156,18 @@ paths:
               schema:
                 type: string
               example: account deleted successfully
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
         '400':
           description: User made a bad request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
         '401':
           $ref: '#/components/responses/Unauthenticated'
         '403':
@@ -136,18 +176,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
         '404':
           description: User not found or unsupported major api version used
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
         '500':
           $ref: '#/components/responses/UnexpectedError'
   /api/v1/gateway/sessions:
+    parameters:
+        - $ref: '#/components/parameters/PerceptiaApiVersion'
     post:
       summary: Start a sesssion for the user.
-      description: Uses the provided credentials to start a new session for the user. This request returns and authentication token which when provided in future requests allows the request to be authorized as that user without having to provide their credentials with each request. If no body is present, will start an unauthenticated session. This session can be upgraded to an authenticated session by making a repeat call to this endpoint with the UserCredentials object in the body.
+      description: |
+        Creates a new session for the user. To create an authenticated session the user provides their username and password in the UserCredentials object in the reqeust body. If the user does not wish to start an authenticated session, then they should leave the username and password fields of the UserCredential's object empty. If the session is created successfully, the authentication token will be returned in the Authroization header, a User object will be returned in the body, and a Location header will indicate the location of the new session object.
+        If the user is in an existing session, that session will be ignored and a new session will be created.
       operationId: postGatewaySessions
       tags:
         - new session
@@ -158,12 +208,16 @@ paths:
               $ref: '#/components/schemas/UserCredentials'
       responses:
         '201':
-          description: Session created and added to Authorization header. If no body was provided in request then there will be no response body.
+          description: Session created and session token added to Authorization header. Body contains the user that authenticated, or if an unauthenticated session was started an invalid user is returned, which is a User object with empty or invalid fields.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
           headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
+            Location:
+              $ref: '#/components/headers/Location'
             Authorization:
               $ref: '#/components/headers/Authorization'
         '400':
@@ -172,25 +226,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '409':
-          description: Username provided already in use
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
+        '403':
+          description: Session credentials do not match existing user. User must make change to request.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
         '415':
           $ref: '#/components/responses/ContentTypeNotJson'
         '500':
           $ref: '#/components/responses/UnexpectedError'
-  /api/v1/gateway/sessions/{sessionIdentifier}}:
+  /api/v1/gateway/sessions/{sessionIdentifier}:
+    parameters:
+        - $ref: '#/components/parameters/PerceptiaApiVersion'
     delete:
       summary: Deletes the current session.
-      description: This request will delete the current session. Once deleted the authorization token will no longer be valid. (Authorization header required, see '#/components/headers/Authorization')
+      description: This request will delete the current session. Once deleted the authorization token will no longer be valid. (Authorization header required)
       operationId: deleteGatewaySessions
+      security:
+        - bearerAuth: []
       tags:
         - sessions
-      x-headers:
-        - $ref: '#/components/headers/Authorization'
       parameters:
         - $ref: '#/components/parameters/SessionIdentifier'
       responses:
@@ -199,12 +261,18 @@ paths:
           content:
             text/plain:
               example: session ended
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
         '400':
           description: User made a bad request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
         '401':
           $ref: '#/components/responses/Unauthenticated'
         '404':
@@ -213,23 +281,58 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+          headers:
+            Perceptia-Api-Version:
+              $ref: '#/components/headers/Perceptia-Api-Version'
         '500':
           $ref: '#/components/responses/UnexpectedError'
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: "Bearer <token>"
   headers:
     Authorization:
-      description: The authorization token used to authenticate the user accross requests
+      description: The authorization token used to authenticate the user accross requests.
       schema:
         type: string
+      example: "Bearer aPxO4yNHsVoZsS61QTuZ-sOMsoI-LkXaxN7mtG5CR98K2-m9EWpinsLn945LI-eQ4MZBTu9_NDnSN04cm86NRA=="
+    Location:
+      description: The location of the created resource.
+      schema:
+        type: string
+      example: "{{server}}/api/v1/gateway/sessions/17bb12ca-8741-47be-a732-93f2ad0e2690"
+    Perceptia-Api-Version:
+      description: |
+        When in the response, indicates the version of the gateway api that processed the request and sent the response.
+      schema:
+        type: string
+      example: "1.0.0"
+    WWW-Authenticate:
+      description: Indicates the scheme that should be used to start an authenticated session to access the given resource.
+      schema:
+        type: string
+      example: "Bearer"
   parameters:
+    PerceptiaApiVersion:
+      name: Perceptia-Api-Version
+      in: header
+      description: |
+        When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+      schema: 
+        type: string
+      example: "1.0.0"
+      required: false
     ApiVersion:
       name: apiVersion
       in: query
-      description: notes the minimum major.minor.path version of the given API the request expects
+      description: |
+        When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
       required: false
       schema:
         type: string
-      example: "0.2.0"
+      example: "1.0.0"
     UserUuid:
       name: userUuid
       in: path
@@ -241,7 +344,7 @@ components:
     SessionIdentifier:
       name: sessionIdentifier
       in: path
-      description: currently, only supported value is "this"
+      description: Either the keyword "this" or a valid v4 uuid.
       required: true
       schema:
         type: string
@@ -252,18 +355,38 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+      headers:
+        Perceptia-Api-Version:
+          $ref: '#/components/headers/Perceptia-Api-Version'
+        WWW-Authenticate:
+          $ref: '#/components/headers/WWW-Authenticate'
+    Forbidden:
+      description: the action was not allowed for the given user
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        Perceptia-Api-Version:
+          $ref: '#/components/headers/Perceptia-Api-Version'
     UnexpectedError:
       description: Unexpected error occured on server
       content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+      headers:
+        Perceptia-Api-Version:
+          $ref: '#/components/headers/Perceptia-Api-Version'
     ContentTypeNotJson:
       description: Content-Type header did not contain application/json
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+      headers:
+        Perceptia-Api-Version:
+          $ref: '#/components/headers/Perceptia-Api-Version'
   schemas:
     Health:
       type: object
@@ -278,11 +401,10 @@ components:
         status:
           type: string
           description: |
-            "Current status of the gateway, one of: starting: gateway is still coming up and may not respond to all requests; ready: ready to recieve requests; failed: some error has occured, quality of a given response is unknown"
+            "Current status of the gateway, one of: not ready: gateway is not ready to response to all requests, quality of a given response is unknown; ready: ready to recieve requests"
           enum: [
-            "starting",
             "ready",
-            "failed"
+            "not ready"
           ]
           example: "ready"
     NewUser:
@@ -370,7 +492,7 @@ components:
           description: if true error was caused by issue with clients request
         serverError:
           type: boolean
-          description: if true error was caused by unexpecter error on server
+          description: if true error was caused by unexpected error on server
         message:
           type: string
           description: human text explaining error

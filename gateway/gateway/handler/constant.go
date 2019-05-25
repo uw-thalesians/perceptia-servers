@@ -11,28 +11,33 @@ const (
 	HeaderACExposeHeaders = "Access-Control-Expose-Headers"
 	HeaderACMaxAge        = "Access-Control-Max-Age"
 	HeaderAuthorization   = "Authorization"
-)
-
-// Custom HTTP Header Names
-const (
+	HeaderLocation        = "Location"
+	HeaderCacheControl    = "Cache-Control"
+	HeaderPragma          = "Pragma"
+	HeaderContentLength   = "Content-Length"
+	HeaderWWWAuthenticate = "WWW-Authenticate"
+	// Custom HTTP Header Names
 	HeaderPerceptiaUserUuid    = "Perceptia-User-Uuid"
 	HeaderPerceptiaSessionUuid = "Perceptia-Session-Uuid"
 	HeaderPerceptiaApiVersion  = "Perceptia-Api-Version"
 )
 
-// HTTP Content-Type Header Values.
 const (
+	// HTTP Content-Type Header Values.
 	ContentTypeJSON      = "application/json"
 	ContentTypeTextPlain = "text/plain"
-)
-
-// HTTP Access-Control Header Values.
-const (
+	// HTTP Access-Control Header Values.
 	ACAllowOriginAll = "*"
 	ACAllowMethods   = "GET, PUT, POST, PATCH, DELETE"
 	ACAllowHeaders   = HeaderContentType + ", " + HeaderAuthorization + ", " + HeaderPerceptiaApiVersion
-	ACExposeHeaders  = HeaderAuthorization + ", " + HeaderPerceptiaApiVersion
-	ACMaxAge         = "600"
+	ACExposeHeaders  = HeaderAuthorization + ", " + HeaderPerceptiaApiVersion + ", " + HeaderLocation + ", " +
+		HeaderCacheControl + ", " + HeaderPragma + ", " + HeaderContentLength + ", " + HeaderWWWAuthenticate
+	ACMaxAge = "600"
+	// HTTP Cache and Pragma Header Values
+	CacheControlNoStore = "no-store"
+	PragmaNoCache       = "no-cache"
+	// AuthorizationSchemeValues
+	AuthorizationBearer = "Bearer"
 )
 
 // Query Parameters
@@ -41,10 +46,7 @@ const (
 )
 
 // URL path values.
-const SpecificSessionHandlerDeleteUserAlias = "this"
-
-// Handler plain text messages.
-const messageSignedOut = "signed out"
+const SpecificSessionHandlerDeleteCurrentSessionAlias = "this"
 
 // Handler Error Constants.
 var (
@@ -59,10 +61,12 @@ var (
 	//errInvalidEmail               = errors.New("invalid email")
 	errAccountUserNameUnavailable = errors.New("username unavailable, please select a different user name")
 	errSessionNotFound            = errors.New("session not found")
+	errUserNotInSession           = errors.New("not in a session")
 
 	errActionNotAuthorized = errors.New("action not authorized for the requested resource")
 	errUnauthorized        = errors.New("user not authorized, please start a new session")
 	errContentTypeNotJson  = errors.New("expected content type was json but application/json content type not set")
+	errDecodingJson        = errors.New("issue decoding request body into json object")
 )
 
 // Gmux request variables

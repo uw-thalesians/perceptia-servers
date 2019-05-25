@@ -703,7 +703,7 @@
     },
     "serverError" : {
       "type" : "boolean",
-      "description" : "if true error was caused by unexpecter error on server"
+      "description" : "if true error was caused by unexpected error on server"
     },
     "message" : {
       "type" : "string",
@@ -730,9 +730,9 @@
     },
     "status" : {
       "type" : "string",
-      "description" : "\"Current status of the gateway, one of: starting: gateway is still coming up and may not respond to all requests; ready: ready to recieve requests; failed: some error has occured, quality of a given response is unknown\"\n",
+      "description" : "\"Current status of the gateway, one of: not ready: gateway is not ready to response to all requests, quality of a given response is unknown; ready: ready to recieve requests\"\n",
       "example" : "ready",
-      "enum" : [ "starting", "ready", "failed" ]
+      "enum" : [ "ready", "not ready" ]
     }
   }
 };
@@ -925,8 +925,10 @@ public class HealthApiExample {
     public static void main(String[] args) {
         
         HealthApi apiInstance = new HealthApi();
+        String perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
         try {
-            Health result = apiInstance.getGatewayHealth();
+            Health result = apiInstance.getGatewayHealth(perceptiaApiVersion);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling HealthApi#getGatewayHealth");
@@ -943,8 +945,10 @@ public class HealthApiExample {
 
     public static void main(String[] args) {
         HealthApi apiInstance = new HealthApi();
+        String perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
         try {
-            Health result = apiInstance.getGatewayHealth();
+            Health result = apiInstance.getGatewayHealth(perceptiaApiVersion);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling HealthApi#getGatewayHealth");
@@ -958,12 +962,14 @@ public class HealthApiExample {
   <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
   </div> -->
                             <div class="tab-pane" id="examples-Health-getGatewayHealth-0-objc">
-                              <pre class="prettyprint"><code class="language-cpp">
+                              <pre class="prettyprint"><code class="language-cpp">String *perceptiaApiVersion = perceptiaApiVersion_example; // When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional)
+
 HealthApi *apiInstance = [[HealthApi alloc] init];
 
 // Reports the status of the gateway, and the services it exposes.
-[apiInstance getGatewayHealthWithCompletionHandler: 
-              ^(Health output, NSError* error) {
+[apiInstance getGatewayHealthWith:perceptiaApiVersion
+              completionHandler: ^(Health output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -978,6 +984,10 @@ HealthApi *apiInstance = [[HealthApi alloc] init];
                               <pre class="prettyprint"><code class="language-js">var GatewayServiceApi = require('gateway_service_api');
 
 var api = new GatewayServiceApi.HealthApi()
+var opts = { 
+  'perceptiaApiVersion': perceptiaApiVersion_example // {{String}} When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
+};
 var callback = function(error, data, response) {
   if (error) {
     console.error(error);
@@ -985,7 +995,7 @@ var callback = function(error, data, response) {
     console.log('API called successfully. Returned data: ' + data);
   }
 };
-api.getGatewayHealth(callback);
+api.getGatewayHealth(opts, callback);
 </code></pre>
                             </div>
 
@@ -1007,11 +1017,13 @@ namespace Example
         {
 
             var apiInstance = new HealthApi();
+            var perceptiaApiVersion = perceptiaApiVersion_example;  // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional) 
 
             try
             {
                 // Reports the status of the gateway, and the services it exposes.
-                Health result = apiInstance.getGatewayHealth();
+                Health result = apiInstance.getGatewayHealth(perceptiaApiVersion);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -1029,9 +1041,11 @@ namespace Example
 require_once(__DIR__ . '/vendor/autoload.php');
 
 $api_instance = new Swagger\Client\ApiHealthApi();
+$perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
 
 try {
-    $result = $api_instance->getGatewayHealth();
+    $result = $api_instance->getGatewayHealth($perceptiaApiVersion);
     print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling HealthApi->getGatewayHealth: ', $e->getMessage(), PHP_EOL;
@@ -1045,9 +1059,11 @@ use WWW::SwaggerClient::Configuration;
 use WWW::SwaggerClient::HealthApi;
 
 my $api_instance = WWW::SwaggerClient::HealthApi->new();
+my $perceptiaApiVersion = perceptiaApiVersion_example; # String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
 
 eval { 
-    my $result = $api_instance->getGatewayHealth();
+    my $result = $api_instance->getGatewayHealth(perceptiaApiVersion => $perceptiaApiVersion);
     print Dumper($result);
 };
 if ($@) {
@@ -1064,10 +1080,12 @@ from pprint import pprint
 
 # create an instance of the API class
 api_instance = swagger_client.HealthApi()
+perceptiaApiVersion = perceptiaApiVersion_example # String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional)
 
 try: 
     # Reports the status of the gateway, and the services it exposes.
-    api_response = api_instance.get_gateway_health()
+    api_response = api_instance.get_gateway_health(perceptiaApiVersion=perceptiaApiVersion)
     pprint(api_response)
 except ApiException as e:
     print("Exception when calling HealthApi->getGatewayHealth: %s\n" % e)</code></pre>
@@ -1077,6 +1095,33 @@ except ApiException as e:
                           <h2>Parameters</h2>
 
 
+                            <div class="methodsubtabletitle">Header parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                  <tr><td style="width:150px;">Perceptia-Api-Version</td>
+                                  <td>
+                                  
+                                  
+                                      <div id="d2e199_getGatewayHealth_perceptiaApiVersion">
+                                          <div class="json-schema-view">
+                                              <div class="primitive">
+                                                  <span class="type">
+                                                      String
+                                                  </span>
+                                  
+                                                      <div class="inner description">
+                                                          When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
+                                                      </div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </td>
+                                  </tr>
+                            </table>
 
 
 
@@ -1089,6 +1134,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-getGatewayHealth-200-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-getGatewayHealth-200-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -1098,6 +1146,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "health response",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -1128,6 +1181,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-getGatewayHealth-200-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-getGatewayHealth-200-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                         </article>
@@ -1145,7 +1214,9 @@ except ApiException as e:
                         <div class="pull-right"></div>
                         <div class="clearfix"></div>
                         <p></p>
-                        <p class="marked">Uses the provided credentials to start a new session for the user. This request returns and authentication token which when provided in future requests allows the request to be authorized as that user without having to provide their credentials with each request. If no body is present, will start an unauthenticated session. This session can be upgraded to an authenticated session by making a repeat call to this endpoint with the UserCredentials object in the body.</p>
+                        <p class="marked">Creates a new session for the user. To create an authenticated session the user provides their username and password in the UserCredentials object in the reqeust body. If the user does not wish to start an authenticated session, then they should leave the username and password fields of the UserCredential&#x27;s object empty. If the session is created successfully, the authentication token will be returned in the Authroization header, a User object will be returned in the body, and a Location header will indicate the location of the new session object.
+If the user is in an existing session, that session will be ignored and a new session will be created.
+</p>
                         <p></p>
                         <br />
                         <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/api/v1/gateway/sessions</span></code></pre>
@@ -1185,8 +1256,10 @@ public class NewSessionApiExample {
         
         NewSessionApi apiInstance = new NewSessionApi();
         UserCredentials body = ; // UserCredentials | 
+        String perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
         try {
-            User result = apiInstance.postGatewaySessions(body);
+            User result = apiInstance.postGatewaySessions(body, perceptiaApiVersion);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling NewSessionApi#postGatewaySessions");
@@ -1204,8 +1277,10 @@ public class NewSessionApiExample {
     public static void main(String[] args) {
         NewSessionApi apiInstance = new NewSessionApi();
         UserCredentials body = ; // UserCredentials | 
+        String perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
         try {
-            User result = apiInstance.postGatewaySessions(body);
+            User result = apiInstance.postGatewaySessions(body, perceptiaApiVersion);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling NewSessionApi#postGatewaySessions");
@@ -1220,11 +1295,14 @@ public class NewSessionApiExample {
   </div> -->
                             <div class="tab-pane" id="examples-NewSession-postGatewaySessions-0-objc">
                               <pre class="prettyprint"><code class="language-cpp">UserCredentials *body = ; //  (optional)
+String *perceptiaApiVersion = perceptiaApiVersion_example; // When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional)
 
 NewSessionApi *apiInstance = [[NewSessionApi alloc] init];
 
 // Start a sesssion for the user.
 [apiInstance postGatewaySessionsWith:body
+    perceptiaApiVersion:perceptiaApiVersion
               completionHandler: ^(User output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
@@ -1240,7 +1318,11 @@ NewSessionApi *apiInstance = [[NewSessionApi alloc] init];
                               <pre class="prettyprint"><code class="language-js">var GatewayServiceApi = require('gateway_service_api');
 
 var api = new GatewayServiceApi.NewSessionApi()
+var opts = { 
+  'body':  // {{UserCredentials}} 
+  'perceptiaApiVersion': perceptiaApiVersion_example // {{String}} When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
 
+};
 var callback = function(error, data, response) {
   if (error) {
     console.error(error);
@@ -1248,7 +1330,7 @@ var callback = function(error, data, response) {
     console.log('API called successfully. Returned data: ' + data);
   }
 };
-api.postGatewaySessions(, callback);
+api.postGatewaySessions(opts, callback);
 </code></pre>
                             </div>
 
@@ -1271,11 +1353,13 @@ namespace Example
 
             var apiInstance = new NewSessionApi();
             var body = new UserCredentials(); // UserCredentials |  (optional) 
+            var perceptiaApiVersion = perceptiaApiVersion_example;  // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional) 
 
             try
             {
                 // Start a sesssion for the user.
-                User result = apiInstance.postGatewaySessions(body);
+                User result = apiInstance.postGatewaySessions(body, perceptiaApiVersion);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -1294,9 +1378,11 @@ require_once(__DIR__ . '/vendor/autoload.php');
 
 $api_instance = new Swagger\Client\ApiNewSessionApi();
 $body = ; // UserCredentials | 
+$perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
 
 try {
-    $result = $api_instance->postGatewaySessions($body);
+    $result = $api_instance->postGatewaySessions($body, $perceptiaApiVersion);
     print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling NewSessionApi->postGatewaySessions: ', $e->getMessage(), PHP_EOL;
@@ -1311,9 +1397,11 @@ use WWW::SwaggerClient::NewSessionApi;
 
 my $api_instance = WWW::SwaggerClient::NewSessionApi->new();
 my $body = WWW::SwaggerClient::Object::UserCredentials->new(); # UserCredentials | 
+my $perceptiaApiVersion = perceptiaApiVersion_example; # String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
 
 eval { 
-    my $result = $api_instance->postGatewaySessions(body => $body);
+    my $result = $api_instance->postGatewaySessions(body => $body, perceptiaApiVersion => $perceptiaApiVersion);
     print Dumper($result);
 };
 if ($@) {
@@ -1331,10 +1419,12 @@ from pprint import pprint
 # create an instance of the API class
 api_instance = swagger_client.NewSessionApi()
 body =  # UserCredentials |  (optional)
+perceptiaApiVersion = perceptiaApiVersion_example # String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional)
 
 try: 
     # Start a sesssion for the user.
-    api_response = api_instance.post_gateway_sessions(body=body)
+    api_response = api_instance.post_gateway_sessions(body=body, perceptiaApiVersion=perceptiaApiVersion)
     pprint(api_response)
 except ApiException as e:
     print("Exception when calling NewSessionApi->postGatewaySessions: %s\n" % e)</code></pre>
@@ -1344,6 +1434,33 @@ except ApiException as e:
                           <h2>Parameters</h2>
 
 
+                            <div class="methodsubtabletitle">Header parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                  <tr><td style="width:150px;">Perceptia-Api-Version</td>
+                                  <td>
+                                  
+                                  
+                                      <div id="d2e199_postGatewaySessions_perceptiaApiVersion">
+                                          <div class="json-schema-view">
+                                              <div class="primitive">
+                                                  <span class="type">
+                                                      String
+                                                  </span>
+                                  
+                                                      <div class="inner description">
+                                                          When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
+                                                      </div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </td>
+                                  </tr>
+                            </table>
 
                             <div class="methodsubtabletitle">Body parameters</div>
                             <table id="methodsubtable">
@@ -1391,7 +1508,7 @@ except ApiException as e:
 
 
                           <h2>Responses</h2>
-                            <h3> Status: 201 - Session created and added to Authorization header. If no body was provided in request then there will be no response body. </h3>
+                            <h3> Status: 201 - Session created and session token added to Authorization header. Body contains the user that authenticated, or if an unauthenticated session was started an invalid user is returned, which is a User object with empty or invalid fields. </h3>
 
                             <ul class="nav nav-tabs nav-tabs-examples" >
                                 <li class="active">
@@ -1409,8 +1526,14 @@ except ApiException as e:
                                     <script>
                                       $(document).ready(function() {
                                         var schemaWrapper = {
-  "description" : "Session created and added to Authorization header. If no body was provided in request then there will be no response body.",
+  "description" : "Session created and session token added to Authorization header. Body contains the user that authenticated, or if an unauthenticated session was started an invalid user is returned, which is a User object with empty or invalid fields.",
   "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    },
+    "Location" : {
+      "$ref" : "#/components/headers/Location"
+    },
     "Authorization" : {
       "$ref" : "#/components/headers/Authorization"
     }
@@ -1459,6 +1582,18 @@ except ApiException as e:
                                             <td></td>
                                             <td></td>
                                         </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
                                     </table>
                                 </div>
                             </div>
@@ -1470,6 +1605,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-postGatewaySessions-400-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-postGatewaySessions-400-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -1479,6 +1617,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "User made a bad request",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -1509,24 +1652,48 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-postGatewaySessions-400-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-postGatewaySessions-400-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
-                            <h3> Status: 409 - Username provided already in use </h3>
+                            <h3> Status: 403 - Session credentials do not match existing user. User must make change to request. </h3>
 
                             <ul class="nav nav-tabs nav-tabs-examples" >
                                 <li class="active">
-                                  <a data-toggle="tab" href="#responses-postGatewaySessions-409-schema">Schema</a>
+                                  <a data-toggle="tab" href="#responses-postGatewaySessions-403-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-postGatewaySessions-403-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
-                                <div class="tab-pane active" id="responses-postGatewaySessions-409-schema">
-                                  <div id='responses-postGatewaySessions-409-schema-409' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                <div class="tab-pane active" id="responses-postGatewaySessions-403-schema">
+                                  <div id='responses-postGatewaySessions-403-schema-403' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
                                     <script>
                                       $(document).ready(function() {
                                         var schemaWrapper = {
-  "description" : "Username provided already in use",
+  "description" : "Session credentials do not match existing user. User must make change to request.",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -1548,14 +1715,30 @@ except ApiException as e:
 
                                         //console.log(JSON.stringify(schema));
                                         var view = new JSONSchemaView(schema, 3);
-                                        $('#responses-postGatewaySessions-409-schema-data').val(stringify(schema));
-                                        var result = $('#responses-postGatewaySessions-409-schema-409');
+                                        $('#responses-postGatewaySessions-403-schema-data').val(stringify(schema));
+                                        var result = $('#responses-postGatewaySessions-403-schema-403');
                                         result.empty();
                                         result.append(view.render());
                                       });
                                     </script>
                                   </div>
-                                  <input id='responses-postGatewaySessions-409-schema-data' type='hidden' value=''></input>
+                                  <input id='responses-postGatewaySessions-403-schema-data' type='hidden' value=''></input>
+                                </div>
+                                <div class="tab-pane" id="responses-postGatewaySessions-403-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
                                 </div>
                             </div>
 
@@ -1566,6 +1749,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-postGatewaySessions-415-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-postGatewaySessions-415-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -1575,6 +1761,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "Content-Type header did not contain application/json",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -1605,6 +1796,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-postGatewaySessions-415-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-postGatewaySessions-415-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 500 - Unexpected error occured on server </h3>
@@ -1614,6 +1821,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-postGatewaySessions-500-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-postGatewaySessions-500-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -1623,6 +1833,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "Unexpected error occured on server",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -1653,6 +1868,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-postGatewaySessions-500-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-postGatewaySessions-500-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                         </article>
@@ -1665,12 +1896,12 @@ except ApiException as e:
                       <article id="api-NewUser-postGatewayUsers-0" data-group="User" data-name="postGatewayUsers" data-version="0">
                         <div class="pull-left">
                           <h1>postGatewayUsers</h1>
-                          <p>Creates an account for the provided user and logs them in.</p>
+                          <p>Creates an account for the provided user and initiates an authenticated session.</p>
                         </div>
                         <div class="pull-right"></div>
                         <div class="clearfix"></div>
                         <p></p>
-                        <p class="marked">Creates an account using the provided account information and returns the created user. Additionally, will create a new session, thus login in the user, saving the session token as an Authorization header, with the Bearer authorization scheme. Note: Currently if email is provided it is discarded.</p>
+                        <p class="marked">Creates an account using the provided account information and returns the created user. Additionally, will create a new authenticated session, saving the session token as an Authorization header, with the Bearer authorization scheme. Note: Currently if email is provided it is discarded. The Location header will also be returned, which provides an absolute locaiton for the user account created.</p>
                         <p></p>
                         <br />
                         <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/api/v1/gateway/users</span></code></pre>
@@ -1710,8 +1941,10 @@ public class NewUserApiExample {
         
         NewUserApi apiInstance = new NewUserApi();
         NewUser body = ; // NewUser | 
+        String perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
         try {
-            User result = apiInstance.postGatewayUsers(body);
+            User result = apiInstance.postGatewayUsers(body, perceptiaApiVersion);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling NewUserApi#postGatewayUsers");
@@ -1729,8 +1962,10 @@ public class NewUserApiExample {
     public static void main(String[] args) {
         NewUserApi apiInstance = new NewUserApi();
         NewUser body = ; // NewUser | 
+        String perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
         try {
-            User result = apiInstance.postGatewayUsers(body);
+            User result = apiInstance.postGatewayUsers(body, perceptiaApiVersion);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling NewUserApi#postGatewayUsers");
@@ -1745,11 +1980,14 @@ public class NewUserApiExample {
   </div> -->
                             <div class="tab-pane" id="examples-NewUser-postGatewayUsers-0-objc">
                               <pre class="prettyprint"><code class="language-cpp">NewUser *body = ; //  (optional)
+String *perceptiaApiVersion = perceptiaApiVersion_example; // When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional)
 
 NewUserApi *apiInstance = [[NewUserApi alloc] init];
 
-// Creates an account for the provided user and logs them in.
+// Creates an account for the provided user and initiates an authenticated session.
 [apiInstance postGatewayUsersWith:body
+    perceptiaApiVersion:perceptiaApiVersion
               completionHandler: ^(User output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
@@ -1765,7 +2003,11 @@ NewUserApi *apiInstance = [[NewUserApi alloc] init];
                               <pre class="prettyprint"><code class="language-js">var GatewayServiceApi = require('gateway_service_api');
 
 var api = new GatewayServiceApi.NewUserApi()
+var opts = { 
+  'body':  // {{NewUser}} 
+  'perceptiaApiVersion': perceptiaApiVersion_example // {{String}} When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
 
+};
 var callback = function(error, data, response) {
   if (error) {
     console.error(error);
@@ -1773,7 +2015,7 @@ var callback = function(error, data, response) {
     console.log('API called successfully. Returned data: ' + data);
   }
 };
-api.postGatewayUsers(, callback);
+api.postGatewayUsers(opts, callback);
 </code></pre>
                             </div>
 
@@ -1796,11 +2038,13 @@ namespace Example
 
             var apiInstance = new NewUserApi();
             var body = new NewUser(); // NewUser |  (optional) 
+            var perceptiaApiVersion = perceptiaApiVersion_example;  // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional) 
 
             try
             {
-                // Creates an account for the provided user and logs them in.
-                User result = apiInstance.postGatewayUsers(body);
+                // Creates an account for the provided user and initiates an authenticated session.
+                User result = apiInstance.postGatewayUsers(body, perceptiaApiVersion);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -1819,9 +2063,11 @@ require_once(__DIR__ . '/vendor/autoload.php');
 
 $api_instance = new Swagger\Client\ApiNewUserApi();
 $body = ; // NewUser | 
+$perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
 
 try {
-    $result = $api_instance->postGatewayUsers($body);
+    $result = $api_instance->postGatewayUsers($body, $perceptiaApiVersion);
     print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling NewUserApi->postGatewayUsers: ', $e->getMessage(), PHP_EOL;
@@ -1836,9 +2082,11 @@ use WWW::SwaggerClient::NewUserApi;
 
 my $api_instance = WWW::SwaggerClient::NewUserApi->new();
 my $body = WWW::SwaggerClient::Object::NewUser->new(); # NewUser | 
+my $perceptiaApiVersion = perceptiaApiVersion_example; # String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
 
 eval { 
-    my $result = $api_instance->postGatewayUsers(body => $body);
+    my $result = $api_instance->postGatewayUsers(body => $body, perceptiaApiVersion => $perceptiaApiVersion);
     print Dumper($result);
 };
 if ($@) {
@@ -1856,10 +2104,12 @@ from pprint import pprint
 # create an instance of the API class
 api_instance = swagger_client.NewUserApi()
 body =  # NewUser |  (optional)
+perceptiaApiVersion = perceptiaApiVersion_example # String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional)
 
 try: 
-    # Creates an account for the provided user and logs them in.
-    api_response = api_instance.post_gateway_users(body=body)
+    # Creates an account for the provided user and initiates an authenticated session.
+    api_response = api_instance.post_gateway_users(body=body, perceptiaApiVersion=perceptiaApiVersion)
     pprint(api_response)
 except ApiException as e:
     print("Exception when calling NewUserApi->postGatewayUsers: %s\n" % e)</code></pre>
@@ -1869,6 +2119,33 @@ except ApiException as e:
                           <h2>Parameters</h2>
 
 
+                            <div class="methodsubtabletitle">Header parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                  <tr><td style="width:150px;">Perceptia-Api-Version</td>
+                                  <td>
+                                  
+                                  
+                                      <div id="d2e199_postGatewayUsers_perceptiaApiVersion">
+                                          <div class="json-schema-view">
+                                              <div class="primitive">
+                                                  <span class="type">
+                                                      String
+                                                  </span>
+                                  
+                                                      <div class="inner description">
+                                                          When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
+                                                      </div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </td>
+                                  </tr>
+                            </table>
 
                             <div class="methodsubtabletitle">Body parameters</div>
                             <table id="methodsubtable">
@@ -1923,6 +2200,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-postGatewayUsers-201-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-postGatewayUsers-201-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -1932,6 +2212,17 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "Basic user object containing the users UUID in the system.",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    },
+    "Location" : {
+      "$ref" : "#/components/headers/Location"
+    },
+    "Authorization" : {
+      "$ref" : "#/components/headers/Authorization"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -1962,15 +2253,46 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-postGatewayUsers-201-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-postGatewayUsers-201-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
-                            <h3> Status: 400 - User made a bad request </h3>
+                            <h3> Status: 400 - User made a bad request. </h3>
 
                             <ul class="nav nav-tabs nav-tabs-examples" >
                                 <li class="active">
                                   <a data-toggle="tab" href="#responses-postGatewayUsers-400-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-postGatewayUsers-400-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -1979,7 +2301,12 @@ except ApiException as e:
                                     <script>
                                       $(document).ready(function() {
                                         var schemaWrapper = {
-  "description" : "User made a bad request",
+  "description" : "User made a bad request.",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -2010,15 +2337,34 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-postGatewayUsers-400-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-postGatewayUsers-400-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
-                            <h3> Status: 409 - Username provided already in use </h3>
+                            <h3> Status: 409 - Username provided already in use. </h3>
 
                             <ul class="nav nav-tabs nav-tabs-examples" >
                                 <li class="active">
                                   <a data-toggle="tab" href="#responses-postGatewayUsers-409-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-postGatewayUsers-409-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -2027,7 +2373,12 @@ except ApiException as e:
                                     <script>
                                       $(document).ready(function() {
                                         var schemaWrapper = {
-  "description" : "Username provided already in use",
+  "description" : "Username provided already in use.",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -2058,6 +2409,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-postGatewayUsers-409-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-postGatewayUsers-409-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 415 - Content-Type header did not contain application/json </h3>
@@ -2067,6 +2434,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-postGatewayUsers-415-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-postGatewayUsers-415-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -2076,6 +2446,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "Content-Type header did not contain application/json",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -2106,6 +2481,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-postGatewayUsers-415-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-postGatewayUsers-415-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 500 - Unexpected error occured on server </h3>
@@ -2115,6 +2506,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-postGatewayUsers-500-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-postGatewayUsers-500-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -2124,6 +2518,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "Unexpected error occured on server",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -2154,6 +2553,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-postGatewayUsers-500-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-postGatewayUsers-500-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                         </article>
@@ -2171,10 +2586,10 @@ except ApiException as e:
                         <div class="pull-right"></div>
                         <div class="clearfix"></div>
                         <p></p>
-                        <p class="marked">This request will delete the current session. Once deleted the authorization token will no longer be valid. (Authorization header required, see &#x27;#/components/headers/Authorization&#x27;)</p>
+                        <p class="marked">This request will delete the current session. Once deleted the authorization token will no longer be valid. (Authorization header required)</p>
                         <p></p>
                         <br />
-                        <pre class="prettyprint language-html prettyprinted" data-type="delete"><code><span class="pln">/api/v1/gateway/sessions/{sessionIdentifier}}</span></code></pre>
+                        <pre class="prettyprint language-html prettyprinted" data-type="delete"><code><span class="pln">/api/v1/gateway/sessions/{sessionIdentifier}</span></code></pre>
                         <p>
                           <h3>Usage and SDK Samples</h3>
                         </p>
@@ -2194,7 +2609,7 @@ except ApiException as e:
 
                         <div class="tab-content">
                           <div class="tab-pane active" id="examples-Sessions-deleteGatewaySessions-0-curl">
-                            <pre class="prettyprint"><code class="language-bsh">curl -X DELETE "https://api.perceptia.info/api/v1/gateway/sessions/{sessionIdentifier}}"</code></pre>
+                            <pre class="prettyprint"><code class="language-bsh">curl -X DELETE "https://api.perceptia.info/api/v1/gateway/sessions/{sessionIdentifier}"</code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Sessions-deleteGatewaySessions-0-java">
                             <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
@@ -2208,11 +2623,15 @@ import java.util.*;
 public class SessionsApiExample {
 
     public static void main(String[] args) {
-        
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+
+
         SessionsApi apiInstance = new SessionsApi();
-        String sessionIdentifier = sessionIdentifier_example; // String | currently, only supported value is "this"
+        String sessionIdentifier = sessionIdentifier_example; // String | Either the keyword "this" or a valid v4 uuid.
+        String perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
         try {
-            apiInstance.deleteGatewaySessions(sessionIdentifier);
+            apiInstance.deleteGatewaySessions(sessionIdentifier, perceptiaApiVersion);
         } catch (ApiException e) {
             System.err.println("Exception when calling SessionsApi#deleteGatewaySessions");
             e.printStackTrace();
@@ -2228,9 +2647,11 @@ public class SessionsApiExample {
 
     public static void main(String[] args) {
         SessionsApi apiInstance = new SessionsApi();
-        String sessionIdentifier = sessionIdentifier_example; // String | currently, only supported value is "this"
+        String sessionIdentifier = sessionIdentifier_example; // String | Either the keyword "this" or a valid v4 uuid.
+        String perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
         try {
-            apiInstance.deleteGatewaySessions(sessionIdentifier);
+            apiInstance.deleteGatewaySessions(sessionIdentifier, perceptiaApiVersion);
         } catch (ApiException e) {
             System.err.println("Exception when calling SessionsApi#deleteGatewaySessions");
             e.printStackTrace();
@@ -2243,12 +2664,16 @@ public class SessionsApiExample {
   <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
   </div> -->
                             <div class="tab-pane" id="examples-Sessions-deleteGatewaySessions-0-objc">
-                              <pre class="prettyprint"><code class="language-cpp">String *sessionIdentifier = sessionIdentifier_example; // currently, only supported value is "this"
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+String *sessionIdentifier = sessionIdentifier_example; // Either the keyword "this" or a valid v4 uuid.
+String *perceptiaApiVersion = perceptiaApiVersion_example; // When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional)
 
 SessionsApi *apiInstance = [[SessionsApi alloc] init];
 
 // Deletes the current session.
 [apiInstance deleteGatewaySessionsWith:sessionIdentifier
+    perceptiaApiVersion:perceptiaApiVersion
               completionHandler: ^(NSError* error) {
                             if (error) {
                                 NSLog(@"Error: %@", error);
@@ -2259,10 +2684,15 @@ SessionsApi *apiInstance = [[SessionsApi alloc] init];
 
                             <div class="tab-pane" id="examples-Sessions-deleteGatewaySessions-0-javascript">
                               <pre class="prettyprint"><code class="language-js">var GatewayServiceApi = require('gateway_service_api');
+var defaultClient = GatewayServiceApi.ApiClient.instance;
+
 
 var api = new GatewayServiceApi.SessionsApi()
-var sessionIdentifier = sessionIdentifier_example; // {{String}} currently, only supported value is "this"
+var sessionIdentifier = sessionIdentifier_example; // {{String}} Either the keyword "this" or a valid v4 uuid.
+var opts = { 
+  'perceptiaApiVersion': perceptiaApiVersion_example // {{String}} When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
 
+};
 var callback = function(error, data, response) {
   if (error) {
     console.error(error);
@@ -2270,7 +2700,7 @@ var callback = function(error, data, response) {
     console.log('API called successfully.');
   }
 };
-api.deleteGatewaySessions(sessionIdentifier, callback);
+api.deleteGatewaySessions(sessionIdentifier, opts, callback);
 </code></pre>
                             </div>
 
@@ -2291,13 +2721,16 @@ namespace Example
         public void main()
         {
 
+
             var apiInstance = new SessionsApi();
-            var sessionIdentifier = sessionIdentifier_example;  // String | currently, only supported value is "this"
+            var sessionIdentifier = sessionIdentifier_example;  // String | Either the keyword "this" or a valid v4 uuid.
+            var perceptiaApiVersion = perceptiaApiVersion_example;  // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional) 
 
             try
             {
                 // Deletes the current session.
-                apiInstance.deleteGatewaySessions(sessionIdentifier);
+                apiInstance.deleteGatewaySessions(sessionIdentifier, perceptiaApiVersion);
             }
             catch (Exception e)
             {
@@ -2313,11 +2746,14 @@ namespace Example
                               <pre class="prettyprint"><code class="language-php"><&#63;php
 require_once(__DIR__ . '/vendor/autoload.php');
 
+
 $api_instance = new Swagger\Client\ApiSessionsApi();
-$sessionIdentifier = sessionIdentifier_example; // String | currently, only supported value is "this"
+$sessionIdentifier = sessionIdentifier_example; // String | Either the keyword "this" or a valid v4 uuid.
+$perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
 
 try {
-    $api_instance->deleteGatewaySessions($sessionIdentifier);
+    $api_instance->deleteGatewaySessions($sessionIdentifier, $perceptiaApiVersion);
 } catch (Exception $e) {
     echo 'Exception when calling SessionsApi->deleteGatewaySessions: ', $e->getMessage(), PHP_EOL;
 }
@@ -2329,11 +2765,14 @@ try {
 use WWW::SwaggerClient::Configuration;
 use WWW::SwaggerClient::SessionsApi;
 
+
 my $api_instance = WWW::SwaggerClient::SessionsApi->new();
-my $sessionIdentifier = sessionIdentifier_example; # String | currently, only supported value is "this"
+my $sessionIdentifier = sessionIdentifier_example; # String | Either the keyword "this" or a valid v4 uuid.
+my $perceptiaApiVersion = perceptiaApiVersion_example; # String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
 
 eval { 
-    $api_instance->deleteGatewaySessions(sessionIdentifier => $sessionIdentifier);
+    $api_instance->deleteGatewaySessions(sessionIdentifier => $sessionIdentifier, perceptiaApiVersion => $perceptiaApiVersion);
 };
 if ($@) {
     warn "Exception when calling SessionsApi->deleteGatewaySessions: $@\n";
@@ -2347,13 +2786,16 @@ import swagger_client
 from swagger_client.rest import ApiException
 from pprint import pprint
 
+
 # create an instance of the API class
 api_instance = swagger_client.SessionsApi()
-sessionIdentifier = sessionIdentifier_example # String | currently, only supported value is "this"
+sessionIdentifier = sessionIdentifier_example # String | Either the keyword "this" or a valid v4 uuid.
+perceptiaApiVersion = perceptiaApiVersion_example # String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional)
 
 try: 
     # Deletes the current session.
-    api_instance.delete_gateway_sessions(sessionIdentifier)
+    api_instance.delete_gateway_sessions(sessionIdentifier, perceptiaApiVersion=perceptiaApiVersion)
 except ApiException as e:
     print("Exception when calling SessionsApi->deleteGatewaySessions: %s\n" % e)</code></pre>
                             </div>
@@ -2379,7 +2821,7 @@ except ApiException as e:
                                                   </span>
                                   
                                                       <div class="inner description">
-                                                          currently, only supported value is &quot;this&quot;
+                                                          Either the keyword &quot;this&quot; or a valid v4 uuid.
                                                       </div>
                                               </div>
                                                   <div class="inner required">
@@ -2391,6 +2833,33 @@ except ApiException as e:
                                   </tr>
                             </table>
 
+                            <div class="methodsubtabletitle">Header parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                  <tr><td style="width:150px;">Perceptia-Api-Version</td>
+                                  <td>
+                                  
+                                  
+                                      <div id="d2e199_deleteGatewaySessions_perceptiaApiVersion">
+                                          <div class="json-schema-view">
+                                              <div class="primitive">
+                                                  <span class="type">
+                                                      String
+                                                  </span>
+                                  
+                                                      <div class="inner description">
+                                                          When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
+                                                      </div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </td>
+                                  </tr>
+                            </table>
 
 
 
@@ -2399,9 +2868,28 @@ except ApiException as e:
                             <h3> Status: 200 - Session removed successfully. </h3>
 
                             <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-deleteGatewaySessions-200-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane" id="responses-deleteGatewaySessions-200-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 400 - User made a bad request </h3>
@@ -2411,6 +2899,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-deleteGatewaySessions-400-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-deleteGatewaySessions-400-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -2420,6 +2911,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "User made a bad request",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -2450,6 +2946,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-deleteGatewaySessions-400-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-deleteGatewaySessions-400-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 401 - user is not in an authenticated session </h3>
@@ -2459,6 +2971,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-deleteGatewaySessions-401-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-deleteGatewaySessions-401-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -2468,6 +2983,14 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "user is not in an authenticated session",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    },
+    "WWW-Authenticate" : {
+      "$ref" : "#/components/headers/WWW-Authenticate"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -2498,6 +3021,28 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-deleteGatewaySessions-401-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-deleteGatewaySessions-401-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 404 - Major api version unsupported </h3>
@@ -2507,6 +3052,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-deleteGatewaySessions-404-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-deleteGatewaySessions-404-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -2516,6 +3064,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "Major api version unsupported",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -2546,6 +3099,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-deleteGatewaySessions-404-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-deleteGatewaySessions-404-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 500 - Unexpected error occured on server </h3>
@@ -2555,6 +3124,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-deleteGatewaySessions-500-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-deleteGatewaySessions-500-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -2564,6 +3136,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "Unexpected error occured on server",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -2594,6 +3171,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-deleteGatewaySessions-500-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-deleteGatewaySessions-500-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                         </article>
@@ -2611,7 +3204,7 @@ except ApiException as e:
                         <div class="pull-right"></div>
                         <div class="clearfix"></div>
                         <p></p>
-                        <p class="marked">This request will delete the users account with no review or waiting period. This method is very risky and should be used only with additional client side checks. User must be in an authenticated session. Only the user can delete their own account. (Authorization header required, see &#x27;#/components/headers/Authorization&#x27;)</p>
+                        <p class="marked">This request will delete the users account with no review or waiting period. This method is very risky and should be used only with additional client side checks. User must be in an authenticated session. Only the user can delete their own account. (Authorization header required)</p>
                         <p></p>
                         <br />
                         <pre class="prettyprint language-html prettyprinted" data-type="delete"><code><span class="pln">/api/v1/gateway/users/{userUuid}</span></code></pre>
@@ -2648,11 +3241,15 @@ import java.util.*;
 public class UsersApiExample {
 
     public static void main(String[] args) {
-        
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+
+
         UsersApi apiInstance = new UsersApi();
         String userUuid = userUuid_example; // String | v4 uuid for user being requested
+        String perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
         try {
-            'String' result = apiInstance.deleteGatewayUsers(userUuid);
+            'String' result = apiInstance.deleteGatewayUsers(userUuid, perceptiaApiVersion);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling UsersApi#deleteGatewayUsers");
@@ -2670,8 +3267,10 @@ public class UsersApiExample {
     public static void main(String[] args) {
         UsersApi apiInstance = new UsersApi();
         String userUuid = userUuid_example; // String | v4 uuid for user being requested
+        String perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
         try {
-            'String' result = apiInstance.deleteGatewayUsers(userUuid);
+            'String' result = apiInstance.deleteGatewayUsers(userUuid, perceptiaApiVersion);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling UsersApi#deleteGatewayUsers");
@@ -2685,12 +3284,16 @@ public class UsersApiExample {
   <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
   </div> -->
                             <div class="tab-pane" id="examples-Users-deleteGatewayUsers-0-objc">
-                              <pre class="prettyprint"><code class="language-cpp">String *userUuid = userUuid_example; // v4 uuid for user being requested
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+String *userUuid = userUuid_example; // v4 uuid for user being requested
+String *perceptiaApiVersion = perceptiaApiVersion_example; // When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional)
 
 UsersApi *apiInstance = [[UsersApi alloc] init];
 
 // Deletes the user of the current session.
 [apiInstance deleteGatewayUsersWith:userUuid
+    perceptiaApiVersion:perceptiaApiVersion
               completionHandler: ^('String' output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
@@ -2704,10 +3307,15 @@ UsersApi *apiInstance = [[UsersApi alloc] init];
 
                             <div class="tab-pane" id="examples-Users-deleteGatewayUsers-0-javascript">
                               <pre class="prettyprint"><code class="language-js">var GatewayServiceApi = require('gateway_service_api');
+var defaultClient = GatewayServiceApi.ApiClient.instance;
+
 
 var api = new GatewayServiceApi.UsersApi()
 var userUuid = userUuid_example; // {{String}} v4 uuid for user being requested
+var opts = { 
+  'perceptiaApiVersion': perceptiaApiVersion_example // {{String}} When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
 
+};
 var callback = function(error, data, response) {
   if (error) {
     console.error(error);
@@ -2715,7 +3323,7 @@ var callback = function(error, data, response) {
     console.log('API called successfully. Returned data: ' + data);
   }
 };
-api.deleteGatewayUsers(userUuid, callback);
+api.deleteGatewayUsers(userUuid, opts, callback);
 </code></pre>
                             </div>
 
@@ -2736,13 +3344,16 @@ namespace Example
         public void main()
         {
 
+
             var apiInstance = new UsersApi();
             var userUuid = userUuid_example;  // String | v4 uuid for user being requested
+            var perceptiaApiVersion = perceptiaApiVersion_example;  // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional) 
 
             try
             {
                 // Deletes the user of the current session.
-                'String' result = apiInstance.deleteGatewayUsers(userUuid);
+                'String' result = apiInstance.deleteGatewayUsers(userUuid, perceptiaApiVersion);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -2759,11 +3370,14 @@ namespace Example
                               <pre class="prettyprint"><code class="language-php"><&#63;php
 require_once(__DIR__ . '/vendor/autoload.php');
 
+
 $api_instance = new Swagger\Client\ApiUsersApi();
 $userUuid = userUuid_example; // String | v4 uuid for user being requested
+$perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
 
 try {
-    $result = $api_instance->deleteGatewayUsers($userUuid);
+    $result = $api_instance->deleteGatewayUsers($userUuid, $perceptiaApiVersion);
     print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling UsersApi->deleteGatewayUsers: ', $e->getMessage(), PHP_EOL;
@@ -2776,11 +3390,14 @@ try {
 use WWW::SwaggerClient::Configuration;
 use WWW::SwaggerClient::UsersApi;
 
+
 my $api_instance = WWW::SwaggerClient::UsersApi->new();
 my $userUuid = userUuid_example; # String | v4 uuid for user being requested
+my $perceptiaApiVersion = perceptiaApiVersion_example; # String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
 
 eval { 
-    my $result = $api_instance->deleteGatewayUsers(userUuid => $userUuid);
+    my $result = $api_instance->deleteGatewayUsers(userUuid => $userUuid, perceptiaApiVersion => $perceptiaApiVersion);
     print Dumper($result);
 };
 if ($@) {
@@ -2795,13 +3412,16 @@ import swagger_client
 from swagger_client.rest import ApiException
 from pprint import pprint
 
+
 # create an instance of the API class
 api_instance = swagger_client.UsersApi()
 userUuid = userUuid_example # String | v4 uuid for user being requested
+perceptiaApiVersion = perceptiaApiVersion_example # String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional)
 
 try: 
     # Deletes the user of the current session.
-    api_response = api_instance.delete_gateway_users(userUuid)
+    api_response = api_instance.delete_gateway_users(userUuid, perceptiaApiVersion=perceptiaApiVersion)
     pprint(api_response)
 except ApiException as e:
     print("Exception when calling UsersApi->deleteGatewayUsers: %s\n" % e)</code></pre>
@@ -2840,6 +3460,33 @@ except ApiException as e:
                                   </tr>
                             </table>
 
+                            <div class="methodsubtabletitle">Header parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                  <tr><td style="width:150px;">Perceptia-Api-Version</td>
+                                  <td>
+                                  
+                                  
+                                      <div id="d2e199_deleteGatewayUsers_perceptiaApiVersion">
+                                          <div class="json-schema-view">
+                                              <div class="primitive">
+                                                  <span class="type">
+                                                      String
+                                                  </span>
+                                  
+                                                      <div class="inner description">
+                                                          When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
+                                                      </div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </td>
+                                  </tr>
+                            </table>
 
 
 
@@ -2852,6 +3499,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-deleteGatewayUsers-200-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-deleteGatewayUsers-200-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -2861,6 +3511,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "User deleted and session ended.",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "text/plain" : {
       "schema" : {
@@ -2893,6 +3548,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-deleteGatewayUsers-200-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-deleteGatewayUsers-200-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 400 - User made a bad request </h3>
@@ -2902,6 +3573,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-deleteGatewayUsers-400-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-deleteGatewayUsers-400-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -2911,6 +3585,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "User made a bad request",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -2941,6 +3620,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-deleteGatewayUsers-400-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-deleteGatewayUsers-400-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 401 - user is not in an authenticated session </h3>
@@ -2950,6 +3645,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-deleteGatewayUsers-401-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-deleteGatewayUsers-401-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -2959,6 +3657,14 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "user is not in an authenticated session",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    },
+    "WWW-Authenticate" : {
+      "$ref" : "#/components/headers/WWW-Authenticate"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -2989,6 +3695,28 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-deleteGatewayUsers-401-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-deleteGatewayUsers-401-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 403 - User tried to delete a user other than themself </h3>
@@ -2998,6 +3726,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-deleteGatewayUsers-403-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-deleteGatewayUsers-403-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -3007,6 +3738,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "User tried to delete a user other than themself",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -3037,6 +3773,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-deleteGatewayUsers-403-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-deleteGatewayUsers-403-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 404 - User not found or unsupported major api version used </h3>
@@ -3046,6 +3798,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-deleteGatewayUsers-404-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-deleteGatewayUsers-404-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -3055,6 +3810,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "User not found or unsupported major api version used",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -3085,6 +3845,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-deleteGatewayUsers-404-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-deleteGatewayUsers-404-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 500 - Unexpected error occured on server </h3>
@@ -3094,6 +3870,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-deleteGatewayUsers-500-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-deleteGatewayUsers-500-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -3103,6 +3882,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "Unexpected error occured on server",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -3133,6 +3917,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-deleteGatewayUsers-500-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-deleteGatewayUsers-500-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                         </article>
@@ -3147,7 +3947,7 @@ except ApiException as e:
                         <div class="pull-right"></div>
                         <div class="clearfix"></div>
                         <p></p>
-                        <p class="marked">This will return the basic account information for a user of the system. Requires the client to be in an authenticated. Only the user can request their own information. (Authorization header required, see &#x27;#/components/headers/Authorization&#x27;)</p>
+                        <p class="marked">This will return the basic account information for a user of the system. Requires the client to be in an authenticated session. Only the user can request their own information. (Authorization header required)</p>
                         <p></p>
                         <br />
                         <pre class="prettyprint language-html prettyprinted" data-type="get"><code><span class="pln">/api/v1/gateway/users/{userUuid}</span></code></pre>
@@ -3184,11 +3984,15 @@ import java.util.*;
 public class UsersApiExample {
 
     public static void main(String[] args) {
-        
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+
+
         UsersApi apiInstance = new UsersApi();
         String userUuid = userUuid_example; // String | v4 uuid for user being requested
+        String perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
         try {
-            User result = apiInstance.getGatewayUsers(userUuid);
+            User result = apiInstance.getGatewayUsers(userUuid, perceptiaApiVersion);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling UsersApi#getGatewayUsers");
@@ -3206,8 +4010,10 @@ public class UsersApiExample {
     public static void main(String[] args) {
         UsersApi apiInstance = new UsersApi();
         String userUuid = userUuid_example; // String | v4 uuid for user being requested
+        String perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
         try {
-            User result = apiInstance.getGatewayUsers(userUuid);
+            User result = apiInstance.getGatewayUsers(userUuid, perceptiaApiVersion);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling UsersApi#getGatewayUsers");
@@ -3221,12 +4027,16 @@ public class UsersApiExample {
   <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
   </div> -->
                             <div class="tab-pane" id="examples-Users-getGatewayUsers-0-objc">
-                              <pre class="prettyprint"><code class="language-cpp">String *userUuid = userUuid_example; // v4 uuid for user being requested
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+String *userUuid = userUuid_example; // v4 uuid for user being requested
+String *perceptiaApiVersion = perceptiaApiVersion_example; // When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional)
 
 UsersApi *apiInstance = [[UsersApi alloc] init];
 
 // Gets the basic account information for the given user.
 [apiInstance getGatewayUsersWith:userUuid
+    perceptiaApiVersion:perceptiaApiVersion
               completionHandler: ^(User output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
@@ -3240,10 +4050,15 @@ UsersApi *apiInstance = [[UsersApi alloc] init];
 
                             <div class="tab-pane" id="examples-Users-getGatewayUsers-0-javascript">
                               <pre class="prettyprint"><code class="language-js">var GatewayServiceApi = require('gateway_service_api');
+var defaultClient = GatewayServiceApi.ApiClient.instance;
+
 
 var api = new GatewayServiceApi.UsersApi()
 var userUuid = userUuid_example; // {{String}} v4 uuid for user being requested
+var opts = { 
+  'perceptiaApiVersion': perceptiaApiVersion_example // {{String}} When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
 
+};
 var callback = function(error, data, response) {
   if (error) {
     console.error(error);
@@ -3251,7 +4066,7 @@ var callback = function(error, data, response) {
     console.log('API called successfully. Returned data: ' + data);
   }
 };
-api.getGatewayUsers(userUuid, callback);
+api.getGatewayUsers(userUuid, opts, callback);
 </code></pre>
                             </div>
 
@@ -3272,13 +4087,16 @@ namespace Example
         public void main()
         {
 
+
             var apiInstance = new UsersApi();
             var userUuid = userUuid_example;  // String | v4 uuid for user being requested
+            var perceptiaApiVersion = perceptiaApiVersion_example;  // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional) 
 
             try
             {
                 // Gets the basic account information for the given user.
-                User result = apiInstance.getGatewayUsers(userUuid);
+                User result = apiInstance.getGatewayUsers(userUuid, perceptiaApiVersion);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -3295,11 +4113,14 @@ namespace Example
                               <pre class="prettyprint"><code class="language-php"><&#63;php
 require_once(__DIR__ . '/vendor/autoload.php');
 
+
 $api_instance = new Swagger\Client\ApiUsersApi();
 $userUuid = userUuid_example; // String | v4 uuid for user being requested
+$perceptiaApiVersion = perceptiaApiVersion_example; // String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
 
 try {
-    $result = $api_instance->getGatewayUsers($userUuid);
+    $result = $api_instance->getGatewayUsers($userUuid, $perceptiaApiVersion);
     print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling UsersApi->getGatewayUsers: ', $e->getMessage(), PHP_EOL;
@@ -3312,11 +4133,14 @@ try {
 use WWW::SwaggerClient::Configuration;
 use WWW::SwaggerClient::UsersApi;
 
+
 my $api_instance = WWW::SwaggerClient::UsersApi->new();
 my $userUuid = userUuid_example; # String | v4 uuid for user being requested
+my $perceptiaApiVersion = perceptiaApiVersion_example; # String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
 
 eval { 
-    my $result = $api_instance->getGatewayUsers(userUuid => $userUuid);
+    my $result = $api_instance->getGatewayUsers(userUuid => $userUuid, perceptiaApiVersion => $perceptiaApiVersion);
     print Dumper($result);
 };
 if ($@) {
@@ -3331,13 +4155,16 @@ import swagger_client
 from swagger_client.rest import ApiException
 from pprint import pprint
 
+
 # create an instance of the API class
 api_instance = swagger_client.UsersApi()
 userUuid = userUuid_example # String | v4 uuid for user being requested
+perceptiaApiVersion = perceptiaApiVersion_example # String | When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+ (optional)
 
 try: 
     # Gets the basic account information for the given user.
-    api_response = api_instance.get_gateway_users(userUuid)
+    api_response = api_instance.get_gateway_users(userUuid, perceptiaApiVersion=perceptiaApiVersion)
     pprint(api_response)
 except ApiException as e:
     print("Exception when calling UsersApi->getGatewayUsers: %s\n" % e)</code></pre>
@@ -3376,6 +4203,33 @@ except ApiException as e:
                                   </tr>
                             </table>
 
+                            <div class="methodsubtabletitle">Header parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                  <tr><td style="width:150px;">Perceptia-Api-Version</td>
+                                  <td>
+                                  
+                                  
+                                      <div id="d2e199_getGatewayUsers_perceptiaApiVersion">
+                                          <div class="json-schema-view">
+                                              <div class="primitive">
+                                                  <span class="type">
+                                                      String
+                                                  </span>
+                                  
+                                                      <div class="inner description">
+                                                          When in the request, indicates the minimum version of the API within the major version specified in the path that the gateway must implement to respond to request. If not met the gateway will return an error. Must be in the semver format of major.minor.patch, where each part is a non-negative int seperated by a single period. Additionally, major.minor or just major can be specified.
+
+                                                      </div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </td>
+                                  </tr>
+                            </table>
 
 
 
@@ -3388,6 +4242,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-getGatewayUsers-200-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-getGatewayUsers-200-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -3397,6 +4254,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "Basic user object containing the users UUID in the system.",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -3427,6 +4289,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-getGatewayUsers-200-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-getGatewayUsers-200-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 400 - User made a bad request </h3>
@@ -3436,6 +4314,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-getGatewayUsers-400-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-getGatewayUsers-400-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -3445,6 +4326,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "User made a bad request",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -3475,6 +4361,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-getGatewayUsers-400-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-getGatewayUsers-400-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 401 - user is not in an authenticated session </h3>
@@ -3484,6 +4386,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-getGatewayUsers-401-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-getGatewayUsers-401-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -3493,6 +4398,14 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "user is not in an authenticated session",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    },
+    "WWW-Authenticate" : {
+      "$ref" : "#/components/headers/WWW-Authenticate"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -3523,6 +4436,100 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-getGatewayUsers-401-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-getGatewayUsers-401-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <h3> Status: 403 - the action was not allowed for the given user </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-getGatewayUsers-403-schema">Schema</a>
+                                </li>
+
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-getGatewayUsers-403-headers">Headers</a>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-getGatewayUsers-403-schema">
+                                  <div id='responses-getGatewayUsers-403-schema-403' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "the action was not allowed for the given user",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/Error"
+      }
+    }
+  }
+};
+                                        var schema = schemaWrapper.content["application/json"].schema;
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                        } else {
+                                          schemaWrapper.components = {};
+                                          schemaWrapper.components.schemas = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        //console.log(JSON.stringify(schema));
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-getGatewayUsers-403-schema-data').val(stringify(schema));
+                                        var result = $('#responses-getGatewayUsers-403-schema-403');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-getGatewayUsers-403-schema-data' type='hidden' value=''></input>
+                                </div>
+                                <div class="tab-pane" id="responses-getGatewayUsers-403-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 404 - User not found or unsupported major api version used </h3>
@@ -3532,6 +4539,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-getGatewayUsers-404-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-getGatewayUsers-404-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -3541,6 +4551,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "User not found or unsupported major api version used",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -3571,6 +4586,22 @@ except ApiException as e:
                                   </div>
                                   <input id='responses-getGatewayUsers-404-schema-data' type='hidden' value=''></input>
                                 </div>
+                                <div class="tab-pane" id="responses-getGatewayUsers-404-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
 
                             <h3> Status: 500 - Unexpected error occured on server </h3>
@@ -3580,6 +4611,9 @@ except ApiException as e:
                                   <a data-toggle="tab" href="#responses-getGatewayUsers-500-schema">Schema</a>
                                 </li>
 
+                                <li class="">
+                                  <a data-toggle="tab" href="#responses-getGatewayUsers-500-headers">Headers</a>
+                                </li>
                             </ul>
 
                             <div class="tab-content" style='margin-bottom: 10px;'>
@@ -3589,6 +4623,11 @@ except ApiException as e:
                                       $(document).ready(function() {
                                         var schemaWrapper = {
   "description" : "Unexpected error occured on server",
+  "headers" : {
+    "Perceptia-Api-Version" : {
+      "$ref" : "#/components/headers/Perceptia-Api-Version"
+    }
+  },
   "content" : {
     "application/json" : {
       "schema" : {
@@ -3618,6 +4657,22 @@ except ApiException as e:
                                     </script>
                                   </div>
                                   <input id='responses-getGatewayUsers-500-schema-data' type='hidden' value=''></input>
+                                </div>
+                                <div class="tab-pane" id="responses-getGatewayUsers-500-headers">
+                                    <table>
+                                        <tr>
+                                            <th width="150px">Name</th>
+                                            <th width="100px">Type</th>
+                                            <th width="100px">Format</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </table>
                                 </div>
                             </div>
 

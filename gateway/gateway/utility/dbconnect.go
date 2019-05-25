@@ -53,7 +53,9 @@ func BuildDsn(scheme, username, password, hostname, port, database string) (dsn 
 //
 //
 // Outputs none
-func PingDatabase(ctx context.Context, db *sql.DB, sleepFailTime time.Duration, sleepTestTime time.Duration, mssqlRequiredVersion *SemVer, logger kitlog.Logger) {
+func PingDatabase(ctx context.Context, db *sql.DB, sleepFailTime time.Duration,
+	sleepTestTime time.Duration, mssqlRequiredVersion *SemVer, logger kitlog.Logger,
+	statusNotOkay chan bool) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -61,8 +63,16 @@ func PingDatabase(ctx context.Context, db *sql.DB, sleepFailTime time.Duration, 
 
 			return
 		default:
+
 			if err := db.Ping(); err != nil {
 				_ = logger.Log("func", "utility.PingDatabase", "pingError", err.Error(), "note", "will retry in "+sleepTestTime.String())
+				select {
+				case _, _ = <-statusNotOkay:
+					break
+				default:
+					break
+				}
+				statusNotOkay <- true
 				time.Sleep(sleepFailTime)
 			} else {
 				row := db.QueryRow("USP_ReadProcedureVersion")
@@ -75,15 +85,43 @@ func PingDatabase(ctx context.Context, db *sql.DB, sleepFailTime time.Duration, 
 					semVerProc, errSVS := SemVerFromString(vv.Version)
 					if errSVS != nil {
 						_ = logger.Log("utility.PingDatabase", "invalid version string provided")
-					} else if !semVerProc.Equals(mssqlRequiredVersion) {
+						select {
+						case _, _ = <-statusNotOkay:
+							break
+						default:
+							break
+						}
+						statusNotOkay <- true
+					} else if semVerProc.Compare(mssqlRequiredVersion) < 0 {
 						_ = logger.Log("utility.PingDatabase", "unsupported database version",
-							"versionRequired", mssqlRequiredVersion.String(),
+							"minimumVersionRequired", mssqlRequiredVersion.String(),
 							"versionConnected", semVerProc.String())
+						select {
+						case _, _ = <-statusNotOkay:
+							break
+						default:
+							break
+						}
+						statusNotOkay <- true
 					}
 				} else {
 					_ = logger.Log("utility.PingDatabase", "unable to get proc version from database", "error", errS.Error())
+					select {
+					case _, _ = <-statusNotOkay:
+						break
+					default:
+						break
+					}
+					statusNotOkay <- true
 				}
 			}
+			select {
+			case _, _ = <-statusNotOkay:
+				break
+			default:
+				break
+			}
+			statusNotOkay <- false
 			time.Sleep(sleepTestTime)
 		}
 	}

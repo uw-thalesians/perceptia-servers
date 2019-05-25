@@ -30,35 +30,6 @@ const authUserAuthenticatedKey contextKey = 5050
 var ErrUserNotInContext = errors.New("authenticator: user not in context")
 var ErrSessionNotInContext = errors.New("authenticator: SessionState not in context")
 
-// EnsureAuth represents the current handler in the request/response cycle.
-type EnsureAuth struct {
-	handler http.Handler
-	cx      *Context
-}
-
-// NewEnsureAuth constructs a new EnsureAuth struct with the provided handler.
-func (cx *Context) NewEnsureAuth(handler http.Handler) http.Handler {
-	return &EnsureAuth{handler, cx}
-}
-
-// ServeHTTP handles confirming the user is authenticated,
-// and passing the authenticated user's profile in a new http.Request object
-func (ea *EnsureAuth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if !IsUserAuthenticated(r) {
-		retErr := &Error{
-			ClientError: true,
-			ServerError: false,
-			Message:     errUnauthorized.Error(),
-			Context:     fmt.Sprintf("method=%s path=%s", r.Method, r.URL.Path),
-			Code:        0,
-		}
-		ea.cx.handleErrorJson(w, r, nil, "request to access authenticated resource, but user is not authenticated",
-			retErr, http.StatusUnauthorized)
-		return
-	}
-	ea.handler.ServeHTTP(w, r)
-}
-
 // Authenticator represents the current handler in the request/response cycle.
 type Authenticator struct {
 	handler http.Handler
@@ -98,6 +69,64 @@ func (au *Authenticator) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	//call the real handler, passing the new request
 	au.handler.ServeHTTP(w, rWithSession)
+}
+
+// EnsureAuth represents the current handler in the request/response cycle.
+type EnsureAuth struct {
+	handler http.Handler
+	cx      *Context
+}
+
+// NewEnsureAuth constructs a new EnsureAuth struct with the provided handler.
+func (cx *Context) NewEnsureAuth(handler http.Handler) http.Handler {
+	return &EnsureAuth{handler, cx}
+}
+
+// ServeHTTP handles confirming the user is authenticated,
+// and passing the authenticated user's profile in a new http.Request object
+func (ea *EnsureAuth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if !IsUserAuthenticated(r) {
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     errUnauthorized.Error(),
+			Context:     fmt.Sprintf("method=%s path=%s", r.Method, r.URL.Path),
+			Code:        0,
+		}
+		w.Header().Add(HeaderWWWAuthenticate, AuthorizationBearer)
+		ea.cx.handleErrorJson(w, r, nil, "request to access authenticated resource, but user is not authenticated",
+			retErr, http.StatusUnauthorized)
+		return
+	}
+	ea.handler.ServeHTTP(w, r)
+}
+
+// EnsureSession represents the current handler in the request/response cycle.
+type EnsureSession struct {
+	handler http.Handler
+	cx      *Context
+}
+
+// NewEnsureSession constructs a new EnsureSession struct with the provided handler.
+func (cx *Context) NewEnsureSession(handler http.Handler) http.Handler {
+	return &EnsureSession{handler, cx}
+}
+
+// ServeHTTP handles confirming the user is in a session,
+func (ea *EnsureSession) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if !IsSession(r) {
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     errUserNotInSession.Error(),
+			Context:     fmt.Sprintf("%s path:%s", r.Method, r.URL.Path),
+			Code:        0,
+		}
+		ea.cx.handleErrorJson(w, r, nil, "request to access resource that requires an active session",
+			retErr, http.StatusForbidden)
+		return
+	}
+	ea.handler.ServeHTTP(w, r)
 }
 
 // GetUserFromContext returns the user stored in the request context,

@@ -26,19 +26,22 @@ type Context struct {
 	gatewayVersion           *utility.SemVer
 	gatewayVersionsSupported map[int]*utility.SemVer
 	environment              string
+	apiInfo                  *ApiInfo
 }
 
 // NewContext creates a new Context, initialized using the provided handler context values.
 // Returns a pointer to the created Context.
 func NewContext(sessionStore session.Store, userStore user.Store,
-	sessionSigningKey string, gatewayVersion *utility.SemVer, gatewayVersionsSupported map[int]*utility.SemVer, logger kitlog.Logger) *Context {
+	sessionSigningKey string, gatewayVersion *utility.SemVer,
+	gatewayVersionsSupported map[int]*utility.SemVer, logger kitlog.Logger,
+	apiInfo *ApiInfo) *Context {
 	if sessionStore == nil || userStore == nil || len(sessionSigningKey) <= 0 {
 		panic("all parameters must not be nil or empty")
 	}
 	environment, _ := utility.DefaultEnv("GATEWAY_ENVIRONMENT", "development")
 	return &Context{sessionSigningKey: sessionSigningKey, sessionStore: sessionStore,
 		userStore: userStore, logger: logger, gatewayVersion: gatewayVersion,
-		gatewayVersionsSupported: gatewayVersionsSupported, environment: environment}
+		gatewayVersionsSupported: gatewayVersionsSupported, environment: environment, apiInfo: apiInfo}
 }
 
 type Error struct {
@@ -48,6 +51,12 @@ type Error struct {
 	Message     string `json:"message"`
 	Context     string `json:"context"`
 	Code        int    `json:"Code"`
+}
+
+type ApiInfo struct {
+	Scheme string
+	Host   string
+	Port   string
 }
 
 // ensureJSONHeader is a helper method to handle checking for the application/json content-type header.
@@ -68,7 +77,7 @@ func (cx *Context) ensureJSONHeader(w http.ResponseWriter, r *http.Request) bool
 	return true
 }
 
-// handleError will handle logging error and respond to client with correct message and status code.
+/*// handleError will handle logging error and respond to client with correct message and status code.
 // If len(clientErrorMessage) == 0 will only log error and will not send error to client.
 // If you only need to log an error without sending error to client you should use logError instead.
 func (cx *Context) handleError(w http.ResponseWriter, r *http.Request, errorToLog error, logContext,
@@ -85,7 +94,7 @@ func (cx *Context) handleError(w http.ResponseWriter, r *http.Request, errorToLo
 		http.Error(w, completeClientMessage, statusCode)
 	}
 	return
-}
+}*/
 
 // handleError will handle logging error and respond to client with correct message and status code.
 // If len(clientErrorMessage) == 0 will only log error and will not send error to client.
@@ -124,8 +133,14 @@ func (cx *Context) getUserFromContext(w http.ResponseWriter, r *http.Request) (*
 	//Get the authenticated user.
 	userCx, errGUC := GetUserFromContext(r)
 	if errGUC != nil {
-		cx.handleError(w, r, errGUC, "issue getting user from request context",
-			errUnexpected.Error(), http.StatusInternalServerError)
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     errUnexpected.Error(),
+			Context:     r.Method + " path:" + r.URL.Path,
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, errGUC, "issue getting user from request context", retErr, http.StatusInternalServerError)
 		return nil, false
 	}
 	return userCx, true
@@ -138,8 +153,14 @@ func (cx *Context) getSessionStateFromContext(w http.ResponseWriter, r *http.Req
 	//Get the authenticated user.
 	sesSt, errGST := GetSessionStateFromContext(r)
 	if errGST != nil {
-		cx.handleError(w, r, errGST, "issue getting SessionState from request context",
-			errUnexpected.Error(), http.StatusInternalServerError)
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     errUnexpected.Error(),
+			Context:     r.Method + " path:" + r.URL.Path,
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, errGST, "issue getting session state from context", retErr, http.StatusInternalServerError)
 		return nil, false
 	}
 	return sesSt, true
@@ -148,22 +169,40 @@ func (cx *Context) getSessionStateFromContext(w http.ResponseWriter, r *http.Req
 func (cx *Context) decodeJSON(w http.ResponseWriter, r *http.Request, obj interface{},
 	desc string) bool {
 	if err := json.NewDecoder(r.Body).Decode(obj); err != nil {
-		cx.handleError(w, r, err, fmt.Sprintf("error decoding %s from request body",
-			desc), fmt.Sprintf("error extracting %s from request body",
-			desc), http.StatusBadRequest)
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     errDecodingJson.Error(),
+			Context:     r.Method + " path:" + r.URL.Path,
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, err, fmt.Sprintf("error decoding %s from request body",
+			desc), retErr, http.StatusBadRequest)
 		return false
 	}
 	return true
 }
 
 func (cx *Context) handleMethodNotAllowed(w http.ResponseWriter, r *http.Request) {
-	cx.handleError(w, r, nil, fmt.Sprintf("the method (%s) is not allowed", r.Method),
-		errMethodNotAllowed.Error(), http.StatusMethodNotAllowed)
+	retErr := &Error{
+		ClientError: true,
+		ServerError: false,
+		Message:     errMethodNotAllowed.Error(),
+		Context:     r.Method + " path:" + r.URL.Path,
+		Code:        0,
+	}
+	cx.handleErrorJson(w, r, nil, fmt.Sprintf("the method (%s) is not allowed", r.Method), retErr, http.StatusMethodNotAllowed)
 }
 
-func (cx *Context) handleVersionNotSupported(w http.ResponseWriter, r *http.Request, supported, requested string) {
-	cx.handleError(w, r, nil, fmt.Sprintf("major version of API not supported; requested=%s supported=%s", requested, supported),
-		errMajorVersionNotSupported.Error(), http.StatusNotFound)
+func (cx *Context) handleMajorVersionNotSupported(w http.ResponseWriter, r *http.Request, supported, requested string) {
+	retErr := &Error{
+		ClientError: true,
+		ServerError: false,
+		Message:     errMajorVersionNotSupported.Error(),
+		Context:     r.Method + " path:" + r.URL.Path,
+		Code:        0,
+	}
+	cx.handleErrorJson(w, r, nil, fmt.Sprintf("major version of API not supported; requested=%s supported=%s", requested, supported), retErr, http.StatusNotFound)
 }
 
 func (cx *Context) getUserFromRequest(r *http.Request) (*user.User, error) {
@@ -184,10 +223,6 @@ func (cx *Context) getUserFromRequest(r *http.Request) (*user.User, error) {
 }
 
 func (cx *Context) getSessionUuidFromRequest(r *http.Request) (*uuid.UUID, error) {
-	//validate the session token in the request,
-	//fetch the session state from the session store,
-	//and return the authenticated user
-	//or an error if the user is not authenticated
 	sessToken, errTK := session.GetSessionID(r, cx.sessionSigningKey)
 	if errTK != nil {
 		return nil, errTK

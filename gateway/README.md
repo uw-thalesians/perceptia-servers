@@ -128,6 +128,12 @@ Use the following variables to configure the gateway for the given environment.
 
 `REDIS_ADDRESS=<hostname:port>` (REQUIRED) the hostname and port the redis server is listening on
 
+`GATEWAY_API_PORT={port}` (optional) identifies the external port that clients reach the gateway from, default 443
+
+`GATEWAY_API_HOST={hostname}` (optional) identifies the external hostname that clients reach the gateway from, default localhost
+
+`GATEWAY_API_SCHEME={scheme}` (optional) identifies the external scheme that clients reach the gateway from, default https
+
 ## [Start Server Locally](#start-server-locally)
 
 This setup explains how to build and start the server locally.
