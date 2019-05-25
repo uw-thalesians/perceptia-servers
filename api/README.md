@@ -176,6 +176,10 @@ A note about API versions below 1, such as 0.1.0. These versions are under devel
 
 * 1.0.0 - [API Specification](./v1/gateway/1.0.0.yaml) | [API Documentation](./v1/gateway/1.0.0.html)
 
+  * 1.0.1 - [API Specification](./v1/gateway/1.0.1.yaml) | [API Documentation](./v1/gateway/1.0.1.html)
+
+    * Clairifies session response for non-authenticated user, and logic for refreshing existing session.
+
 [Gateway Service API - Current](./../gateway/gateway-service-api.yaml)
 
 ### [AnyQuiz Service API](#anyquiz-service-api)

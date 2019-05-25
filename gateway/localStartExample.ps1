@@ -54,6 +54,8 @@ Set-Variable -Name GATEWAY_TLSMOUNTSOURCE -Value "$(Get-Location)/gateway/encryp
 
 Set-Variable -Name GATEWAY_SESSION_KEY -Value "fjsfndreifnfsnm5kngfnklef23kdnfskng"
 
+Set-Variable -Name GATEWAY_API_PORT -Value "$GatewayPortPublish"
+
 ## Redis Variables
 Set-Variable -Name REDIS_CONTAINER_NAME -Value $RedisHost
 Set-Variable -Name REDIS_VOLUME_NAME -Value "${GATEWAY_SERVICE_NAME}_redis_vol"
@@ -187,8 +189,8 @@ if (!$CleanUp) {
         --mount type=volume,source=${REDIS_VOLUME_NAME},destination=/data `
         redis:5.0.4-alpine
         Write-Host "`n"
-        Write-Host "Redis Server is listening inside docker network: ${PerceptiaDockerNet} at: ${REDIS_CONTAINER_NAME}:1433"
-        Write-Host "Redis Server is listening on the host at: localhost:${MsSqlPortPublish}"
+        Write-Host "Redis Server is listening inside docker network: ${PerceptiaDockerNet} at: ${REDIS_CONTAINER_NAME}:6379"
+        Write-Host "Redis Server is listening on the host at: localhost:${RedisPortPublish}"
         Write-Host "`n"
     } else {
         Write-Host "Be sure to start mssql dependency, see README"
@@ -252,6 +254,7 @@ if (!$CleanUp) {
     --detach `
     --env AQREST_HOSTNAME="$AqRestHost" `
     --env AQREST_PORT="$AqRestPort" `
+    --env GATEWAY_API_PORT=$GATEWAY_API_PORT `
     --env GATEWAY_ENVIRONMENT=development `
     --env GATEWAY_SESSION_KEY="$GATEWAY_SESSION_KEY" `
     --env GATEWAY_TLSCERTPATH="$GATEWAY_TLSCERTPATH" `

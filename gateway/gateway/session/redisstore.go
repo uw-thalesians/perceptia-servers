@@ -3,6 +3,8 @@ package session
 import (
 	"time"
 
+	uuid "github.com/satori/go.uuid"
+
 	"encoding/json"
 	"fmt"
 
@@ -32,7 +34,7 @@ func NewRedisStore(client *redis.Client, sessionDuration time.Duration) *RedisSt
 //
 // The `sessionState` parameter is typically a pointer to a struct containing all the data you want to be
 // associated with the given SessionID.
-func (rs *RedisStore) Save(sid SessionID, sessionState interface{}) error {
+func (rs *RedisStore) Save(sid SessionID, sessionUuid uuid.UUID, sessionState interface{}) error {
 	sesJson, err := json.Marshal(sessionState)
 	if err != nil {
 		return fmt.Errorf("error marshaling sessionState into json:\n%s", err.Error())
@@ -40,6 +42,10 @@ func (rs *RedisStore) Save(sid SessionID, sessionState interface{}) error {
 	err = rs.Client.Set(getRedisKey(sid), sesJson, rs.SessionDuration).Err()
 	if err != nil {
 		return fmt.Errorf("error setting session state:\n%s", err.Error())
+	}
+	err = rs.Client.Set(getRedisUuidKey(sessionUuid), sid.String(), 0).Err()
+	if err != nil {
+		return fmt.Errorf("error setting session id refference:\n%s", err.Error())
 	}
 	return nil
 }
@@ -64,6 +70,14 @@ func (rs *RedisStore) Get(sid SessionID, sessionState interface{}) error {
 		return fmt.Errorf("error unmarshaling sessionState: %s", err.Error())
 	}
 	return nil
+}
+
+func (rs *RedisStore) GetSessionId(sessionUuid uuid.UUID) (SessionID, error) {
+	res := rs.Client.Get(getRedisUuidKey(sessionUuid))
+	if res.Err() != nil {
+		return InvalidSessionID, ErrUnexpected
+	}
+	return SessionID(res.Val()), nil
 }
 
 // Exists determines if the session id is in the session store.
@@ -93,4 +107,12 @@ func getRedisKey(sid SessionID) string {
 	// SessionID keys separate from other keys that might end up in this
 	// redis instance.
 	return "sid:" + sid.String()
+}
+
+// getRedisUuidKey() returns the redis key to use for the SessionID.
+func getRedisUuidKey(suuid uuid.UUID) string {
+	// convert the SessionID to a string and add the prefix "sid:" to keep
+	// SessionID keys separate from other keys that might end up in this
+	// redis instance.
+	return "suuid:" + suuid.String()
 }

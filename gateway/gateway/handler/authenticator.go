@@ -27,8 +27,64 @@ const authSessionStateKey contextKey = 4040
 // but should still only be accessed by authorized users.
 const authUserAuthenticatedKey contextKey = 5050
 
+const authSessionErrorKey contextKey = 6060
+
+const authSessionErrorValueKey contextKey = 6070
+
 var ErrUserNotInContext = errors.New("authenticator: user not in context")
 var ErrSessionNotInContext = errors.New("authenticator: SessionState not in context")
+
+// Authenticator represents the current handler in the request/response cycle.
+type Authenticator struct {
+	handler http.Handler
+	cx      *Context
+}
+
+// NewAuthenticator constructs a new Authenticator struct with the provided handler and Context.
+func (cx *Context) NewAuthenticator(handler http.Handler) http.Handler {
+	return &Authenticator{handler, cx}
+}
+
+// ServeHTTP ,
+// and passing the authenticated user's profile in a new http.Request object
+func (au *Authenticator) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	sesSt, errGST := au.cx.getSessionStateFromRequest(r)
+	if errGST != nil {
+		var authErrorReason string = ""
+		var wasError bool = false
+		if errGST != session.ErrNoSessionId {
+			if errGST == session.ErrInvalidScheme {
+				authErrorReason = WWWAuthenticateErrorInvalidRequest + ",\n" + "error_description=\"Bearer scheme not provided\""
+				wasError = true
+			} else if errGST == session.ErrInvalidSessionId {
+				authErrorReason = WWWAuthenticateErrorInvalidToken + ",\n" + "error_description=\"token extracted not a valid session token\""
+				wasError = true
+			}
+			au.cx.logError(errGST, "issue getting session from request", "",
+				http.StatusInternalServerError)
+		}
+		cxWithAuthError := context.WithValue(r.Context(), authSessionErrorKey, wasError)
+		cxWithAuthErrorValue := context.WithValue(cxWithAuthError, authSessionErrorValueKey, authErrorReason)
+		cxWithSessionActive := context.WithValue(cxWithAuthErrorValue, authSessionActiveKey, false)
+		cxWithUserAuthFalse := context.WithValue(cxWithSessionActive, authUserAuthenticatedKey, false)
+
+		rWithUserAuthFalse := r.WithContext(cxWithUserAuthFalse)
+		au.handler.ServeHTTP(w, rWithUserAuthFalse)
+		return
+	}
+
+	//create a new request context containing the authenticated user
+	cxWithSessionActive := context.WithValue(r.Context(), authSessionActiveKey, true)
+	cxWithSessionState := context.WithValue(cxWithSessionActive, authSessionStateKey, sesSt)
+
+	cxWithKey := context.WithValue(cxWithSessionState, authUserAuthenticatedKey, sesSt.Authenticated)
+
+	//create a new request using that new context
+	rWithSession := r.WithContext(cxWithKey)
+
+	//call the real handler, passing the new request
+	au.handler.ServeHTTP(w, rWithSession)
+}
 
 // EnsureAuth represents the current handler in the request/response cycle.
 type EnsureAuth struct {
@@ -52,6 +108,12 @@ func (ea *EnsureAuth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Context:     fmt.Sprintf("method=%s path=%s", r.Method, r.URL.Path),
 			Code:        0,
 		}
+		wwwHeaderValue := WWWAuthenticateBearerRealm
+		wwwErrVal := getSessionErrorKeyValueFromContext(r)
+		if IsAuthError(r) && len(wwwErrVal) > 0 {
+			wwwHeaderValue += ",\n" + wwwErrVal
+		}
+		w.Header().Add(HeaderWWWAuthenticate, wwwHeaderValue)
 		ea.cx.handleErrorJson(w, r, nil, "request to access authenticated resource, but user is not authenticated",
 			retErr, http.StatusUnauthorized)
 		return
@@ -59,45 +121,32 @@ func (ea *EnsureAuth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ea.handler.ServeHTTP(w, r)
 }
 
-// Authenticator represents the current handler in the request/response cycle.
-type Authenticator struct {
+// EnsureSession represents the current handler in the request/response cycle.
+type EnsureSession struct {
 	handler http.Handler
 	cx      *Context
 }
 
-// NewAuthenticator constructs a new Authenticator struct with the provided handler and Context.
-func (cx *Context) NewAuthenticator(handler http.Handler) http.Handler {
-	return &Authenticator{handler, cx}
+// NewEnsureSession constructs a new EnsureSession struct with the provided handler.
+func (cx *Context) NewEnsureSession(handler http.Handler) http.Handler {
+	return &EnsureSession{handler, cx}
 }
 
-// ServeHTTP ,
-// and passing the authenticated user's profile in a new http.Request object
-func (au *Authenticator) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	sesSt, errGST := au.cx.getSessionStateFromRequest(r)
-	if errGST != nil {
-		if errGST != session.ErrNoSessionId {
-			au.cx.logError(errGST, "issue getting session from request", "",
-				http.StatusInternalServerError)
+// ServeHTTP handles confirming the user is in a session,
+func (ea *EnsureSession) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if !IsSession(r) {
+		retErr := &Error{
+			ClientError: true,
+			ServerError: false,
+			Message:     errUserNotInSession.Error(),
+			Context:     fmt.Sprintf("%s path:%s", r.Method, r.URL.Path),
+			Code:        0,
 		}
-		cxWithSessionActive := context.WithValue(r.Context(), authSessionActiveKey, false)
-		cxWithUserAuthFalse := context.WithValue(cxWithSessionActive, authUserAuthenticatedKey, false)
-
-		rWithUserAuthFalse := r.WithContext(cxWithUserAuthFalse)
-		au.handler.ServeHTTP(w, rWithUserAuthFalse)
+		ea.cx.handleErrorJson(w, r, nil, "request to access resource that requires an active session",
+			retErr, http.StatusForbidden)
 		return
 	}
-
-	//create a new request context containing the authenticated user
-	cxWithSessionActive := context.WithValue(r.Context(), authSessionActiveKey, true)
-	cxWithSessionState := context.WithValue(cxWithSessionActive, authSessionStateKey, sesSt)
-
-	cxWithKey := context.WithValue(cxWithSessionState, authUserAuthenticatedKey, sesSt.Authenticated)
-
-	//create a new request using that new context
-	rWithSession := r.WithContext(cxWithKey)
-
-	//call the real handler, passing the new request
-	au.handler.ServeHTTP(w, rWithSession)
+	ea.handler.ServeHTTP(w, r)
 }
 
 // GetUserFromContext returns the user stored in the request context,
@@ -150,5 +199,27 @@ func IsSession(r *http.Request) bool {
 		return val.(bool)
 	default:
 		return false
+	}
+}
+
+// IsAuthError will return true if an auth error occurred, or false if no auth information was provided
+func IsAuthError(r *http.Request) bool {
+	val := r.Context().Value(authSessionErrorKey)
+	switch val.(type) {
+	case bool:
+		return val.(bool)
+	default:
+		return false
+	}
+}
+
+func getSessionErrorKeyValueFromContext(r *http.Request) string {
+	val := r.Context().Value(authSessionErrorValueKey)
+	switch val.(type) {
+	case string:
+		return val.(string)
+	default:
+		return ""
+
 	}
 }

@@ -69,6 +69,15 @@ func main() {
 
 	// Get address for server to listen for requests on
 	listenAddr, _ := logEnvVar(logger, "GATEWAY_LISTEN_ADDR", ":443", false)
+	apiScheme, _ := logEnvVar(logger, "GATEWAY_API_SCHEME", "https", false)
+	apiHost, _ := logEnvVar(logger, "GATEWAY_API_HOST", "localhost", false)
+	apiPort, _ := logEnvVar(logger, "GATEWAY_API_PORT", "443", false)
+
+	apiInfo := &handler.ApiInfo{
+		Scheme: apiScheme,
+		Host:   apiHost,
+		Port:   apiPort,
+	}
 
 	// Get the directory path to the TLS key and cert
 	tlsCertPath := exitOnEnvError(logger, "GATEWAY_TLSCERTPATH")
@@ -109,11 +118,17 @@ func main() {
 	}
 
 	// Periodically check status of mssql database connection
+	mssqlStatusNotOkay := make(chan bool, 1)
+	mssqlStatusNotOkay <- true
 	pingDbCtx := context.TODO()
-	go utility.PingDatabase(pingDbCtx, perceptiaDb, time.Second*10, time.Minute, mssqlRequiredVersion, logger)
+	go utility.PingDatabase(pingDbCtx, perceptiaDb, time.Second*10, time.Minute, mssqlRequiredVersion, logger, mssqlStatusNotOkay)
 
 	//Create a new Redis client.
 	rc := redis.NewClient(&redis.Options{Addr: redisAddress, Password: "", DB: 0})
+	redisStatusNotOkay := make(chan bool, 1)
+	redisStatusNotOkay <- true
+	pingRedisCtx := context.TODO()
+	go utility.PingRedis(pingRedisCtx, rc, time.Second*10, time.Minute, logger, redisStatusNotOkay)
 
 	// Setup Stores
 	userStore, errNMSDB := user.NewMsSqlStore(perceptiaDb)
@@ -126,7 +141,9 @@ func main() {
 
 	// Create Handler Context
 	hcx := handler.NewContext(sessionStore, userStore, sessionSigningKey,
-		gatewayServiceApiVersion, gatewayServiceApiVersionsSupported, logger)
+		gatewayServiceApiVersion, gatewayServiceApiVersionsSupported, logger, apiInfo)
+
+	hhcx := hcx.NewHealthHandlerContext(mssqlStatusNotOkay, redisStatusNotOkay)
 
 	// Create new mux router
 	gmux := mux.NewRouter()
@@ -145,7 +162,7 @@ func main() {
 	gmuxApiVGateway := gmuxApiV.PathPrefix("/" + serviceGateway + "/").Subrouter()
 
 	// Health check route
-	gmuxApiVGateway.HandleFunc("/"+colHealth, hcx.HealthHandler)
+	gmuxApiVGateway.HandleFunc("/"+colHealth, hhcx.HealthHandler)
 
 	// Users route
 	gmuxApiVGateway.HandleFunc("/"+colUsers, hcx.UsersDefaultHandler)
@@ -170,10 +187,12 @@ func main() {
 
 	// Matches for: /api/vX/gateway/sessions/{sessionIdentifier} which is either "this" or session uuid
 	gmuxApiVGatewaySessionsSpecific := gmuxApiVGatewaySessions.PathPrefix(
-		"/{" + handler.ReqVarSession + ":(?:" + handler.SpecificSessionHandlerDeleteUserAlias + "|(?:" + uuidV4Regex + "))}").Subrouter()
+		"/{" + handler.ReqVarSession + ":(?:" + handler.SpecificSessionHandlerDeleteCurrentSessionAlias + "|(?:" + uuidV4Regex + "))}").Subrouter()
 
 	gmuxApiVGatewaySessionsSpecific.PathPrefix("").HandlerFunc(hcx.SessionsSpecificHandler)
 
+	// Add Middleware to "/"
+	gmux.NotFoundHandler = http.HandlerFunc(hcx.NotFoundHandler)
 	// Add Middleware to "/api"
 	//gmuxApi.Use
 	gmuxApi.Use(handler.NewCors)
@@ -192,6 +211,7 @@ func main() {
 	gmuxApiVGatewayUsersSpecific.Use(hcx.NewEnsureAuth)
 
 	// Add Middleware to "/api/{majorVersion}/gateway/sessions/{matchVar}"
+	gmuxApiVGatewaySessionsSpecific.Use(hcx.NewEnsureSession)
 
 	// Add Middleware to "/api/{majorVersion}/anyquiz"
 

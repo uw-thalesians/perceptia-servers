@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -36,7 +37,7 @@ func (cx *Context) UsersDefaultHandler(w http.ResponseWriter, r *http.Request) {
 	reqVars := mux.Vars(r)
 	if ver, ok := reqVars[ReqVarMajorVersion]; ok == true {
 		if ver != "v1" {
-			cx.handleVersionNotSupported(w, r, "v1", ver)
+			cx.handleMajorVersionNotSupported(w, r, "v1", ver)
 			return
 		}
 	} else {
@@ -44,6 +45,7 @@ func (cx *Context) UsersDefaultHandler(w http.ResponseWriter, r *http.Request) {
 			ClientError: false,
 			ServerError: true,
 			Message:     errUnexpected.Error(),
+			Context:     r.Method + " path:" + r.URL.Path,
 			Code:        0,
 		}
 		cx.handleErrorJson(w, r, nil, "did not find major version key in request vars", retErr, http.StatusInternalServerError)
@@ -67,7 +69,7 @@ func (cx *Context) UsersSpecificHandler(w http.ResponseWriter, r *http.Request) 
 	reqVars := mux.Vars(r)
 	if ver, ok := reqVars[ReqVarMajorVersion]; ok == true {
 		if ver != "v1" {
-			cx.handleVersionNotSupported(w, r, "v1", ver)
+			cx.handleMajorVersionNotSupported(w, r, "v1", ver)
 			return
 		}
 	} else {
@@ -107,17 +109,12 @@ func (cx *Context) UsersSpecificHandler(w http.ResponseWriter, r *http.Request) 
 func (cx *Context) SessionsDefaultHandler(w http.ResponseWriter, r *http.Request) {
 	reqVars := mux.Vars(r)
 	if ver, ok := reqVars[ReqVarMajorVersion]; ok == true && ver != "v1" {
-		cx.handleVersionNotSupported(w, r, "v1", ver)
+		cx.handleMajorVersionNotSupported(w, r, "v1", ver)
 		return
 	}
 	switch r.Method {
 	case http.MethodPost:
-		if strings.HasPrefix(r.Header.Get(HeaderContentType), ContentTypeJSON) {
-			cx.sessionsHandlerV1PostAuthenticated(w, r)
-		} else {
-			cx.sessionsHandlerV1PostUnauthenticated(w, r)
-		}
-
+		cx.sessionsHandlerV1Post(w, r)
 		return
 	default:
 		cx.handleMethodNotAllowed(w, r)
@@ -130,14 +127,31 @@ func (cx *Context) SessionsDefaultHandler(w http.ResponseWriter, r *http.Request
 // If the major version in the URL is not supported, request will return an error
 func (cx *Context) SessionsSpecificHandler(w http.ResponseWriter, r *http.Request) {
 	reqVars := mux.Vars(r)
-	if ver, ok := reqVars[ReqVarMajorVersion]; ok != false && ver != "v1" {
-		cx.handleVersionNotSupported(w, r, "v1", ver)
+	if ver, ok := reqVars[ReqVarMajorVersion]; ok == true {
+		if ver != "v1" {
+			cx.handleMajorVersionNotSupported(w, r, "v1", ver)
+			return
+		}
+	} else {
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     errUnexpected.Error(),
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, nil, "did not find major version key in request vars", retErr, http.StatusInternalServerError)
+		return
+	}
+
+	sesSt, ok := cx.getSessionStateFromContext(w, r)
+	if !ok {
+		// Ends execution if session was not in context
 		return
 	}
 
 	switch r.Method {
 	case http.MethodDelete:
-		cx.sessionsSpecificHandlerV1Delete(w, r)
+		cx.sessionsSpecificHandlerV1Delete(w, r, sesSt)
 
 	default:
 		cx.handleMethodNotAllowed(w, r)
@@ -172,7 +186,7 @@ func (cx *Context) usersHandlerV1Post(w http.ResponseWriter, r *http.Request) {
 			ClientError: true,
 			ServerError: false,
 			Message:     fmt.Sprintf("the provided password is not a valid password: %s", err.Error()),
-			Context:     "POST path:" + r.URL.Path,
+			Context:     r.Method + " path:" + r.URL.Path,
 			Code:        0,
 		}
 		cx.handleErrorJson(w, r, err, "error: the provided password is not a valid password",
@@ -186,7 +200,7 @@ func (cx *Context) usersHandlerV1Post(w http.ResponseWriter, r *http.Request) {
 			ClientError: false,
 			ServerError: true,
 			Message:     errUnexpected.Error(),
-			Context:     "POST path:" + r.URL.Path,
+			Context:     r.Method + " path:" + r.URL.Path,
 			Code:        0,
 		}
 		cx.handleErrorJson(w, r, errCEH, "error: unable to create hash of provided password",
@@ -201,32 +215,13 @@ func (cx *Context) usersHandlerV1Post(w http.ResponseWriter, r *http.Request) {
 			ClientError: true,
 			ServerError: false,
 			Message:     fmt.Sprintf("the provided new user is not a valid user: %s", err.Error()),
-			Context:     "POST path:" + r.URL.Path,
+			Context:     r.Method + " path:" + r.URL.Path,
 			Code:        0,
 		}
 		cx.handleErrorJson(w, r, err, "error: the provided NewUser is not a valid user",
 			retErr, http.StatusBadRequest)
 		return
 	}
-
-	/*	// Ensure email, if supplied meets requirements
-		userEmail := ""
-		if len(newUserFromClient.Email) != 0 {
-			var errCE error
-			userEmail, errCE = user.CleanEmail(newUserFromClient.Email)
-			if errCE != nil {
-				retErr := &Error{
-					ClientError: true,
-					ServerError: false,
-					Message:     fmt.Sprintf("error: the provided email is not a valid email: %s", errCE.Error()),
-					Context:     "POST path:" + r.URL.Path,
-					Code:        0,
-				}
-				cx.handleErrorJson(w, r, errCE, "error: the provided email is not a valid email",
-					retErr, http.StatusBadRequest)
-				return
-			}
-		}*/
 
 	// Ensure Username is not in use
 	_, errGUN := cx.userStore.ReadUserUuid(newUser.Username)
@@ -235,7 +230,7 @@ func (cx *Context) usersHandlerV1Post(w http.ResponseWriter, r *http.Request) {
 			ClientError: true,
 			ServerError: false,
 			Message:     errAccountUserNameUnavailable.Error(),
-			Context:     "POST path:" + r.URL.Path,
+			Context:     r.Method + " path:" + r.URL.Path,
 			Code:        0,
 		}
 		cx.handleErrorJson(w, r, nil, fmt.Sprintf("user with that username already exists: %s", newUser.Username),
@@ -247,7 +242,7 @@ func (cx *Context) usersHandlerV1Post(w http.ResponseWriter, r *http.Request) {
 			ClientError: true,
 			ServerError: false,
 			Message:     errUnexpected.Error(),
-			Context:     "POST path:" + r.URL.Path,
+			Context:     r.Method + " path:" + r.URL.Path,
 			Code:        0,
 		}
 		cx.handleErrorJson(w, r, nil, "error occurred trying to search for user",
@@ -263,7 +258,7 @@ func (cx *Context) usersHandlerV1Post(w http.ResponseWriter, r *http.Request) {
 				ClientError: false,
 				ServerError: true,
 				Message:     errUnexpected.Error(),
-				Context:     "POST path:" + r.URL.Path,
+				Context:     r.Method + " path:" + r.URL.Path,
 				Code:        0,
 			}
 			cx.handleErrorJson(w, r, errINS, "uuid matched existing user uuid", retErr,
@@ -274,7 +269,7 @@ func (cx *Context) usersHandlerV1Post(w http.ResponseWriter, r *http.Request) {
 				ClientError: true,
 				ServerError: false,
 				Message:     errAccountUserNameUnavailable.Error(),
-				Context:     "POST path:" + r.URL.Path,
+				Context:     r.Method + " path:" + r.URL.Path,
 				Code:        0,
 			}
 			cx.handleErrorJson(w, r, nil, fmt.Sprintf("user with that username already exists: %s", newUser.Username),
@@ -286,33 +281,13 @@ func (cx *Context) usersHandlerV1Post(w http.ResponseWriter, r *http.Request) {
 			ClientError: false,
 			ServerError: true,
 			Message:     errUnexpected.Error(),
-			Context:     "POST path:" + r.URL.Path,
+			Context:     r.Method + " path:" + r.URL.Path,
 			Code:        0,
 		}
 		cx.handleErrorJson(w, r, errINS, "error adding user to database", retErr,
 			http.StatusInternalServerError)
 		return
 	}
-
-	/*
-	   TODO: Add email to account
-	   if len(userEmail) > 0 {
-	   		errAE := cx.userStore.InsertEmail(userINS.Uuid, userEmail)
-	   		if errAE != nil {
-	   			retErr := &Error{
-	   				ClientError: false,
-	   				ServerError: true,
-	   				Message: fmt.Sprintf("user created with username: %s; error adding users email, "+
-	   					"please log in with your username and password manually", userINS.Username),
-	   				Context: "POST path:" + r.URL.Path,
-	   				Code:    0,
-	   			}
-	   			cx.handleErrorJson(w, r, errINS, "error adding users email to database",
-	   				retErr,
-	   				http.StatusInternalServerError)
-	   			return
-	   		}
-	   	}*/
 
 	sesId, sesUuid, errSID := session.CreateSession(cx.sessionSigningKey)
 	if errSID != nil {
@@ -321,7 +296,7 @@ func (cx *Context) usersHandlerV1Post(w http.ResponseWriter, r *http.Request) {
 			ServerError: true,
 			Message: fmt.Sprintf("user created with username: %s; error creating new session, "+
 				"please log in with your username and password manually", userINS.Username),
-			Context: "POST path:" + r.URL.Path,
+			Context: r.Method + " path:" + r.URL.Path,
 			Code:    0,
 		}
 		cx.handleErrorJson(w, r, errSID, "error beginning new session",
@@ -331,14 +306,14 @@ func (cx *Context) usersHandlerV1Post(w http.ResponseWriter, r *http.Request) {
 	}
 	sessState := NewSessionState(time.Now(), userINS, sesUuid, sesId, true)
 	// This adds the authorization header to the response as well
-	errBS := session.BeginSession(sesId, cx.sessionStore, sessState, w)
+	errBS := session.BeginSession(sesId, sesUuid, cx.sessionStore, sessState, w)
 	if errBS != nil {
 		retErr := &Error{
 			ClientError: false,
 			ServerError: true,
 			Message: fmt.Sprintf("user created with username: %s; error creating new session, "+
 				"please log in with your username and password manually", userINS.Username),
-			Context: "POST path:" + r.URL.Path,
+			Context: r.Method + " path:" + r.URL.Path,
 			Code:    0,
 		}
 		cx.handleErrorJson(w, r, errBS, "error beginning new session",
@@ -346,12 +321,28 @@ func (cx *Context) usersHandlerV1Post(w http.ResponseWriter, r *http.Request) {
 			http.StatusInternalServerError)
 		return
 	}
+	urlLoc := url.URL{}
+	urlLoc.Host = cx.apiInfo.Host + ":" + cx.apiInfo.Port
+	urlLoc.Scheme = cx.apiInfo.Scheme
+	urlLoc.Path = r.URL.Path
+	location := fmt.Sprintf("%s/%s", strings.TrimSuffix(urlLoc.String(), "/"), sesUuid.String())
+	w.Header().Add(HeaderLocation, location)
 	// Send response
 	_, _ = cx.respondEncode(w, userINS, http.StatusCreated)
 }
 
 // usersSpecificHandlerV1Get is a helper method for UsersSpecificHandler to handle Get requests to the users collection.
 func (cx *Context) usersSpecificHandlerV1Get(w http.ResponseWriter, r *http.Request, userCx *user.User) {
+	if userCx == nil {
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     errUnexpected.Error(),
+			Context:     "DELETE path:" + r.URL.Path,
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, nil, "expected user to be passed, but got nil pointer to user", retErr, http.StatusInternalServerError)
+	}
 	reqVars := mux.Vars(r)
 	reqUserUuidString, ok := reqVars[ReqVarUserUuid]
 	if !ok {
@@ -386,7 +377,7 @@ func (cx *Context) usersSpecificHandlerV1Get(w http.ResponseWriter, r *http.Requ
 			Context:     "GET path:" + r.URL.Path,
 			Code:        0,
 		}
-		cx.handleErrorJson(w, r, errUFS, "user attempted to get info about another user", retErr, http.StatusUnauthorized)
+		cx.handleErrorJson(w, r, errUFS, "user attempted to get info about another user", retErr, http.StatusForbidden)
 		return
 	}
 
@@ -417,123 +408,25 @@ func (cx *Context) usersSpecificHandlerV1Get(w http.ResponseWriter, r *http.Requ
 	_, _ = cx.respondEncode(w, userProfile, http.StatusOK)
 }
 
-/*// usersSpecificHandlerV1Patch is a helper method for SpecificUserHandler to handle Patch requests to the users collection.
-func (cx *Context) usersSpecificHandlerV1Patch(w http.ResponseWriter, r *http.Request, userCx *user.User) {
-	reqVars := mux.Vars(r)
-	reqUserUuidString, ok := reqVars[ReqVarUserUuid]
-	if !ok {
-		retErr := &Error{
-			ClientError: false,
-			ServerError: true,
-			Message:     fmt.Sprintf("uuid not extracted from request"),
-			Code:        0,
-		}
-		cx.handleErrorJson(w, r, nil, "uuid expected in path, but not found in mux vars", retErr, http.StatusInternalServerError)
-		return
-	}
-
-	reqUserUuid, errUFS := uuid.FromString(reqUserUuidString)
-	if errUFS != nil {
-		retErr := &Error{
-			ClientError: false,
-			ServerError: true,
-			Message:     fmt.Sprintf("unable to get valid uuid from path"),
-			Code:        0,
-		}
-		cx.handleErrorJson(w, r, errUFS, "issue converting string to valid uuid", retErr, http.StatusInternalServerError)
-		return
-	}
-
-	if !uuid.Equal(reqUserUuid, userCx.Uuid) {
-		retErr := &Error{
-			ClientError: true,
-			ServerError: false,
-			Message:     errActionNotAuthorized.Error(),
-			Code:        0,
-		}
-		cx.handleErrorJson(w, r, nil,
-			fmt.Sprintf("logged in user tried to update a different users profile: user=%s userToUpdate=%s",
-				userCx.Uuid.String(), reqUserUuid.String()), retErr, http.StatusForbidden)
-		return
-	}
-
-	// Test if json header is present, if not, return
-	if !cx.ensureJSONHeader(w, r) {
-		return
-	}
-
-	updatesClient := &userUpdatesJson{}
-	if !cx.decodeJSON(w, r, updatesClient, "userUpdatesJson") {
-		// return if unable to decode updates
-		return
-	}
-	updates := &user.Updates{}
-	updates.FullName = updatesClient.FullName
-	updates.DisplayName = updatesClient.DisplayName
-	updates.PrepUpdates()
-	if err := updates.ValidateUpdates(); err != nil {
-		retErr := &Error{
-			ClientError: true,
-			ServerError: false,
-			Message:     err.Error(),
-			Code:        0,
-		}
-		cx.handleErrorJson(w, r, err,
-			"provided updates invalid", retErr, http.StatusBadRequest)
-	}
-	var updatedUser *user.User
-	if len(updates.FullName) > 0 {
-		var err error
-		updatedUser, err = cx.userStore.UpdateFullName(userCx.Uuid, updates.FullName)
-		if err != nil {
-			retErr := &Error{
-				ClientError: false,
-				ServerError: true,
-				Message:     err.Error(),
-				Code:        0,
-			}
-			cx.handleErrorJson(w, r, err,
-				"error occurred when updating fullName", retErr, http.StatusInternalServerError)
-			return
-		}
-	}
-	if len(updates.DisplayName) > 0 {
-		var err error
-		updatedUser, err = cx.userStore.UpdateDisplayName(userCx.Uuid, updates.DisplayName)
-		if err != nil {
-			retErr := &Error{
-				ClientError: false,
-				ServerError: true,
-				Message:     err.Error(),
-				Code:        0,
-			}
-			cx.handleErrorJson(w, r, err,
-				"error occurred when updating displayName", retErr, http.StatusInternalServerError)
-			return
-		}
-	}
-
-	sesSt, errGSR := cx.getSessionStateFromRequest(r)
-	if errGSR != nil && sesSt != nil {
-		_ = cx.sessionStore.Save(sesSt.SessionID, SessionState{
-			User:      *updatedUser,
-			SessionID: sesSt.SessionID,
-			StartTime: sesSt.StartTime,
-		})
-	}
-	// Send response to client.
-	_, _ = cx.respondEncode(w, updatedUser, http.StatusOK)
-}*/
-
 // usersSpecificHandlerV1Delete is a helper method for SpecificUserHandler to handle Delete requests to the users collection.
 func (cx *Context) usersSpecificHandlerV1Delete(w http.ResponseWriter, r *http.Request, userCx *user.User) {
+	if userCx == nil {
+		retErr := &Error{
+			ClientError: false,
+			ServerError: true,
+			Message:     errUnexpected.Error(),
+			Context:     "DELETE path:" + r.URL.Path,
+			Code:        0,
+		}
+		cx.handleErrorJson(w, r, nil, "expected user to be passed, but got nil pointer to user", retErr, http.StatusInternalServerError)
+	}
 	reqVars := mux.Vars(r)
 	reqUserUuidString, ok := reqVars[ReqVarUserUuid]
 	if !ok {
 		retErr := &Error{
 			ClientError: false,
 			ServerError: true,
-			Message:     fmt.Sprintf("uuid not extracted from request"),
+			Message:     errUnexpected.Error(),
 			Context:     "DELETE path:" + r.URL.Path,
 			Code:        0,
 		}
@@ -546,7 +439,7 @@ func (cx *Context) usersSpecificHandlerV1Delete(w http.ResponseWriter, r *http.R
 		retErr := &Error{
 			ClientError: false,
 			ServerError: true,
-			Message:     fmt.Sprintf("unable to get valid uuid from path"),
+			Message:     errUnexpected.Error(),
 			Context:     "DELETE path:" + r.URL.Path,
 			Code:        0,
 		}
@@ -590,132 +483,126 @@ func (cx *Context) usersSpecificHandlerV1Delete(w http.ResponseWriter, r *http.R
 }
 
 // sessionsHandlerV1Post is a helper method for SessionsHandler to handle Post requests to the sessions collection.
-func (cx *Context) sessionsHandlerV1PostAuthenticated(w http.ResponseWriter, r *http.Request) {
-
+func (cx *Context) sessionsHandlerV1Post(w http.ResponseWriter, r *http.Request) {
+	if !cx.ensureJSONHeader(w, r) {
+		// return if json header not found
+		return
+	}
+	userPro := &user.User{}
 	signInCredentials := &signInCredentialsJson{}
+
+	// Extract credentials from request, decode function will write error if unable to decode
 	if !cx.decodeJSON(w, r, signInCredentials, "signInCredentials") {
 		// return if unable to decode credentials
 		return
 	}
 	credentials := &user.SignInCredentials{}
-	credentials.Username = signInCredentials.Username
-	credentials.Password = signInCredentials.Password
-	errVC := credentials.ValidateSignInCredentials()
-	if errVC != nil {
-		retErr := &Error{
-			ClientError: true,
-			ServerError: false,
-			Message:     errInvalidCredentials.Error(),
-			Context:     "POST path:" + r.URL.Path,
-			Code:        0,
+	// Test if user is authenticating or just starting a session.
+	// (username field should be an empty string if not authenticating).
+	if signInCredentials.Username != user.InvalidUsername {
+		credentials.Username = signInCredentials.Username
+		credentials.Password = signInCredentials.Password
+		errVC := credentials.ValidateSignInCredentials()
+		if errVC != nil {
+			retErr := &Error{
+				ClientError: true,
+				ServerError: false,
+				Message:     errInvalidCredentials.Error(),
+				Context:     r.Method + " path:" + r.URL.Path,
+				Code:        0,
+			}
+			cx.handleErrorJson(w, r, errVC,
+				"provided credentials are not valid in this system", retErr, http.StatusBadRequest)
+			return
 		}
-		cx.handleErrorJson(w, r, errVC,
-			"provided credentials are not valid", retErr, http.StatusBadRequest)
-		return
-	}
-	validUserHash, errGEH := cx.userStore.ReadUserEncodedHash(credentials.Username)
-	// If user does not exist, will attempt to compare provided credentials
-	// against a fictitious valid user.
-	if errGEH != nil {
-		retErr := &Error{
-			ClientError: true,
-			ServerError: false,
-			Message:     errInvalidCredentials.Error(),
-			Context:     "POST path:" + r.URL.Path,
-			Code:        0,
+		validUserHash, errGEH := cx.userStore.ReadUserEncodedHash(credentials.Username)
+		if errGEH != nil {
+			if errGEH == user.ErrUserNotFound {
+				retErr := &Error{
+					ClientError: true,
+					ServerError: false,
+					Message:     errInvalidCredentials.Error(),
+					Context:     r.Method + " path:" + r.URL.Path,
+					Code:        0,
+				}
+				cx.handleErrorJson(w, r, errGEH,
+					"user not found in database with that username", retErr, http.StatusForbidden)
+			} else {
+				retErr := &Error{
+					ClientError: false,
+					ServerError: true,
+					Message:     errUnexpected.Error(),
+					Context:     r.Method + " path:" + r.URL.Path,
+					Code:        0,
+				}
+				cx.handleErrorJson(w, r, errGEH,
+					"error occurred when retrieving user encoded hash", retErr, http.StatusInternalServerError)
+			}
+
+			return
 		}
-		cx.handleErrorJson(w, r, errGEH,
-			"provided credentials are not valid", retErr, http.StatusUnauthorized)
-		return
-	}
-	valid, errAuth := user.Authenticate(credentials.Password, validUserHash)
-	if errAuth != nil {
-		retErr := &Error{
-			ClientError: true,
-			ServerError: false,
-			Message:     errUnexpected.Error(),
-			Context:     "POST path:" + r.URL.Path,
-			Code:        0,
-		}
-		cx.handleErrorJson(w, r, errAuth,
-			"error occurred when trying to validate credentials", retErr, http.StatusInternalServerError)
-		return
-	}
-	if !valid {
-		retErr := &Error{
-			ClientError: true,
-			ServerError: false,
-			Message:     errInvalidCredentials.Error(),
-			Context:     "POST path:" + r.URL.Path,
-			Code:        0,
-		}
-		cx.handleErrorJson(w, r, errAuth,
-			"provided credentials are not the same as were used to create the hash for this user",
-			retErr, http.StatusUnauthorized)
-		return
-	}
-	userUuid, errRU := cx.userStore.ReadUserUuid(credentials.Username)
-	if errRU != nil {
-		retErr := &Error{
-			ClientError: true,
-			ServerError: false,
-			Message:     errUserNotFound.Error(),
-			Code:        0,
-		}
-		cx.handleErrorJson(w, r, errRU,
-			"user was not found in database but should be in database", retErr, http.StatusBadRequest)
-	}
-	userPro, errGUUN := cx.userStore.ReadUserInfo(*userUuid)
-	if errGUUN != nil {
-		retErr := &Error{
-			ClientError: true,
-			ServerError: false,
-			Message:     errUserNotFound.Error(),
-			Code:        0,
-		}
-		cx.handleErrorJson(w, r, errGUUN,
-			"user was not found in database but should be in database", retErr, http.StatusBadRequest)
-		return
-	}
-	// Begin new session
-	var sesId session.SessionID
-	var sesUuid uuid.UUID
-	var errSID error
-	if IsSession(r) {
-		sesSt, errGSC := GetSessionStateFromContext(r)
-		if errGSC != nil || sesSt == nil {
+		valid, errAuth := user.Authenticate(credentials.Password, validUserHash)
+		if errAuth != nil && errAuth != user.ErrHashNotFromPassword {
 			retErr := &Error{
 				ClientError: false,
 				ServerError: true,
-				Message:     "error creating new session, please try again",
-				Context:     "POST path:" + r.URL.Path,
+				Message:     errUnexpected.Error(),
+				Context:     r.Method + " path:" + r.URL.Path,
 				Code:        0,
 			}
-			cx.handleErrorJson(w, r, errGSC, "error getting session state from context",
-				retErr,
-				http.StatusInternalServerError)
+			cx.handleErrorJson(w, r, errAuth,
+				"error occurred when trying to validate credentials", retErr, http.StatusInternalServerError)
 			return
 		}
-		if !IsUserAuthenticated(r) {
-			sesId = sesSt.SessionID
-			sesUuid = sesSt.SessionUuid
-		} else if sesSt.User != nil && uuid.Equal(sesSt.User.Uuid, *userUuid) {
-			sesId = sesSt.SessionID
-			sesUuid = sesSt.SessionUuid
-		} else {
-			sesId, sesUuid, errSID = session.CreateSession(cx.sessionSigningKey)
+		if !valid {
+			retErr := &Error{
+				ClientError: true,
+				ServerError: false,
+				Message:     errInvalidCredentials.Error(),
+				Context:     r.Method + " path:" + r.URL.Path,
+				Code:        0,
+			}
+			cx.handleErrorJson(w, r, errAuth,
+				"provided credentials are not the same as were used to create the hash for this user",
+				retErr, http.StatusForbidden)
+			return
 		}
-
+		userUuid, errRU := cx.userStore.ReadUserUuid(credentials.Username)
+		if errRU != nil {
+			retErr := &Error{
+				ClientError: false,
+				ServerError: true,
+				Message:     errUnexpected.Error(),
+				Code:        0,
+			}
+			cx.handleErrorJson(w, r, errRU,
+				"user was not found in database but should be in database", retErr, http.StatusInternalServerError)
+		}
+		var errGUUN error
+		userPro, errGUUN = cx.userStore.ReadUserInfo(*userUuid)
+		if errGUUN != nil {
+			retErr := &Error{
+				ClientError: false,
+				ServerError: true,
+				Message:     errUnexpected.Error(),
+				Code:        0,
+			}
+			cx.handleErrorJson(w, r, errGUUN,
+				"user was not found in database but should be in database", retErr, http.StatusInternalServerError)
+			return
+		}
 	} else {
-		sesId, sesUuid, errSID = session.CreateSession(cx.sessionSigningKey)
+		userPro = user.InvalidUser
 	}
+
+	sesId, sesUuid, errSID := session.CreateSession(cx.sessionSigningKey)
 
 	if errSID != nil {
 		retErr := &Error{
 			ClientError: false,
 			ServerError: true,
 			Message:     "error creating new session, please try again",
-			Context:     "POST path:" + r.URL.Path,
+			Context:     r.Method + " path:" + r.URL.Path,
 			Code:        0,
 		}
 		cx.handleErrorJson(w, r, errSID, "error beginning new session",
@@ -723,15 +610,15 @@ func (cx *Context) sessionsHandlerV1PostAuthenticated(w http.ResponseWriter, r *
 			http.StatusInternalServerError)
 		return
 	}
-	sessState := NewSessionState(time.Now(), userPro, sesUuid, sesId, true)
+	sessState := NewSessionState(time.Now(), userPro, sesUuid, sesId, userPro.Uuid != user.InvalidUuid)
 	// This adds the authorization header to the response as well
-	errBS := session.BeginSession(sesId, cx.sessionStore, sessState, w)
+	errBS := session.BeginSession(sesId, sesUuid, cx.sessionStore, sessState, w)
 	if errBS != nil {
 		retErr := &Error{
 			ClientError: false,
 			ServerError: true,
 			Message:     "error creating new session, please try again",
-			Context:     "POST path:" + r.URL.Path,
+			Context:     r.Method + " path:" + r.URL.Path,
 			Code:        0,
 		}
 		cx.handleErrorJson(w, r, errBS, "error beginning new session",
@@ -739,104 +626,152 @@ func (cx *Context) sessionsHandlerV1PostAuthenticated(w http.ResponseWriter, r *
 			http.StatusInternalServerError)
 		return
 	}
+	urlLoc := url.URL{}
+	urlLoc.Host = cx.apiInfo.Host + ":" + cx.apiInfo.Port
+	urlLoc.Scheme = cx.apiInfo.Scheme
+	urlLoc.Path = r.URL.Path
+	location := fmt.Sprintf("%s/%s", strings.TrimSuffix(urlLoc.String(), "/"), sesUuid.String())
+	w.Header().Add(HeaderLocation, location)
+	w.Header().Add(HeaderPragma, PragmaNoCache)
+	w.Header().Add(HeaderCacheControl, CacheControlNoStore)
 	// Send response
 	_, _ = cx.respondEncode(w, userPro, http.StatusCreated)
 }
 
-// sessionsHandlerV1PostUnauthenticated is a helper method for SessionsHandler to handle Post requests to the sessions
-// collection from a non authenticating user.
-func (cx *Context) sessionsHandlerV1PostUnauthenticated(w http.ResponseWriter, r *http.Request) {
-
-	// Begin new session
-	var sesId session.SessionID
-	var sesUuid uuid.UUID
-	var errSID error
-
-	sesId, sesUuid, errSID = session.CreateSession(cx.sessionSigningKey)
-
-	if errSID != nil {
-		retErr := &Error{
-			ClientError: false,
-			ServerError: true,
-			Message:     "error creating new session, please try again",
-			Context:     "POST path:" + r.URL.Path,
-			Code:        0,
-		}
-		cx.handleErrorJson(w, r, errSID, "error beginning new session",
-			retErr,
-			http.StatusInternalServerError)
-		return
-	}
-	sessState := NewSessionState(time.Now(), nil, sesUuid, sesId, false)
-	// This adds the authorization header to the response as well
-	errBS := session.BeginSession(sesId, cx.sessionStore, sessState, w)
-	if errBS != nil {
-		retErr := &Error{
-			ClientError: false,
-			ServerError: true,
-			Message:     "error creating new session, please try again",
-			Context:     "POST path:" + r.URL.Path,
-			Code:        0,
-		}
-		cx.handleErrorJson(w, r, errBS, "error beginning new session",
-			retErr,
-			http.StatusInternalServerError)
-		return
-	}
-	// Send response
-	w.WriteHeader(http.StatusCreated)
-	return
-}
-
 // sessionsSpecificHandlerV1Delete is a helper method for SpecificSessionHandler to handle Delete requests to the
 // sessions collection.
-func (cx *Context) sessionsSpecificHandlerV1Delete(w http.ResponseWriter, r *http.Request) {
+func (cx *Context) sessionsSpecificHandlerV1Delete(w http.ResponseWriter, r *http.Request, sessionState *SessionState) {
+	var sessionIdToDelete session.SessionID
 	reqVars := mux.Vars(r)
 	sesVar, ok := reqVars[ReqVarSession]
 	if !ok {
 		retErr := &Error{
 			ClientError: false,
 			ServerError: true,
-			Message:     fmt.Sprintf("session identifier not extracted from path"),
+			Message:     errUnexpected.Error(),
+			Context:     r.Method + " path:" + r.URL.Path,
 			Code:        0,
 		}
 		cx.handleErrorJson(w, r, nil, "session identifier expected in path, but not found in mux vars", retErr, http.StatusInternalServerError)
 		return
 	}
 
-	if sesVar != SpecificSessionHandlerDeleteUserAlias {
-		retErr := &Error{
-			ClientError: true,
-			ServerError: false,
-			Message:     fmt.Sprintf("session identifier provided not valid"),
-			Code:        0,
+	if sesVar == SpecificSessionHandlerDeleteCurrentSessionAlias {
+		sessionIdToDelete = sessionState.SessionID
+		if ok, err := cx.sessionStore.Exists(sessionIdToDelete); err != nil || ok == false {
+			retErr := &Error{
+				ClientError: true,
+				ServerError: false,
+				Message:     errSessionNotFound.Error(),
+				Code:        0,
+			}
+			cx.handleErrorJson(w, r, err, "session key not in session database", retErr, http.StatusBadRequest)
+			return
 		}
-		cx.handleErrorJson(w, r, nil, "session identifier provided but not a valid identifier", retErr, http.StatusBadRequest)
-		return
+	} else {
+		sesVarUuid, errUFS := uuid.FromString(sesVar)
+		if errUFS != nil {
+			retErr := &Error{
+				ClientError: false,
+				ServerError: true,
+				Message:     errUnexpected.Error(),
+				Context:     r.Method + " path:" + r.URL.Path,
+				Code:        0,
+			}
+			cx.handleErrorJson(w, r, errUFS, "session identifier expected to be uuid, but an error occurred during processing, sessionIdentifier: "+sesVar, retErr, http.StatusInternalServerError)
+			return
+		}
+		if uuid.Equal(sesVarUuid, sessionState.SessionUuid) {
+			sessionIdToDelete = sessionState.SessionID
+		} else {
+			if sessionState.Authenticated {
+				sesIdOfSesVar, errGSID := cx.sessionStore.GetSessionId(sesVarUuid)
+				if errGSID != nil || sesIdOfSesVar == session.InvalidSessionID {
+					retErr := &Error{
+						ClientError: false,
+						ServerError: true,
+						Message:     errUnexpected.Error(),
+						Context:     r.Method + " path:" + r.URL.Path,
+						Code:        0,
+					}
+					cx.handleErrorJson(w, r, errGSID, "issue getting sessionId from store", retErr, http.StatusInternalServerError)
+					return
+				}
+				if ok, err := cx.sessionStore.Exists(sesIdOfSesVar); err != nil || ok == false {
+					retErr := &Error{
+						ClientError: true,
+						ServerError: false,
+						Message:     errSessionNotFound.Error(),
+						Code:        0,
+					}
+					cx.handleErrorJson(w, r, errGSID, "session does not exist", retErr, http.StatusBadRequest)
+					return
+				}
+				sesStOfSesVar := &SessionState{}
+				errGSST := cx.sessionStore.Get(sesIdOfSesVar, sesStOfSesVar)
+				if errGSST != nil || sesIdOfSesVar == session.InvalidSessionID {
+					retErr := &Error{
+						ClientError: false,
+						ServerError: true,
+						Message:     errUnexpected.Error(),
+						Context:     r.Method + " path:" + r.URL.Path,
+						Code:        0,
+					}
+					cx.handleErrorJson(w, r, errGSST, "issue getting session state from store", retErr, http.StatusInternalServerError)
+					return
+				}
+				if !sesStOfSesVar.Authenticated {
+					retErr := &Error{
+						ClientError: true,
+						ServerError: false,
+						Message:     errActionNotAuthorized.Error(),
+						Context:     r.Method + " path:" + r.URL.Path,
+						Code:        0,
+					}
+					cx.handleErrorJson(w, r, nil, "user attempted to delete a session other than the current one but it is not in an authenticated session", retErr, http.StatusForbidden)
+					return
+				}
+
+				if sessionState.User != nil && sesStOfSesVar.User != nil {
+					if !uuid.Equal(sessionState.User.Uuid, sesStOfSesVar.User.Uuid) {
+						retErr := &Error{
+							ClientError: true,
+							ServerError: false,
+							Message:     errActionNotAuthorized.Error(),
+							Context:     r.Method + " path:" + r.URL.Path,
+							Code:        0,
+						}
+						cx.handleErrorJson(w, r, nil, "user attempted to delete a session other than the current one was not the user that started that session", retErr, http.StatusForbidden)
+						return
+					}
+					sessionIdToDelete = sesIdOfSesVar
+				} else {
+					retErr := &Error{
+						ClientError: false,
+						ServerError: true,
+						Message:     errUnexpected.Error(),
+						Context:     r.Method + " path:" + r.URL.Path,
+						Code:        0,
+					}
+					cx.handleErrorJson(w, r, errGSST, "user stored in authenticated session nil", retErr, http.StatusInternalServerError)
+					return
+				}
+			} else {
+				retErr := &Error{
+					ClientError: true,
+					ServerError: false,
+					Message:     errActionNotAuthorized.Error(),
+					Context:     r.Method + " path:" + r.URL.Path,
+					Code:        0,
+				}
+				cx.handleErrorJson(w, r, nil, "user attempted to delete a session other than the current one but is not in an authenticated session", retErr, http.StatusForbidden)
+				return
+			}
+
+		}
 	}
 
-	sessID, errGSID := session.GetSessionID(r, cx.sessionSigningKey)
-	if errGSID != nil {
-		retErr := &Error{
-			ClientError: false,
-			ServerError: true,
-			Message:     errUnexpected.Error(),
-			Code:        0,
-		}
-		cx.handleErrorJson(w, r, errGSID, "unable to extract sessionID from request", retErr, http.StatusInternalServerError)
-		return
-	}
-	if ok, err := cx.sessionStore.Exists(sessID); err != nil || ok == false {
-		retErr := &Error{
-			ClientError: true,
-			ServerError: false,
-			Message:     errSessionNotFound.Error(),
-			Code:        0,
-		}
-		cx.handleErrorJson(w, r, errGSID, "session key not in session database", retErr, http.StatusBadRequest)
-		return
-	}
-	errDSID := cx.sessionStore.Delete(sessID)
+	errDSID := session.EndSession(sessionIdToDelete, cx.sessionStore)
 	if errDSID != nil {
 		retErr := &Error{
 			ClientError: false,

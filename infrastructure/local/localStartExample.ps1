@@ -37,6 +37,7 @@ Param (
 Set-Variable -Name DOCKERHUB_ORG -Value "uwthalesians"
 Set-Variable -Name PERCEPTIA_STACK_NAME -Value "perceptia-api"
 Set-Variable -Name GATEWAY_IMAGE_NAME -Value "gateway"
+Set-Variable -Name GATEWAY_API_PORT -Value "$GatewayPortPublish"
 Set-Variable -Name REDIS_VOLUME_NAME -Value "redis_pc_vol"
 Set-Variable -Name MSSQL_IMAGE_NAME -Value "mssql"
 Set-Variable -Name MSSQL_VOLUME_NAME -Value "mssql_pc_vol"
@@ -92,6 +93,7 @@ if (!$CleanUp) {
                 exit(1)
         }
         Set-Item -Path env:GATEWAY_PORT_PUBLISH -Value $GatewayPortPublish
+        Set-Item -Path env:GATEWAY_API_PORT -Value $GATEWAY_API_PORT
         # Mssql perceptia-stack.yml substitution variables
         Set-Item -Path env:MSSQL_IMAGE_AND_TAG -Value "${DOCKERHUB_ORG}/${MSSQL_IMAGE_NAME}:${MsSqlVersion}-${BUILD_AND_BRANCH}"
         if (($MsSqlVersion).Length -eq 0) {

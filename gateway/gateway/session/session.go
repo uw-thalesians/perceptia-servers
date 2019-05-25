@@ -12,7 +12,7 @@ import (
 
 const HeaderAuthorization = "Authorization"
 const ParamAuthorization = "access_token"
-const SchemeBearer = "Bearer "
+const AuthHeaderSchemeBearerPrefix = "Bearer "
 
 // ErrNoSessionId is used when no session ID was found in the Authorization header.
 var ErrNoSessionId = errors.New("session: no session ID found in header " +
@@ -45,13 +45,13 @@ func CreateSession(signingKey string) (SessionID, uuid.UUID, error) {
 
 // BeginSession saves the `sessionState` to the store, adds an
 // Authorization header to the response with the SessionID, and returns the new SessionID.
-func BeginSession(sessionId SessionID, store Store, sessionState interface{}, w http.ResponseWriter) error {
+func BeginSession(sessionId SessionID, sessionUuid uuid.UUID, store Store, sessionState interface{}, w http.ResponseWriter) error {
 
-	errSS := store.Save(sessionId, sessionState)
+	errSS := store.Save(sessionId, sessionUuid, sessionState)
 	if errSS != nil {
 		return ErrUnexpected
 	}
-	w.Header().Add(HeaderAuthorization, SchemeBearer+string(sessionId))
+	w.Header().Add(HeaderAuthorization, AuthHeaderSchemeBearerPrefix+string(sessionId))
 	return nil
 }
 
@@ -64,8 +64,8 @@ func GetSessionID(r *http.Request, signingKey string) (SessionID, error) {
 			return InvalidSessionID, ErrNoSessionId
 		}
 	} else {
-		if strings.HasPrefix(authString, SchemeBearer) {
-			authString = strings.TrimSpace(strings.Replace(authString, SchemeBearer, "", 1))
+		if strings.HasPrefix(authString, AuthHeaderSchemeBearerPrefix) {
+			authString = strings.TrimSpace(strings.Replace(authString, AuthHeaderSchemeBearerPrefix, "", 1))
 		} else {
 			return InvalidSessionID, ErrInvalidScheme
 		}
@@ -75,6 +75,14 @@ func GetSessionID(r *http.Request, signingKey string) (SessionID, error) {
 		return InvalidSessionID, ErrInvalidSessionId
 	}
 	return sesID, nil
+}
+
+func GetSessionIDByUuid(sessionUuid uuid.UUID, store Store) (SessionID, error) {
+	sesId, err := store.GetSessionId(sessionUuid)
+	if err != nil {
+		return InvalidSessionID, ErrUnexpected
+	}
+	return sesId, nil
 }
 
 // GetState extracts the SessionID from the request, gets the associated state from the provided store into
