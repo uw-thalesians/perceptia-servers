@@ -94,6 +94,7 @@ paths:
   /api/v1/gateway/users/{userUuid}:
     parameters:
         - $ref: '#/components/parameters/PerceptiaApiVersion'
+        - $ref: '#/components/parameters/UserUuid'
     get:
       summary: Gets the basic account information for the given user.
       description: This will return the basic account information for a user of the system. Requires the client to be in an authenticated session. Only the user can request their own information. (Authorization header required)
@@ -102,8 +103,6 @@ paths:
       operationId: getGatewayUsers
       tags:
         - users
-      parameters:
-        - $ref: '#/components/parameters/UserUuid'
       responses:
         '200':
           description: Basic user object containing the users UUID in the system.
@@ -146,8 +145,6 @@ paths:
         - bearerAuth: []
       tags:
         - users
-      parameters:
-        - $ref: '#/components/parameters/UserUuid'
       responses:
         '200':
           description: User deleted and session ended.
@@ -245,6 +242,7 @@ paths:
   /api/v1/gateway/sessions/{sessionIdentifier}:
     parameters:
         - $ref: '#/components/parameters/PerceptiaApiVersion'
+        - $ref: '#/components/parameters/SessionIdentifier'
     delete:
       summary: Deletes the current session.
       description: This request will delete the current session. Once deleted the authorization token will no longer be valid. (Authorization header required)
@@ -253,8 +251,6 @@ paths:
         - bearerAuth: []
       tags:
         - sessions
-      parameters:
-        - $ref: '#/components/parameters/SessionIdentifier'
       responses:
         '200':
           description: Session removed successfully.
@@ -349,6 +345,7 @@ components:
       required: true
       schema:
         type: string
+      example: this
   responses:
     Unauthenticated:
       description: user is not in an authenticated session
