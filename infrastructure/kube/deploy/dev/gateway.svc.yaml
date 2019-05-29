@@ -20,5 +20,5 @@ spec:
     protocol: TCP
     port: 443
     targetPort: https
-  loadBalancerIP: 52.250.113.180
+  loadBalancerIP: 52.183.1.225
   type: LoadBalancer
