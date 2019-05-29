@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
       - name: gateway
-        image: uwthalesians/gateway:1-build-329-branch-develop
+        image: uwthalesians/gateway:1-build-362-branch-master
         ports:
         - name: https
           containerPort: 443
@@ -206,7 +206,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: mssql
-        image: uwthalesians/mssql:1-build-329-branch-develop
+        image: uwthalesians/mssql:1-build-362-branch-master
         ports:
         - name: mssql
           containerPort: 1433
@@ -289,7 +289,7 @@ spec:
     spec:
       containers:
       - name: aqrest
-        image: uwthalesians/aqrest:1.1.0-build-329-branch-develop
+        image: uwthalesians/aqrest:1.1.0-build-362-branch-master
         ports:
         - name: http
           containerPort: 80
@@ -350,7 +350,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: aqmysql
-        image: uwthalesians/aqmysql:1.0.0-build-329-branch-develop
+        image: uwthalesians/aqmysql:1.0.0-build-362-branch-master
         ports:
         - name: mysql
           containerPort: 3306
@@ -430,7 +430,7 @@ spec:
     spec:
       containers:
       - name: aqsolr
-        image: uwthalesians/aqsolr:1.0.0-build-329-branch-develop
+        image: uwthalesians/aqsolr:1.0.0-build-362-branch-master
         command: 
           - "solr-precreate"
         args:

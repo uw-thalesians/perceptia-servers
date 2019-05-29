@@ -6,7 +6,7 @@ name: $(Build.BuildId)
 variables:
   - group: Common
   - group: Api
-  - group: ApiDevelopment
+  - group: ApiProduction
   # Gateway Variables
   - name: GatewayVersionMajor
     value: '1'
@@ -130,7 +130,7 @@ jobs:
       versionPatch: $(ImageVersionPatch)
       buildId: $(Build.BuildId)
       branch: $(Build.SourceBranchName)
-      tagProduction: or(eq(variables[ 'productionTags'], 'true'), startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'))
+      tagProduction: eq(variables[ 'productionTags'], 'true')
 - job: 'BuildMssqlImage'
   variables:
   - name: ImageQualified 
@@ -156,7 +156,7 @@ jobs:
       versionPatch: $(ImageVersionPatch)
       buildId: $(Build.BuildId)
       branch: $(Build.SourceBranchName)
-      tagProduction: or(eq(variables[ 'productionTags'], 'true'), startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'))
+      tagProduction: eq(variables[ 'productionTags'], 'true')
 - job: 'BuildAqrestImage'
   variables:
   - name: ImageQualified 
@@ -185,7 +185,7 @@ jobs:
       versionPatch: $(ImageVersionPatch)
       buildId: $(Build.BuildId)
       branch: $(Build.SourceBranchName)
-      tagProduction: or(eq(variables[ 'productionTags'], 'true'), startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'))
+      tagProduction: eq(variables[ 'productionTags'], 'true')
 - job: 'BuildAqmysqlImage'
   variables:
   - name: ImageQualified 
@@ -211,7 +211,7 @@ jobs:
       versionPatch: $(ImageVersionPatch)
       buildId: $(Build.BuildId)
       branch: $(Build.SourceBranchName)
-      tagProduction: or(eq(variables[ 'productionTags'], 'true'), startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'))
+      tagProduction: eq(variables[ 'productionTags'], 'true')
 - job: 'BuildAqsolrImage'
   variables:
   - name: ImageQualified 
@@ -237,4 +237,4 @@ jobs:
       versionPatch: $(ImageVersionPatch)
       buildId: $(Build.BuildId)
       branch: $(Build.SourceBranchName)
-      tagProduction: or(eq(variables[ 'productionTags'], 'true'), startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'))
+      tagProduction: eq(variables[ 'productionTags'], 'true')
