@@ -1,37 +1,240 @@
 # File: azure-pipelines.yml
-# Version: 0.1.1
+# Main AZP YAML file for uw-thalesians/perceptia-servers
+
+name: $(Build.BuildId)
+
+variables:
+  - group: Common
+  - group: Api
+  - group: ApiDevelopment
+  # Gateway Variables
+  - name: GatewayVersionMajor
+    value: '1'
+  - name: GatewayVersionMinor
+    value: '0'
+  - name: GatewayVersionPatch
+    value: '0'
+  - name: GatewayImageQualified
+    value: '$(DockerHubOrg)/$(GatewayImageName)'
+  # Mssql Variables
+  - name: MssqlVersionMajor
+    value: '1'
+  - name: MssqlVersionMinor
+    value: '0'
+  - name: MssqlVersionPatch
+    value: '0'
+  - name: MssqlImageQualified
+    value: '$(DockerHubOrg)/$(MssqlImageName)'
+  # Aqrest Variables
+  - name: AqrestVersionMajor
+    value: '1'
+  - name: AqrestVersionMinor
+    value: '1'
+  - name: AqrestVersionPatch
+    value: '0'
+  - name: AqrestImageQualified
+    value: '$(DockerHubOrg)/$(AqrestImageName)'
+  # Aqmysql Variables
+  - name: AqmysqlVersionMajor
+    value: '1'
+  - name: AqmysqlVersionMinor
+    value: '0'
+  - name: AqmysqlVersionPatch
+    value: '0'
+  - name: AqmysqlImageQualified
+    value: '$(DockerHubOrg)/$(AqmysqlImageName)'
+  # Aqsolr Variables
+  - name: AqsolrVersionMajor
+    value: '1'
+  - name: AqsolrVersionMinor
+    value: '0'
+  - name: AqsolrVersionPatch
+    value: '0'
+  - name: AqsolrImageQualified
+    value: '$(DockerHubOrg)/$(AqsolrImageName)'
+  
 
 trigger:
   branches:
     include:
-    - master
     - develop
     - feature/*
     - hotfix/*
+    - release/*
   paths:
+    include:
+      - infrastructure/azp/*
+      - '*'
     exclude:
     - README.md
     - infrastructure/*
+    - api/*
 
 pr:
-  autoCancel: true
+  autoCancel: "true"
   branches:
     include:
     - master
     - develop
+    - release/*
   paths:
     exclude:
     - README.md
     - infrastructure/*
 
-pool:
-  vmImage: 'Ubuntu-16.04'
-
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+jobs: 
+- job: 'TestGatewayUnitTests'
+  variables:
+    GOBIN:  '$(GOPATH)/bin' # Go binaries path
+    GOROOT: '/usr/local/go1.12.1' # Go installation path
+    GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
+    modulePath: '$(system.defaultWorkingDirectory)/gateway/gateway' # Path to the module's code
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+    - template: './infrastructure/azp/template/step/goSetupDirectory.yml'
+      parameters:
+        GOBIN: $(GOBIN)
+        GOROOT: $(GOROOT)
+        GOPATH: $(GOPATH)
+    - bash: go get -v -d ./...
+      workingDirectory: '$(modulePath)'
+      displayName: 'Get dependencies'
+    - bash: go test -tags=unit ./...
+      workingDirectory: '$(modulePath)'
+      displayName: 'Run unit tests'
+- job: 'BuildGatewayImage'
+  variables:
+  - name: ImageQualified 
+    value: $(GatewayImageQualified)
+  - name: ImageVersionMajor
+    value: $(GatewayVersionMajor)
+  - name: ImageVersionMinor
+    value: $(GatewayVersionMinor)
+  - name: ImageVersionPatch
+    value: $(GatewayVersionPatch)
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  dependsOn: 'TestGatewayUnitTests'
+  condition: succeeded()
+  steps:
+  - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
+    parameters:
+      dockerFile: '$(system.defaultWorkingDirectory)/gateway/Dockerfile'
+      qualifiedImageName: $(ImageQualified)
+  - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
+    parameters:
+      qualifiedImageName: $(ImageQualified)
+      versionMajor: $(ImageVersionMajor)
+      versionMinor: $(ImageVersionMinor)
+      versionPatch: $(ImageVersionPatch)
+      buildId: $(Build.BuildId)
+      branch: $(Build.SourceBranchName)
+      tagProduction: or(eq(variables[ 'productionTags'], 'true'), startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'))
+- job: 'BuildMssqlImage'
+  variables:
+  - name: ImageQualified 
+    value: $(MssqlImageQualified)
+  - name: ImageVersionMajor
+    value: $(MssqlVersionMajor)
+  - name: ImageVersionMinor
+    value: $(MssqlVersionMinor)
+  - name: ImageVersionPatch
+    value: $(MssqlVersionPatch)
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+  - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
+    parameters:
+      dockerFile: '$(system.defaultWorkingDirectory)/database/mssql/Dockerfile'
+      qualifiedImageName: $(ImageQualified)
+  - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
+    parameters:
+      qualifiedImageName: $(ImageQualified)
+      versionMajor: $(ImageVersionMajor)
+      versionMinor: $(ImageVersionMinor)
+      versionPatch: $(ImageVersionPatch)
+      buildId: $(Build.BuildId)
+      branch: $(Build.SourceBranchName)
+      tagProduction: or(eq(variables[ 'productionTags'], 'true'), startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'))
+- job: 'BuildAqrestImage'
+  variables:
+  - name: ImageQualified 
+    value: $(AqrestImageQualified)
+  - name: ImageVersionMajor
+    value: $(AqrestVersionMajor)
+  - name: ImageVersionMinor
+    value: $(AqrestVersionMinor)
+  - name: ImageVersionPatch
+    value: $(AqrestVersionPatch)
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+  - bash: composer install --no-interaction
+    workingDirectory: './REST/aq'
+    displayName: 'Get dependencies'
+  - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
+    parameters:
+      dockerFile: '$(system.defaultWorkingDirectory)/REST/Dockerfile'
+      qualifiedImageName: $(ImageQualified)
+  - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
+    parameters:
+      qualifiedImageName: $(ImageQualified)
+      versionMajor: $(ImageVersionMajor)
+      versionMinor: $(ImageVersionMinor)
+      versionPatch: $(ImageVersionPatch)
+      buildId: $(Build.BuildId)
+      branch: $(Build.SourceBranchName)
+      tagProduction: or(eq(variables[ 'productionTags'], 'true'), startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'))
+- job: 'BuildAqmysqlImage'
+  variables:
+  - name: ImageQualified 
+    value: $(AqmysqlImageQualified)
+  - name: ImageVersionMajor
+    value: $(AqmysqlVersionMajor)
+  - name: ImageVersionMinor
+    value: $(AqmysqlVersionMinor)
+  - name: ImageVersionPatch
+    value: $(AqmysqlVersionPatch)
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+  - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
+    parameters:
+      dockerFile: '$(system.defaultWorkingDirectory)/database/mysql/Dockerfile'
+      qualifiedImageName: $(ImageQualified)
+  - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
+    parameters:
+      qualifiedImageName: $(ImageQualified)
+      versionMajor: $(ImageVersionMajor)
+      versionMinor: $(ImageVersionMinor)
+      versionPatch: $(ImageVersionPatch)
+      buildId: $(Build.BuildId)
+      branch: $(Build.SourceBranchName)
+      tagProduction: or(eq(variables[ 'productionTags'], 'true'), startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'))
+- job: 'BuildAqsolrImage'
+  variables:
+  - name: ImageQualified 
+    value: $(AqsolrImageQualified)
+  - name: ImageVersionMajor
+    value: $(AqsolrVersionMajor)
+  - name: ImageVersionMinor
+    value: $(AqsolrVersionMinor)
+  - name: ImageVersionPatch
+    value: $(AqsolrVersionPatch)
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  steps:
+  - template: './infrastructure/azp/template/step/dockerStandardBuild.yml'
+    parameters:
+      dockerFile: '$(system.defaultWorkingDirectory)/content-analysis/Dockerfile'
+      qualifiedImageName: $(ImageQualified)
+  - template: './infrastructure/azp/template/step/dockerStandardTagPush.yml'
+    parameters:
+      qualifiedImageName: $(ImageQualified)
+      versionMajor: $(ImageVersionMajor)
+      versionMinor: $(ImageVersionMinor)
+      versionPatch: $(ImageVersionPatch)
+      buildId: $(Build.BuildId)
+      branch: $(Build.SourceBranchName)
+      tagProduction: or(eq(variables[ 'productionTags'], 'true'), startsWith(variables['Build.SourceBranch'], 'refs/heads/master/'))

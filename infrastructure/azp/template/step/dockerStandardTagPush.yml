@@ -1,0 +1,107 @@
+# File: dockerStandardTagPush.yml
+# Standard tag and push process
+
+parameters:
+  qualifiedImageName: '' # dockerhuborg/imagename
+  versionMajor: '' # major '1'
+  versionMinor: '' # minor '1'
+  versionPatch: '' # patch '1'
+  buildId: '' # buildNumber '127'
+  branch: '' # branchName 'develop'
+  tagProduction: false
+steps:
+  - task: Docker@1
+    displayName: 'Add branch specific tags'
+    inputs:
+      command: Tag image
+      imageName: ${{ parameters.qualifiedImageName }}
+      qualifyImageName: false
+      arguments: |
+        ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}.${{ parameters.versionMinor }}.${{ parameters.versionPatch }}-build-${{ parameters.buildId }}-branch-${{ parameters.branch }}
+        ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}-build-${{ parameters.buildId }}-branch-${{ parameters.branch }}
+        ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}.${{ parameters.versionMinor }}-build-${{ parameters.buildId }}-branch-${{ parameters.branch }}
+        ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}.${{ parameters.versionMinor }}.${{ parameters.versionPatch }}-build-latest-branch-${{ parameters.branch }}
+        ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}-build-latest-branch-${{ parameters.branch }}
+        ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}.${{ parameters.versionMinor }}-build-latest-branch-${{ parameters.branch }}
+  - task: Docker@1
+    displayName: 'Add production tags'
+    condition: ${{ parameters.tagProduction }}
+    inputs:
+      command: Tag image
+      imageName: ${{ parameters.qualifiedImageName }}
+      qualifyImageName: false
+      arguments: |
+        ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}.${{ parameters.versionMinor }}.${{ parameters.versionPatch }}
+        ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}
+        ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}.${{ parameters.versionMinor }}
+        ${{ parameters.qualifiedImageName }}:latest
+  - task: Docker@1
+    displayName: Login
+    inputs:
+      command: login
+      containerregistrytype: Container Registry
+      dockerRegistryEndpoint: uwthalesiansDockerHubConnection
+  - task: Docker@1
+    displayName: Push Version BuildId Branch Tag
+    inputs:
+      command: Push an image
+      imageName: ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}.${{ parameters.versionMinor }}.${{ parameters.versionPatch }}-build-${{ parameters.buildId }}-branch-${{ parameters.branch }}
+      qualifyImageName: false
+  - task: Docker@1
+    displayName: Push VersionMajor BuildId Branch Tag
+    inputs:
+      command: Push an image
+      imageName: ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}-build-${{ parameters.buildId }}-branch-${{ parameters.branch }}
+      qualifyImageName: false
+  - task: Docker@1
+    displayName: Push VersionMinor BuildId Branch Tag
+    inputs:
+      command: Push an image
+      imageName:  ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}.${{ parameters.versionMinor }}-build-${{ parameters.buildId }}-branch-${{ parameters.branch }}
+      qualifyImageName: false
+  - task: Docker@1
+    displayName: Push Version Latest Branch Tag
+    inputs:
+      command: Push an image
+      imageName: ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}.${{ parameters.versionMinor }}.${{ parameters.versionPatch }}-build-latest-branch-${{ parameters.branch }}
+      qualifyImageName: false
+  - task: Docker@1
+    displayName: Push VersionMajor Latest Branch Tag
+    inputs:
+      command: Push an image
+      imageName: ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}-build-latest-branch-${{ parameters.branch }}
+      qualifyImageName: false
+  - task: Docker@1
+    displayName: Push VersionMinor Latest Branch Tag
+    inputs:
+      command: Push an image
+      imageName: ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}.${{ parameters.versionMinor }}-build-latest-branch-${{ parameters.branch }}
+      qualifyImageName: false
+  - task: Docker@1
+    displayName: Push Production Version Tag
+    condition: ${{ parameters.tagProduction }}
+    inputs:
+      command: Push an image
+      imageName: ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}.${{ parameters.versionMinor }}.${{ parameters.versionPatch }}
+      qualifyImageName: false
+  - task: Docker@1
+    displayName: Push Production Version Major Tag
+    condition: ${{ parameters.tagProduction }}
+    inputs:
+      command: Push an image
+      imageName: ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}
+      qualifyImageName: false
+  - task: Docker@1
+    displayName: Push Production Version Minor Tag
+    condition: ${{ parameters.tagProduction }}
+    inputs:
+      command: Push an image
+      imageName: ${{ parameters.qualifiedImageName }}:${{ parameters.versionMajor }}.${{ parameters.versionMinor }}
+      qualifyImageName: false
+  - task: Docker@1
+    displayName: Push Production Version Latest Tag
+    condition: ${{ parameters.tagProduction }}
+    inputs:
+      command: Push an image
+      imageName: ${{ parameters.qualifiedImageName }}:latest
+      qualifyImageName: false

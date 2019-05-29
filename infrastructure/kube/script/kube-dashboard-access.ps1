@@ -1,0 +1,1 @@
+kubectl apply -f ".\..\setup\kubedashboardaccess.yaml"

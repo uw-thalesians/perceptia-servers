@@ -1,0 +1,24 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: gateway
+  labels:
+    label.perceptia.info/name: gateway
+    label.perceptia.info/instance: gateway-1
+    label.perceptia.info/version: "1.0.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: server
+    label.perceptia.info/type: frontend
+    label.perceptia.info/part-of: perceptia-api
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-resource-group: perceptiaApi
+spec:
+  selector:
+    app: gateway
+  ports:
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: https
+  loadBalancerIP: 52.183.1.225
+  type: LoadBalancer

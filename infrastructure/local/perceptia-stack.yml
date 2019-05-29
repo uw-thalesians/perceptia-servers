@@ -1,0 +1,154 @@
+version: '3.7'
+services:
+  gateway:
+    image: ${GATEWAY_IMAGE_AND_TAG}
+    labels:
+      label.perceptia.info/name: gateway
+      label.perceptia.info/instance: gateway-1
+      label.perceptia.info/managed-by: docker
+      label.perceptia.info/component: server
+      label.perceptia.info/part-of: ${PERCEPTIA_STACK_NAME}
+    deploy:
+      replicas: 1
+    ports:
+      - target: 443
+        published: ${GATEWAY_PORT_PUBLISH}
+        mode: ingress
+    environment:
+      AQREST_HOSTNAME: "aqrest"
+      AQREST_PORT: "80"
+      GATEWAY_ENVIRONMENT: "development"
+      GATEWAY_SESSION_KEY: "Jw5sLdjkf6woIBE/d8tDetc+VJsql1O9K8Asdm/W9l/FiW+IfzKrsyKYON9s+MF8"
+      GATEWAY_TLSCERTPATH: "/encrypt/fullchain.pem"
+      GATEWAY_TLSKEYPATH: "/encrypt/privkey.pem"
+      GATEWAY_API_PORT: "${GATEWAY_API_PORT}"
+      MSSQL_DATABASE: "Perceptia"
+      MSSQL_HOST: "mssql"
+      MSSQL_PASSWORD: "${MSSQL_GATEWAY_SP_PASSWORD}"
+      MSSQL_PORT: "1433"
+      MSSQL_SCHEME: "sqlserver"
+      MSSQL_USERNAME: "${MSSQL_GATEWAY_SP_USERNAME}"
+      REDIS_ADDRESS: "redis:6379"
+    networks:
+      perceptia-stack-net:
+    volumes:
+      - type: bind 
+        source: ./encrypt
+        target: /encrypt
+        read_only: true
+  redis:
+    image: ${REDIS_IMAGE_AND_TAG}
+    labels:
+      label.perceptia.info/name: redis
+      label.perceptia.info/instance: redis-1
+      label.perceptia.info/managed-by: docker
+      label.perceptia.info/component: database
+      label.perceptia.info/part-of: ${PERCEPTIA_STACK_NAME}
+      label.perceptia.info/sub-part-of: gateway
+    deploy:
+      replicas: 1
+    ports: 
+      - target: 6379
+        published: ${REDIS_PORT_PUBLISH}
+        mode: ingress
+    volumes:
+      - type: volume
+        source: redis_pc_vol
+        target: /data
+    networks:
+      perceptia-stack-net:
+  mssql:
+    image: ${MSSQL_IMAGE_AND_TAG}
+    labels:
+      label.perceptia.info/name: mssql
+      label.perceptia.info/instance: mssql-1
+      label.perceptia.info/managed-by: docker
+      label.perceptia.info/component: database
+      label.perceptia.info/part-of: ${PERCEPTIA_STACK_NAME}
+      label.perceptia.info/sub-part-of: gateway
+    deploy:
+      replicas: 1
+    ports:
+      - target: 1433
+        published: ${MSSQL_PORT_PUBLISH}
+        mode: ingress    
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      SKIP_SETUP_IF_EXISTS: "Y"
+      MSSQL_ENVIRONMENT: "development"
+      GATEWAY_SP_USERNAME: "${MSSQL_GATEWAY_SP_USERNAME}"
+      GATEWAY_SP_PASSWORD: "${MSSQL_GATEWAY_SP_PASSWORD}"
+    volumes:
+      - type: volume
+        source: mssql_pc_vol
+        target: /var/opt/mssql
+    networks:
+      perceptia-stack-net:
+  aqrest:
+    image: ${AQREST_IMAGE_AND_TAG}
+    labels:
+      label.perceptia.info/name: aqrest
+      label.perceptia.info/instance: aqrest-1
+      label.perceptia.info/managed-by: docker
+      label.perceptia.info/component: server
+      label.perceptia.info/part-of: ${PERCEPTIA_STACK_NAME}
+    deploy:
+      replicas: 1
+    ports:
+      - target: 80
+        published: ${AQREST_PORT_PUBLISH}
+        mode: ingress 
+    environment:
+      user_pass: "${AQMYSQL_USER_PASS}"
+    networks:
+      perceptia-stack-net:
+  aqmysql:
+    image: ${AQMYSQL_IMAGE_AND_TAG}
+    labels:
+      label.perceptia.info/name: aqmysql
+      label.perceptia.info/instance: aqmysql-1
+      label.perceptia.info/managed-by: docker
+      label.perceptia.info/component: database
+      label.perceptia.info/part-of: ${PERCEPTIA_STACK_NAME}
+      label.perceptia.info/sub-part-of: aqrest
+    deploy:
+      replicas: 1
+    ports:
+      - target: 3306
+        published: ${AQMYSQL_PORT_PUBLISH}
+        mode: ingress 
+    environment:
+      MYSQL_ROOT_PASSWORD: "mrpw"
+      user_pass: "${AQMYSQL_USER_PASS}"
+    volumes:
+      - type: volume
+        source: aqmysql_pc_vol
+        target: /var/lib/mysql
+    networks:
+      perceptia-stack-net:
+  aqsolr:
+    image: ${AQSOLR_IMAGE_AND_TAG}
+    labels:
+      label.perceptia.info/name: aqsolr
+      label.perceptia.info/instance: aqsolr-1
+      label.perceptia.info/managed-by: docker
+      label.perceptia.info/component: server
+      label.perceptia.info/part-of: ${PERCEPTIA_STACK_NAME}
+      label.perceptia.info/sub-part-of: aqrest
+    deploy:
+      replicas: 1
+    ports:
+      - target: 8983
+        published: ${AQSOLR_PORT_PUBLISH}
+        mode: ingress
+    command: solr-precreate stream /opt/solr/server/solr/configsets/stream
+    networks:
+      perceptia-stack-net:
+networks:
+  perceptia-stack-net:
+    driver: overlay
+volumes:
+  redis_pc_vol:
+  mssql_pc_vol:
+  aqmysql_pc_vol:

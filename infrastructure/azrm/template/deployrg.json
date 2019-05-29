@@ -1,0 +1,34 @@
+{
+        "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+        "apiProfile": "2018-06-01-profile",
+        "contentVersion": "2.0.0.0",
+        "parameters": {
+                "resourceGroupName": {
+                    "type": "string",
+                    "metadata": {
+                        "description": "The name of the Resource Group to create."
+                    }
+                },
+                "partOf": {
+                        "type": "string",
+                        "metadata": {
+                            "description": "Tag noting the part of the application the resource group is for."
+                        }
+                    }
+        },
+        "variables": {},
+        "resources": [
+                {
+                "type": "Microsoft.Resources/resourceGroups",
+                "location": "westus2",
+                "name": "[parameters('resourceGroupName')]",
+                "properties": {
+                },
+                "tags":{
+                      "use": "capstone",
+                      "part-of": "[parameters('partOf')]"
+                }
+                }
+        ],
+        "outputs": {}
+}

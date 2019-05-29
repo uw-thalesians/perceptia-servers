@@ -1,0 +1,64 @@
+openapi: 3.0.2
+info:
+  title: Gateway Service API
+  description: This document describes the APIs that are provided directly by the
+    Gateway service of the Perceptia application. All other APIs in the Perceptia
+    application are handled by seperate services which the Gateway passes along.
+  contact:
+    name: Thalesians
+    email: uw-thalesians@u.washington.edu
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  version: 0.2.0
+servers:
+- url: https://api.perceptia.info
+  description: Perceptia Production API Server
+- url: https://api.dev.perceptia.info
+  description: Perceptia Development API Server
+- url: https://localhost:{port}
+  description: Localhost Development API Server
+  variables:
+    port:
+      description: The port the server listens on
+      default: "4443"
+paths:
+  /api/v1/gateway/health:
+    get:
+      tags:
+      - health
+      summary: Reports the status of the gateway, and the services it exposes.
+      description: Provides basic health information about the gateway. Output can
+        be expanded and filtered using the optional query parameters.
+      operationId: getGatewayHealth
+      responses:
+        200:
+          description: health response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+components:
+  schemas:
+    Health:
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          description: human text describing health report
+          example: Perceptia API Health Report
+        version:
+          type: string
+          description: text representation of the specific version of the api that
+            created this report
+          example: 1.1.1
+        status:
+          type: string
+          description: |
+            "Current status of the gateway, one of: starting: gateway is still coming up and may not respond to all requests; ready: ready to recieve requests; failed: some error has occured, quality of a given response is unknown"
+          example: ready
+          enum:
+          - starting
+          - ready
+          - failed
