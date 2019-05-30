@@ -17,7 +17,7 @@ $f3->set('ONERROR', function($f3){
 
 } );
 
-//$f3->set("CORS.origin", "*");
+$f3->set("CORS.origin", "*");
 
 $f3->set('DEBUG', 3);
 
@@ -124,6 +124,22 @@ $f3->route('GET /api/v1/anyquiz/study/@keyword', function($f3) {
     header('Content-Type: application/json');
     $quizController->studyJSON($keyword, $source);
 
+});
+
+$f3->route('POST /api/v1/anyquiz/questions/edit', function() {
+    header('Content-Type: application/json');
+    
+    $quizController = new QuizController();
+    
+    $quizController->editQuestionJSON($_SESSION['user']);
+});
+
+$f3->route('POST /api/v1/anyquiz/questions/delete', function() {
+    header('Content-Type: application/json');
+    
+    $quizController = new QuizController();
+    
+    $quizController->deleteQuestionJSON($_SESSION['user']);
 });
 
 $f3->route('POST /api/v1/anyquiz/questions/grade', function() {
