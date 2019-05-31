@@ -17,7 +17,7 @@ $f3->set('ONERROR', function($f3){
 
 } );
 
-$f3->set("CORS.origin", "*");
+//$f3->set("CORS.origin", "*");
 
 $f3->set('DEBUG', 3);
 
