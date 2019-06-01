@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  labels:
+    label.perceptia.info/name: redis-pvc
+    label.perceptia.info/version: "1.0.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: volume
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: redis
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: managed-premium
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mssql-pvc
+  labels:
+    label.perceptia.info/name: mssql-pvc
+    label.perceptia.info/version: "1.0.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: volume
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: mssql
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: managed-premium
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: aqmysql-pvc
+  labels:
+    label.perceptia.info/name: aqmysql-pvc
+    label.perceptia.info/version: "1.0.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: volume
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: aqmysql
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: managed-premium
+  resources:
+    requests:
+      storage: 10Gi
+---
