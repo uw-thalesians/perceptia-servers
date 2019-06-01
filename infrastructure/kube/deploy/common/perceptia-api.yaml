@@ -9,6 +9,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: server
     label.perceptia.info/type: frontend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
 spec:
   replicas: 1
@@ -25,6 +26,7 @@ spec:
         label.perceptia.info/managed-by: kubectl
         label.perceptia.info/component: server
         label.perceptia.info/type: frontend
+        label.perceptia.info/release: '0.2.0'
         label.perceptia.info/part-of: perceptia-api
     spec:
       containers:
@@ -105,6 +107,7 @@ metadata:
     label.perceptia.info/version: "5.0.4"
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: database
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/type: backend
     label.perceptia.info/sub-of: gateway
@@ -129,6 +132,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: database
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: gateway
 spec:
@@ -168,6 +172,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: database
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: gateway
 spec:
@@ -191,6 +196,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: database
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: gateway
 spec:
@@ -250,6 +256,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: server
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
 spec:
   selector:
@@ -271,6 +278,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: server
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
 spec:
   replicas: 1
@@ -287,6 +295,7 @@ spec:
         label.perceptia.info/managed-by: kubectl
         label.perceptia.info/component: server
         label.perceptia.info/type: backend
+        label.perceptia.info/release: '0.2.0'
         label.perceptia.info/part-of: perceptia-api
     spec:
       containers:
@@ -313,6 +322,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: database
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: aqrest
 spec:
@@ -336,6 +346,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: database
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: aqrest
 spec:
@@ -389,6 +400,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: server
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: aqrest
 spec:
@@ -411,6 +423,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: server
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: aqrest
 spec:
@@ -428,6 +441,7 @@ spec:
         label.perceptia.info/managed-by: kubectl
         label.perceptia.info/component: server
         label.perceptia.info/type: backend
+        label.perceptia.info/release: '0.2.0'
         label.perceptia.info/part-of: perceptia-api
         label.perceptia.info/sub-of: aqrest
     spec:

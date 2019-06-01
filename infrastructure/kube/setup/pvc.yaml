@@ -8,6 +8,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: volume
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: redis
 spec:
@@ -28,6 +29,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: volume
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: mssql
 spec:
@@ -48,6 +50,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: volume
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: aqmysql
 spec:
