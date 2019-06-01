@@ -12,7 +12,7 @@
             "value": "perceptiaCluster-dns"
         },
         "osDiskSizeGB": {
-            "value": 64
+            "value": 32
         },
         "agentCount": {
             "value": 2

@@ -322,6 +322,26 @@ spec:
   selector:
     app: aqmysql
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: aqmysql-pvc
+  labels:
+    label.perceptia.info/name: aqmysql-pvc
+    label.perceptia.info/version: "1.0.0"
+    label.perceptia.info/managed-by: kubectl
+    label.perceptia.info/component: volume
+    label.perceptia.info/type: backend
+    label.perceptia.info/part-of: perceptia-api
+    label.perceptia.info/sub-of: aqmysql
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: managed-premium
+  resources:
+    requests:
+      storage: 10Gi
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -367,13 +387,14 @@ spec:
                 key: user-password
         volumeMounts:
         - name: aqmysql-vol
-          mountPath: /var/opt/mssql
+          mountPath: /var/lib/mysql
         resources:
           limits:
             memory: 2Gi
       volumes:
         - name: aqmysql-vol
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: aqmysql-pvc
 ---
 apiVersion: v1
 kind: Service
