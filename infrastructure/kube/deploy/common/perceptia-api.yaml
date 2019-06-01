@@ -154,7 +154,8 @@ spec:
           mountPath: /data
       volumes:
         - name: redis-vol
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: redis-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -235,7 +236,8 @@ spec:
           mountPath: /var/opt/mssql
       volumes:
         - name: mssql-vol
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: mssql-pvc
 ---
 kind: Service
 apiVersion: v1
