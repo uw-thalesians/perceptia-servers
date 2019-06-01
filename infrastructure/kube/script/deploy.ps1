@@ -17,21 +17,25 @@ if ($Prod) {
 
 
 
-if ($DeletePVC) {
-        Write-Host "`n"
-        Write-Host "DeletePVC switch set, deleting all PVCs created with the ./../setup/pvc.yaml config..."
-        Write-Host "`n"
-        kubectl delete -f "./../setup/pvc.yaml" --namespace $NAMESPACE
-} else {
-        Write-Host "`n"
-        Write-Host "DeletePVC switch not set, existing PVCs created with the ./../setup/pvc.yaml config will be reused..."
-        Write-Host "`n"
-}
+
 
 if ($DeleteDeployment) {
         Write-Host "`n"
         Write-Host "Deleting Deployment for namespace: $NAMESPACE"
         kubectl delete -f "./../deploy/common" -f "./../deploy/$DEPLOY_DIR" --namespace $NAMESPACE
+        
+        if ($DeletePVC) {
+                Write-Host "`n"
+                Write-Host "Sleeping 15 seconds to allow deployment to finish deleting..."
+                Start-Sleep -Seconds 15
+                Write-Host "DeletePVC switch set, deleting all PVCs created with the ./../setup/pvc.yaml config..."
+                Write-Host "`n"
+                kubectl delete -f "./../setup/pvc.yaml" --namespace $NAMESPACE
+        } else {
+                Write-Host "`n"
+                Write-Host "DeletePVC switch not set, existing PVCs created with the ./../setup/pvc.yaml config will not be deleted..."
+                Write-Host "`n"
+        }
 } else {
         Write-Host "`n"
         Write-Host "Deploying for namespace: $NAMESPACE"
