@@ -392,8 +392,8 @@ class Connection
 
         //&rights=cc_publicdomain+cc_sharealike
         //&imgSize=large
-        //&cx=004799634748936919555:ewzgppgp6wu
-        $google_cse_rest_api_get = "https://www.googleapis.com/customsearch/v1?q=%22$search_keyword%22&searchType=image&safe=high&key=$GOOGLE_API_KEY";
+        //
+        $google_cse_rest_api_get = "https://www.googleapis.com/customsearch/v1?q=%22$search_keyword%22&cx=004799634748936919555:ewzgppgp6wu&searchType=image&safe=high&key=$GOOGLE_API_KEY";
 
         //print_r($google_cse_rest_api_get);
 
