@@ -82,7 +82,7 @@ class Connection
 
                 $row['paras'] = $paras;
 
-                #print_r($row);
+                //print_r($row);
                 $quiz = new Quiz( $row );
 
             } else {
@@ -165,7 +165,7 @@ class Connection
                 $response = json_decode($response, true)["response"];
                 // print_r($response);
 
-                #print_r($response["docs"][0]["attr_body"][0]);
+                //print_r($response["docs"][0]["attr_body"][0]);
 //https://github.com/commonsense/conceptnet5/wiki/API
                 switch($response["docs"][0]["attr_stream_content_type"])
                 {
@@ -265,6 +265,82 @@ class Connection
         } catch (Exception $e){
             echo "Error finding quiz: " . $e->getMessage();
             $result["error"] = STATUS::STATUS_NOTFOUND . " with keyword=$keyword and source=$source";
+        }
+
+        return $result;
+    }
+
+    public function deleteQuestion($user, $questionID) {
+
+        $sql = "DELETE FROM quiz_questions WHERE id=:questionID";
+
+        $result = array();
+
+        try {
+
+            $stmt = Connection::$conn->prepare($sql);
+            
+            //$stmt->bindValue(":owner", $user, PDO::PARAM_STR);
+            $stmt->bindValue(":questionID", $questionID, PDO::PARAM_INT);
+
+            $stmt->execute();
+
+            //$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            //print_r($rows);
+            $result["status"] = "Delete Successful";
+
+        } catch (Exception $e){
+            
+            $msg = $e->getMessage();
+            //echo "Error finding question: " . $e->getMessage();
+            $result["error"] = STATUS::STATUS_NOTFOUND . " with questionID=$questionID : $msg";
+
+        }
+
+        return $result;
+    }
+
+    public function editQuestion($user, $questionID, $newText, $newAnswer) {
+
+        $select_sql = "SELECT answer from quiz_questions where id=:questionID";
+
+        $sql = "UPDATE quiz_questions SET question=:newText, answer=:newAnswer WHERE id=:questionID";
+
+        $result = array();
+
+        try {
+
+            $stmt = Connection::$conn->prepare($select_sql);
+
+            $stmt->bindValue(":questionID", $questionID, PDO::PARAM_INT);
+            
+            $stmt->execute();
+
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $result["prevAnswer"] = $rows[0]["answer"];
+            $result["newAnswer"] = $newAnswer;
+
+            $stmt = Connection::$conn->prepare($sql);
+            
+            //$stmt->bindValue(":owner", $user, PDO::PARAM_STR);
+            $stmt->bindValue(":questionID", $questionID, PDO::PARAM_INT);
+            $stmt->bindValue(":newText", $newText, PDO::PARAM_STR);
+            $stmt->bindValue(":newAnswer", $newAnswer, PDO::PARAM_STR);
+
+            $stmt->execute();
+
+            //$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            //print_r($rows);
+
+        } catch (Exception $e){
+            
+            $msg = $e->getMessage();
+            //echo "Error finding question: " . $msg;
+            $result["error"] = STATUS::STATUS_NOTFOUND . " with questionID=$questionID : $msg";
+            
         }
 
         return $result;

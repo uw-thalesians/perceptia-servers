@@ -126,6 +126,22 @@ $f3->route('GET /api/v1/anyquiz/study/@keyword', function($f3) {
 
 });
 
+$f3->route('POST /api/v1/anyquiz/questions/edit', function() {
+    header('Content-Type: application/json');
+    
+    $quizController = new QuizController();
+    
+    $quizController->editQuestionJSON($_SESSION['user']);
+});
+
+$f3->route('POST /api/v1/anyquiz/questions/delete', function() {
+    header('Content-Type: application/json');
+    
+    $quizController = new QuizController();
+    
+    $quizController->deleteQuestionJSON($_SESSION['user']);
+});
+
 $f3->route('POST /api/v1/anyquiz/questions/grade', function() {
     header('Content-Type: application/json');
     
