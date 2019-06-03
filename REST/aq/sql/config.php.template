@@ -2,4 +2,5 @@
 define("DB_DSN","mysql:host=aqmysql;port=3306;dbname=any_quiz_db");
 define("DB_USERNAME", "any_quiz");
 define("DB_PASSWORD", "{pass}");
+define("GOOGLE_API_KEY", "{google_api_key}");
 ?>
