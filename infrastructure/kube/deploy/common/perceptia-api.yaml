@@ -9,6 +9,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: server
     label.perceptia.info/type: frontend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
 spec:
   replicas: 1
@@ -25,11 +26,12 @@ spec:
         label.perceptia.info/managed-by: kubectl
         label.perceptia.info/component: server
         label.perceptia.info/type: frontend
+        label.perceptia.info/release: '0.2.0'
         label.perceptia.info/part-of: perceptia-api
     spec:
       containers:
       - name: gateway
-        image: uwthalesians/gateway:1-build-455-branch-develop
+        image: uwthalesians/gateway:1-build-455-branch-master
         ports:
         - name: https
           containerPort: 443
@@ -105,6 +107,7 @@ metadata:
     label.perceptia.info/version: "5.0.4"
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: database
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/type: backend
     label.perceptia.info/sub-of: gateway
@@ -129,6 +132,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: database
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: gateway
 spec:
@@ -168,6 +172,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: database
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: gateway
 spec:
@@ -191,6 +196,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: database
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: gateway
 spec:
@@ -207,7 +213,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: mssql
-        image: uwthalesians/mssql:1-build-455-branch-develop
+        image: uwthalesians/mssql:1-build-455-branch-master
         ports:
         - name: mssql
           containerPort: 1433
@@ -250,6 +256,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: server
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
 spec:
   selector:
@@ -271,6 +278,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: server
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
 spec:
   replicas: 1
@@ -287,11 +295,12 @@ spec:
         label.perceptia.info/managed-by: kubectl
         label.perceptia.info/component: server
         label.perceptia.info/type: backend
+        label.perceptia.info/release: '0.2.0'
         label.perceptia.info/part-of: perceptia-api
     spec:
       containers:
       - name: aqrest
-        image: uwthalesians/aqrest:1.1.0-build-455-branch-develop
+        image: uwthalesians/aqrest:1.1.0-build-455-branch-master
         ports:
         - name: http
           containerPort: 80
@@ -318,6 +327,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: database
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: aqrest
 spec:
@@ -341,6 +351,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: database
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: aqrest
 spec:
@@ -357,7 +368,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: aqmysql
-        image: uwthalesians/aqmysql:1.0.0-build-455-branch-develop
+        image: uwthalesians/aqmysql:1.0.0-build-455-branch-master
         ports:
         - name: mysql
           containerPort: 3306
@@ -394,6 +405,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: server
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: aqrest
 spec:
@@ -416,6 +428,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: server
     label.perceptia.info/type: backend
+    label.perceptia.info/release: '0.2.0'
     label.perceptia.info/part-of: perceptia-api
     label.perceptia.info/sub-of: aqrest
 spec:
@@ -433,12 +446,13 @@ spec:
         label.perceptia.info/managed-by: kubectl
         label.perceptia.info/component: server
         label.perceptia.info/type: backend
+        label.perceptia.info/release: '0.2.0'
         label.perceptia.info/part-of: perceptia-api
         label.perceptia.info/sub-of: aqrest
     spec:
       containers:
       - name: aqsolr
-        image: uwthalesians/aqsolr:1.0.0-build-455-branch-develop
+        image: uwthalesians/aqsolr:1.0.0-build-455-branch-master
         command: 
           - "solr-precreate"
         args:
