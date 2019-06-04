@@ -404,7 +404,7 @@ class Connection
 
         $json = curl_exec($curl);
 
-        print_r($json);
+        //print_r($json);
         //print_r(curl_error($curl));
         //print_r(curl_getinfo($curl, CURLINFO_HTTP_CODE));
 
