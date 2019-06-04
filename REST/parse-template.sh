@@ -2,7 +2,7 @@
 
 echo "generating scripts with user pass from template"
 sed s/\{pass\}/$user_pass/ /var/www/html/py/config.py.template > /var/www/html/py/config.py
-sed s/\{pass\}/$user_pass/ /var/www/html/sql/config.php.template > /var/www/html/sql/config.php
+sed -e s/\{pass\}/$user_pass/ -e s/\{google_api_key\}/$google_api_key/ /var/www/html/sql/config.php.template > /var/www/html/sql/config.php
 
 if [ -z ${dev+x} ]; then
     echo "removing templates"

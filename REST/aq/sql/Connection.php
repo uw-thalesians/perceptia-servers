@@ -392,8 +392,10 @@ class Connection
 
         //&rights=cc_publicdomain+cc_sharealike
         //&imgSize=large
-        $google_cse_rest_api_get = "https://www.googleapis.com/customsearch/v1?q=%22$search_keyword%22&cx=004799634748936919555:ewzgppgp6wu&searchType=image&safe=high&key=AIzaSyAjG8-dIi5U_SeOKoaTMuHYseILeSSmRgU";
+        //
+        $google_cse_rest_api_get = "https://www.googleapis.com/customsearch/v1?q=%22$search_keyword%22&cx=004799634748936919555%3Aewzgppgp6wu&safe=high&searchType=image&key=". GOOGLE_API_KEY;
 
+        //"https://www.googleapis.com/customsearch/v1?q=apple&cx=004799634748936919555%3Aewzgppgp6wu&key=$GOOGLE_API_KEY";
         //print_r($google_cse_rest_api_get);
 
         //Google Custom Search v1 REST API
@@ -402,7 +404,10 @@ class Connection
 
         $json = curl_exec($curl);
 
-        //print_r($json);
+        print_r($json);
+        //print_r(curl_error($curl));
+        //print_r(curl_getinfo($curl, CURLINFO_HTTP_CODE));
+
 
         $search = json_decode($json, true);
         // $search = array();
@@ -411,6 +416,7 @@ class Connection
         //var_dump($search);
 
         if(array_key_exists('queries', $search)) {
+            //$search_results = $search['queries']['request']['totalResults'];
             $search_results = $search['queries']['request']['totalResults'];
         } else if(array_key_exists('error', $search)) {
             //print_r($search['error']);
