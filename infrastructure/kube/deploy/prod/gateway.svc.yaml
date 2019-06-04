@@ -9,7 +9,7 @@ metadata:
     label.perceptia.info/managed-by: kubectl
     label.perceptia.info/component: server
     label.perceptia.info/type: frontend
-    label.perceptia.info/release: '0.2.0'
+    label.perceptia.info/release: '0.3.0'
     label.perceptia.info/part-of: perceptia-api
   annotations:
     service.beta.kubernetes.io/azure-load-balancer-resource-group: perceptiaApi

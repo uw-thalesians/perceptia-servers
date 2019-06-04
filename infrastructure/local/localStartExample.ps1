@@ -1,6 +1,6 @@
 Param (
         [switch]$Latest,
-        [string]$Build = "329",
+        [string]$Build = "455",
         [String]$Branch = "develop",
         [switch]$CurrentBranch,
 
@@ -20,6 +20,7 @@ Param (
         [String]$AqRestVersion = "1.1.0",
         [String]$AqMySqlUserPassword = "8aWZjNadxspXQEHu",
         [String]$AqRestPortPublish = "47020",
+        [String]$AqRestGoogleApiKey,
 
         [String]$AqMySqlVersion = "1.0.0",
         [String]$AqMySqlPortPublish = "47021",
@@ -140,6 +141,17 @@ if (!$CleanUp) {
                 Write-Host "Version must be provided, but no version provided for aqrest, exiting..."
                 exit(1)
         }
+        Set-Item -Path env:AQREST_GOOGLE_API_KEY -Value "$AqRestGoogleApiKey"
+        if (($AqRestGoogleApiKey).Length -eq 0) {
+                if (($env:PERCEPTIA_AQREST_GOOGLE_API_KEY).Length -eq 0) {
+                        Write-Host "AqRestGoogleApiKey option must be provided or `n
+                        the environment variable PERCEPTIA_AQREST_GOOGLE_API_KEY must be set,`n
+                        but no google api key provided for aqrest, exiting..."
+                        exit(1)
+                }
+                Set-Item -Path env:AQREST_GOOGLE_API_KEY -Value "$env:PERCEPTIA_AQREST_GOOGLE_API_KEY"
+        }
+        
         Set-Item -Path env:AQREST_PORT_PUBLISH -Value $AqRestPortPublish
 
 

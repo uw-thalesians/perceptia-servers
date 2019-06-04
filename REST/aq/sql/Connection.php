@@ -82,7 +82,7 @@ class Connection
 
                 $row['paras'] = $paras;
 
-                #print_r($row);
+                //print_r($row);
                 $quiz = new Quiz( $row );
 
             } else {
@@ -165,7 +165,7 @@ class Connection
                 $response = json_decode($response, true)["response"];
                 // print_r($response);
 
-                #print_r($response["docs"][0]["attr_body"][0]);
+                //print_r($response["docs"][0]["attr_body"][0]);
 //https://github.com/commonsense/conceptnet5/wiki/API
                 switch($response["docs"][0]["attr_stream_content_type"])
                 {
@@ -270,6 +270,82 @@ class Connection
         return $result;
     }
 
+    public function deleteQuestion($user, $questionID) {
+
+        $sql = "DELETE FROM quiz_questions WHERE id=:questionID";
+
+        $result = array();
+
+        try {
+
+            $stmt = Connection::$conn->prepare($sql);
+            
+            //$stmt->bindValue(":owner", $user, PDO::PARAM_STR);
+            $stmt->bindValue(":questionID", $questionID, PDO::PARAM_INT);
+
+            $stmt->execute();
+
+            //$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            //print_r($rows);
+            $result["status"] = "Delete Successful";
+
+        } catch (Exception $e){
+            
+            $msg = $e->getMessage();
+            //echo "Error finding question: " . $e->getMessage();
+            $result["error"] = STATUS::STATUS_NOTFOUND . " with questionID=$questionID : $msg";
+
+        }
+
+        return $result;
+    }
+
+    public function editQuestion($user, $questionID, $newText, $newAnswer) {
+
+        $select_sql = "SELECT answer from quiz_questions where id=:questionID";
+
+        $sql = "UPDATE quiz_questions SET question=:newText, answer=:newAnswer WHERE id=:questionID";
+
+        $result = array();
+
+        try {
+
+            $stmt = Connection::$conn->prepare($select_sql);
+
+            $stmt->bindValue(":questionID", $questionID, PDO::PARAM_INT);
+            
+            $stmt->execute();
+
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $result["prevAnswer"] = $rows[0]["answer"];
+            $result["newAnswer"] = $newAnswer;
+
+            $stmt = Connection::$conn->prepare($sql);
+            
+            //$stmt->bindValue(":owner", $user, PDO::PARAM_STR);
+            $stmt->bindValue(":questionID", $questionID, PDO::PARAM_INT);
+            $stmt->bindValue(":newText", $newText, PDO::PARAM_STR);
+            $stmt->bindValue(":newAnswer", $newAnswer, PDO::PARAM_STR);
+
+            $stmt->execute();
+
+            //$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            //print_r($rows);
+
+        } catch (Exception $e){
+            
+            $msg = $e->getMessage();
+            //echo "Error finding question: " . $msg;
+            $result["error"] = STATUS::STATUS_NOTFOUND . " with questionID=$questionID : $msg";
+            
+        }
+
+        return $result;
+    }
+
     private function addNewQuiz($keyword, $summary, $source, $quiz_id)//, $lang)
     {
         //https://cse.google.com/cse/create/new
@@ -316,8 +392,10 @@ class Connection
 
         //&rights=cc_publicdomain+cc_sharealike
         //&imgSize=large
-        $google_cse_rest_api_get = "https://www.googleapis.com/customsearch/v1?q=%22$search_keyword%22&cx=004799634748936919555:ewzgppgp6wu&searchType=image&safe=high&key=AIzaSyAjG8-dIi5U_SeOKoaTMuHYseILeSSmRgU";
+        //
+        $google_cse_rest_api_get = "https://www.googleapis.com/customsearch/v1?q=%22$search_keyword%22&cx=004799634748936919555%3Aewzgppgp6wu&safe=high&searchType=image&key=". GOOGLE_API_KEY;
 
+        //"https://www.googleapis.com/customsearch/v1?q=apple&cx=004799634748936919555%3Aewzgppgp6wu&key=$GOOGLE_API_KEY";
         //print_r($google_cse_rest_api_get);
 
         //Google Custom Search v1 REST API
@@ -327,6 +405,9 @@ class Connection
         $json = curl_exec($curl);
 
         //print_r($json);
+        //print_r(curl_error($curl));
+        //print_r(curl_getinfo($curl, CURLINFO_HTTP_CODE));
+
 
         $search = json_decode($json, true);
         // $search = array();
@@ -335,6 +416,7 @@ class Connection
         //var_dump($search);
 
         if(array_key_exists('queries', $search)) {
+            //$search_results = $search['queries']['request']['totalResults'];
             $search_results = $search['queries']['request']['totalResults'];
         } else if(array_key_exists('error', $search)) {
             //print_r($search['error']);
