@@ -1,3 +1,4 @@
+Set-Variable -Name AQREST_GOOGLE_API_KEY -Value (Get-Content -Path $Env:SECRET_PERCEPTIA_SERVERS\keys\AqrestGoogleApiKey.txt)
 Set-Variable -Name AQMYSQL_ANYQUIZ_USER_PASSWORD -Value (Get-Content -Path $Env:SECRET_PERCEPTIA_SERVERS\keys\AqmysqlAnyQuizUserPassword.txt)
 Set-Variable -Name AQMYSQL_ROOT_PASSWORD -Value (Get-Content -Path $Env:SECRET_PERCEPTIA_SERVERS\keys\AqmysqlRootPassword.txt)
 Set-Variable -Name GATEWAY_SESSION_KEY -Value (Get-Content -Path $Env:SECRET_PERCEPTIA_SERVERS\keys\GatewaySessionKey.txt)
@@ -8,7 +9,7 @@ Set-Variable -Name GATEWAY_API_SCHEME -Value "https"
 Set-Variable -Name GATEWAY_API_HOST -Value "api.perceptia.info"
 Set-Variable -Name GATEWAY_API_PORT -Value "443"
 
-
+Set-Variable -Name AQREST_GOOGLE_API_KEY_DEV -Value (Get-Content -Path $Env:SECRET_PERCEPTIA_SERVERS\keysdev\AqrestGoogleApiKey.txt)
 Set-Variable -Name AQMYSQL_ANYQUIZ_USER_PASSWORD_DEV -Value (Get-Content -Path $Env:SECRET_PERCEPTIA_SERVERS\keysdev\AqmysqlAnyQuizUserPassword.txt)
 Set-Variable -Name AQMYSQL_ROOT_PASSWORD_DEV -Value (Get-Content -Path $Env:SECRET_PERCEPTIA_SERVERS\keysdev\AqmysqlRootPassword.txt)
 Set-Variable -Name GATEWAY_SESSION_KEY_DEV -Value (Get-Content -Path $Env:SECRET_PERCEPTIA_SERVERS\keysdev\GatewaySessionKey.txt)
@@ -23,6 +24,10 @@ Set-Variable -Name GATEWAY_API_PORT_DEV -Value "443"
 
 
 # Add production secrets
+
+kubectl create secret generic aqrest --type=string `
+--from-literal=google-api-key=$AQREST_GOOGLE_API_KEY `
+--namespace production
 
 kubectl create secret generic aqmysql --type=string `
 --from-literal=user-password=$AQMYSQL_ANYQUIZ_USER_PASSWORD `
@@ -43,6 +48,10 @@ kubectl create secret generic mssql --type=string `
 --namespace production 
 
 # Add development secrets
+
+kubectl create secret generic aqrest --type=string `
+--from-literal=google-api-key=$AQREST_GOOGLE_API_KEY_DEV `
+--namespace development
 
 kubectl create secret generic aqmysql --type=string `
 --from-literal=user-password=$AQMYSQL_ANYQUIZ_USER_PASSWORD_DEV `
