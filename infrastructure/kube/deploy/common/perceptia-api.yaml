@@ -301,6 +301,11 @@ spec:
               secretKeyRef:
                 name: aqmysql
                 key: user-password
+          - name: google_api_key
+            valueFrom:
+              secretKeyRef:
+                name: aqrest
+                key: google-api-key
 ---
 apiVersion: v1
 kind: Service

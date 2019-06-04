@@ -96,6 +96,8 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
 `-AqRestVersion` (String) sets the version of the aqrest image to use, default is a known stable version of the image
 
+`-AqRestGoogleApiKey` (String) sets the api key to be used by aqrest to find images for quizzes, using the Google Custom Search API, if this value is not set, will check for the environment variable PERCEPTIA_AQREST_GOOGLE_API_KEY, if neither are found the script will exit. Setting the AqRestGoogleApiKey will ignore whatever is set for the environment variable
+
 `-AqRestPortPublish` (String) sets the port that the aqrest service can recieve requests on, default is "47020" which maps to "80" inside the contianer (Note, the aqrest service is exposed to make it easier to make a direct connection to the container, and is not necessary for the service to function properly)
 
 `-AqMySqlVersion` (String) sets the version of the aqmysql image to use, default is a known stable version of the image
