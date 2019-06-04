@@ -101,6 +101,7 @@ services:
         mode: ingress 
     environment:
       user_pass: "${AQMYSQL_USER_PASS}"
+      google_api_key: "${AQREST_GOOGLE_API_KEY}"
     networks:
       perceptia-stack-net:
   aqmysql:

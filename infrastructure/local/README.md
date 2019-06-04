@@ -30,11 +30,13 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
 1. Read the [README in ./encrypt/](./encrypt/README.md) and follow the instructions there for running the createTlsCert.sh script to generate the Tls certificate and private key. These files will be used by the backend to accept requests using a Tls (secure) connection.
 
-2. Run `docker swarm init` if you haven't already started or attached a swarm master
+2. Run `docker swarm init` if you haven't already started or attached a swarm master.
 
         `docker swarm init`
 
-3. Run the localStatExample.ps1 script, see below:
+3. Ensure Google Api Key is provided: either set the PERCEPTIA_AQREST_GOOGLE_API_KEY environment variable, or provide the key using the -AqRestGoogleApiKey option when running the script (see step 4 below)
+
+4. Run the localStatExample.ps1 script, see below:
 
         To start the backend run the script with no options:
 
@@ -50,7 +52,7 @@ Note, you will need to create the Tls certs using the script in the encrypt dire
 
         `./localStartExample.ps1 -Latest -CurrentBranch`
 
-4. To remove the deployment (stop the containers) use the `-CleanUp` flag
+5. To remove the deployment (stop the containers) use the `-CleanUp` flag
 
         To stop the backend, run the script with the option `-CleanUp`
 
